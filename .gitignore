@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.DS_Store
+*.db
+customs_scraper.log
+.pytest_cache/
