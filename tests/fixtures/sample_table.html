@@ -1,0 +1,68 @@
+<!--
+  PLACEHOLDER fixture — replace this file with real HTML captured via:
+    python -m customs_scraper.main --debug-browser
+  Then update the selectors in customs_scraper/parser.py to match.
+
+  This synthetic fixture uses plausible HTML structure so test_parser.py
+  can run and validate the parsing logic before the real site is inspected.
+-->
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Export Query Results</title></head>
+<body>
+<div class="result-container">
+  <span class="total-count">Total: 3 records</span>
+  <table class="data-table" id="result-table">
+    <thead>
+      <tr>
+        <th>HS Code</th>
+        <th>Description</th>
+        <th>Country Code</th>
+        <th>Country</th>
+        <th>Export Value (USD)</th>
+        <th>Export Value (CNY)</th>
+        <th>Quantity</th>
+        <th>Unit</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>84713000</td>
+        <td>Portable digital automatic data processing machines</td>
+        <td>502</td>
+        <td>United States</td>
+        <td>1,234,567.89</td>
+        <td>8,888,888.00</td>
+        <td>5000</td>
+        <td>PCS</td>
+      </tr>
+      <tr>
+        <td>84713000</td>
+        <td>Portable digital automatic data processing machines</td>
+        <td>101</td>
+        <td>Germany</td>
+        <td>456,789.00</td>
+        <td>3,289,000.00</td>
+        <td>2000</td>
+        <td>PCS</td>
+      </tr>
+      <tr>
+        <td>84713000</td>
+        <td>Portable digital automatic data processing machines</td>
+        <td>304</td>
+        <td>Japan</td>
+        <td></td>
+        <td></td>
+        <td>0</td>
+        <td>PCS</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="pagination">
+    <a class="prev-page disabled">Prev</a>
+    <span class="current-page">1</span>
+    <a class="next-page" href="#">Next</a>
+  </div>
+</div>
+</body>
+</html>
