@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(python:*)",
+      "Bash(kill 48313)"
+    ]
+  }
+}

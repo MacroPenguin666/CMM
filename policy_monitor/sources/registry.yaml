@@ -1,0 +1,743 @@
+# =============================================================================
+# China Policy Monitor — Source Registry
+# =============================================================================
+# Verified government websites, news outlets, and legal databases for tracking
+# Chinese policy announcements, work reports, and regulatory changes.
+#
+# Each source includes:
+#   - Direct URL for the official website
+#   - RSSHub route (where available) for feed-based monitoring
+#   - Category and content type tags
+#
+# RSSHub instance: https://rsshub.app (public) or self-hosted
+# RSSHub docs: https://github.com/DIYgod/RSSHub (43k+ stars, actively maintained)
+# =============================================================================
+
+rsshub_base: "https://rsshub.app"
+
+# -----------------------------------------------------------------------------
+# 1. CENTRAL GOVERNMENT — TOP-LEVEL BODIES
+# -----------------------------------------------------------------------------
+central_government:
+
+  - name: "State Council (国务院)"
+    name_cn: "国务院"
+    url: "https://www.gov.cn"
+    category: "central_government"
+    content_types: ["policies", "regulations", "work_reports", "executive_orders"]
+    rsshub_routes:
+      - route: "/gov/zhengce/zuixin"
+        description: "Latest policies (最新政策)"
+      - route: "/gov/zhengce/wenjian"
+        description: "Policy documents (政策文件)"
+    notes: "Primary portal for all State Council policy releases"
+
+  - name: "National People's Congress (全国人民代表大会)"
+    name_cn: "全国人民代表大会"
+    url: "http://www.npc.gov.cn"
+    category: "central_government"
+    content_types: ["legislation", "laws", "work_reports", "standing_committee"]
+    rsshub_routes:
+      - route: "/gov/npc/c183"
+        description: "NPC news and legislation"
+    notes: "Legislative body; publishes laws, amendments, and NPC Standing Committee decisions"
+
+  - name: "Chinese People's Political Consultative Conference (中国人民政治协商会议)"
+    name_cn: "中国人民政治协商会议"
+    url: "http://www.cppcc.gov.cn"
+    category: "central_government"
+    content_types: ["proposals", "political_consultation", "work_reports"]
+    rsshub_routes: []
+    notes: "Advisory body; publishes proposals and consultation reports"
+
+  - name: "National Development and Reform Commission (国家发展和改革委员会)"
+    name_cn: "国家发改委"
+    url: "https://www.ndrc.gov.cn"
+    category: "central_government"
+    content_types: ["economic_policy", "five_year_plans", "pricing", "industrial_policy"]
+    rsshub_routes:
+      - route: "/gov/ndrc/xwdt"
+        description: "NDRC news updates"
+    notes: "Key macro-economic planning body; publishes Five-Year Plans, industrial policies"
+
+# -----------------------------------------------------------------------------
+# 2. SPECIALIZED MINISTRIES & COMMISSIONS
+# -----------------------------------------------------------------------------
+ministries:
+
+  - name: "Ministry of Foreign Affairs (外交部)"
+    name_cn: "外交部"
+    url: "https://www.mfa.gov.cn"
+    category: "ministry"
+    content_types: ["foreign_policy", "press_conferences", "diplomatic_statements"]
+    rsshub_routes:
+      - route: "/gov/mfa/wjdt"
+        description: "Diplomatic developments"
+
+  - name: "Ministry of Finance (财政部)"
+    name_cn: "财政部"
+    url: "https://www.mof.gov.cn"
+    category: "ministry"
+    content_types: ["fiscal_policy", "budget", "tax_policy", "bonds"]
+    rsshub_routes:
+      - route: "/gov/mof/bond/noticeType"
+        description: "Government bond notices"
+
+  - name: "Ministry of Commerce (商务部)"
+    name_cn: "商务部"
+    url: "http://www.mofcom.gov.cn"
+    category: "ministry"
+    content_types: ["trade_policy", "foreign_investment", "sanctions", "export_controls"]
+    rsshub_routes:
+      - route: "/gov/mofcom/article/b"
+        description: "MOFCOM policy releases"
+
+  - name: "Ministry of Industry and Information Technology (工业和信息化部)"
+    name_cn: "工信部"
+    url: "https://www.miit.gov.cn"
+    category: "ministry"
+    content_types: ["industrial_policy", "telecom", "technology", "standards"]
+    rsshub_routes:
+      - route: "/gov/miit/wjfb/zh"
+        description: "MIIT document releases"
+      - route: "/gov/miit/zcjd"
+        description: "MIIT policy interpretations"
+
+  - name: "Ministry of Education (教育部)"
+    name_cn: "教育部"
+    url: "http://www.moe.gov.cn"
+    category: "ministry"
+    content_types: ["education_policy", "regulations", "university_governance"]
+    rsshub_routes:
+      - route: "/gov/moe/newest_file"
+        description: "Latest documents"
+      - route: "/gov/moe/newest_notice"
+        description: "Latest notices"
+
+  - name: "Ministry of Science and Technology (科学技术部)"
+    name_cn: "科技部"
+    url: "https://www.most.gov.cn"
+    category: "ministry"
+    content_types: ["science_policy", "research_funding", "innovation"]
+    rsshub_routes: []
+    notes: "Publishes S&T plans, funding announcements, innovation policies"
+
+  - name: "Ministry of Ecology and Environment (生态环境部)"
+    name_cn: "生态环境部"
+    url: "https://www.mee.gov.cn"
+    category: "ministry"
+    content_types: ["environmental_policy", "emissions", "pollution_control"]
+    rsshub_routes:
+      - route: "/gov/mee/ywdt"
+        description: "MEE important developments"
+
+  - name: "Ministry of Natural Resources (自然资源部)"
+    name_cn: "自然资源部"
+    url: "https://www.mnr.gov.cn"
+    category: "ministry"
+    content_types: ["land_policy", "mining", "ocean_governance"]
+    rsshub_routes: []
+
+  - name: "Ministry of Transport (交通运输部)"
+    name_cn: "交通运输部"
+    url: "https://www.mot.gov.cn"
+    category: "ministry"
+    content_types: ["transport_policy", "infrastructure", "logistics"]
+    rsshub_routes:
+      - route: "/gov/mot/zhengcejiedu"
+        description: "MOT policy interpretations"
+
+  - name: "Ministry of Agriculture and Rural Affairs (农业农村部)"
+    name_cn: "农业农村部"
+    url: "http://www.moa.gov.cn"
+    category: "ministry"
+    content_types: ["agricultural_policy", "rural_development", "food_security"]
+    rsshub_routes:
+      - route: "/gov/moa/gk"
+        description: "MOA public information"
+
+  - name: "Ministry of Justice (司法部)"
+    name_cn: "司法部"
+    url: "http://www.moj.gov.cn"
+    category: "ministry"
+    content_types: ["legal_reform", "legislative_opinions", "judicial_policy"]
+    rsshub_routes:
+      - route: "/gov/moj/lfyjzj"
+        description: "Legislative opinion solicitation"
+
+  - name: "Ministry of Human Resources and Social Security (人力资源和社会保障部)"
+    name_cn: "人社部"
+    url: "http://www.mohrss.gov.cn"
+    category: "ministry"
+    content_types: ["labor_policy", "social_security", "employment"]
+    rsshub_routes: []
+
+  - name: "Ministry of Housing and Urban-Rural Development (住房和城乡建设部)"
+    name_cn: "住建部"
+    url: "https://www.mohurd.gov.cn"
+    category: "ministry"
+    content_types: ["housing_policy", "real_estate", "urban_planning"]
+    rsshub_routes: []
+
+  - name: "Ministry of Water Resources (水利部)"
+    name_cn: "水利部"
+    url: "http://www.mwr.gov.cn"
+    category: "ministry"
+    content_types: ["water_policy", "flood_control", "irrigation"]
+    rsshub_routes: []
+
+  - name: "Ministry of Veterans Affairs (退役军人事务部)"
+    name_cn: "退役军人事务部"
+    url: "https://www.mva.gov.cn"
+    category: "ministry"
+    content_types: ["veterans_policy"]
+    rsshub_routes: []
+
+  - name: "Ministry of Emergency Management (应急管理部)"
+    name_cn: "应急管理部"
+    url: "https://www.mem.gov.cn"
+    category: "ministry"
+    content_types: ["safety_regulations", "disaster_response"]
+    rsshub_routes:
+      - route: "/gov/mem/gk"
+        description: "MEM public information"
+
+  - name: "Ministry of Culture and Tourism (文化和旅游部)"
+    name_cn: "文旅部"
+    url: "https://www.mct.gov.cn"
+    category: "ministry"
+    content_types: ["cultural_policy", "tourism_regulation"]
+    rsshub_routes: []
+
+  - name: "National Health Commission (国家卫生健康委员会)"
+    name_cn: "国家卫健委"
+    url: "http://www.nhc.gov.cn"
+    category: "ministry"
+    content_types: ["health_policy", "pandemic_response", "medical_reform"]
+    rsshub_routes: []
+    notes: "Critical for public health policy and pandemic-related regulations"
+
+  - name: "Ministry of State Security (国家安全部)"
+    name_cn: "国安部"
+    url: "https://www.12339.gov.cn"
+    category: "ministry"
+    content_types: ["national_security"]
+    rsshub_routes: []
+    notes: "Limited public-facing information; primarily counter-espionage related"
+
+  - name: "Ministry of Civil Affairs (民政部)"
+    name_cn: "民政部"
+    url: "https://www.mca.gov.cn"
+    category: "ministry"
+    content_types: ["social_governance", "ngo_regulation", "welfare"]
+    rsshub_routes: []
+
+  - name: "Ministry of Public Security (公安部)"
+    name_cn: "公安部"
+    url: "https://www.mps.gov.cn"
+    category: "ministry"
+    content_types: ["public_security", "immigration", "cybersecurity"]
+    rsshub_routes: []
+
+# -----------------------------------------------------------------------------
+# 3. REGULATORY & SUPERVISORY BODIES
+# -----------------------------------------------------------------------------
+regulators:
+
+  - name: "People's Bank of China (中国人民银行)"
+    name_cn: "中国人民银行"
+    url: "http://www.pbc.gov.cn"
+    category: "regulator"
+    content_types: ["monetary_policy", "financial_regulation", "exchange_rates"]
+    rsshub_routes:
+      - route: "/gov/pbc/goutongjiaoliu"
+        description: "PBC communications"
+
+  - name: "China Securities Regulatory Commission (中国证监会)"
+    name_cn: "证监会"
+    url: "http://www.csrc.gov.cn"
+    category: "regulator"
+    content_types: ["securities_regulation", "capital_markets", "ipo_rules"]
+    rsshub_routes:
+      - route: "/gov/csrc/auditstatus"
+        description: "CSRC audit/review status"
+
+  - name: "National Financial Regulatory Administration (国家金融监督管理总局)"
+    name_cn: "金融监管总局"
+    url: "https://www.cbirc.gov.cn"
+    category: "regulator"
+    content_types: ["banking_regulation", "insurance_regulation"]
+    rsshub_routes:
+      - route: "/gov/cbirc/gzlb"
+        description: "NFRA work updates"
+    notes: "Replaced CBIRC and parts of CSRC in 2023 institutional reform"
+
+  - name: "State Administration for Market Regulation (国家市场监督管理总局)"
+    name_cn: "市场监管总局"
+    url: "https://www.samr.gov.cn"
+    category: "regulator"
+    content_types: ["antitrust", "product_safety", "competition_policy"]
+    rsshub_routes:
+      - route: "/gov/samr/xgzlyhd"
+        description: "SAMR related work"
+
+  - name: "Cyberspace Administration of China (国家互联网信息办公室)"
+    name_cn: "国家网信办"
+    url: "http://www.cac.gov.cn"
+    category: "regulator"
+    content_types: ["internet_regulation", "data_governance", "ai_regulation", "content_moderation"]
+    rsshub_routes:
+      - route: "/gov/cac/jd"
+        description: "CAC policy interpretations"
+    notes: "Key regulator for AI, data privacy, cross-border data flow"
+
+  - name: "State Taxation Administration (国家税务总局)"
+    name_cn: "国家税务总局"
+    url: "https://www.chinatax.gov.cn"
+    category: "regulator"
+    content_types: ["tax_policy", "tax_regulation"]
+    rsshub_routes:
+      - route: "/gov/chinatax/latest"
+        description: "Latest tax policies"
+
+  - name: "General Administration of Customs (海关总署)"
+    name_cn: "海关总署"
+    url: "http://www.customs.gov.cn"
+    category: "regulator"
+    content_types: ["customs_policy", "trade_data", "tariffs", "import_export"]
+    rsshub_routes:
+      - route: "/gov/customs/list"
+        description: "Customs announcements"
+
+  - name: "National Medical Products Administration (国家药品监督管理局)"
+    name_cn: "国家药监局"
+    url: "https://www.nmpa.gov.cn"
+    category: "regulator"
+    content_types: ["drug_regulation", "medical_devices", "approvals"]
+    rsshub_routes:
+      - route: "/gov/nmpa/generic"
+        description: "NMPA announcements"
+
+  - name: "State Administration of Foreign Exchange (国家外汇管理局)"
+    name_cn: "外汇局"
+    url: "https://www.safe.gov.cn"
+    category: "regulator"
+    content_types: ["forex_policy", "capital_controls", "cross_border_finance"]
+    rsshub_routes:
+      - route: "/gov/safe/business"
+        description: "SAFE business updates"
+
+  - name: "National Bureau of Statistics (国家统计局)"
+    name_cn: "国家统计局"
+    url: "https://www.stats.gov.cn"
+    category: "regulator"
+    content_types: ["economic_data", "statistics", "gdp", "cpi"]
+    rsshub_routes:
+      - route: "/gov/stats/shuju"
+        description: "NBS data releases"
+    notes: "GDP, CPI, PMI, employment data, population statistics"
+
+  - name: "SASAC (国务院国有资产监督管理委员会)"
+    name_cn: "国资委"
+    url: "http://www.sasac.gov.cn"
+    category: "regulator"
+    content_types: ["soe_governance", "state_owned_enterprises", "reform"]
+    rsshub_routes:
+      - route: "/gov/sasac/n2588025/n2588124"
+        description: "SASAC news"
+    notes: "Supervises central SOEs; key for understanding state sector reform"
+
+  - name: "National Intellectual Property Administration (国家知识产权局)"
+    name_cn: "国家知识产权局"
+    url: "https://www.cnipa.gov.cn"
+    category: "regulator"
+    content_types: ["patent_policy", "ip_regulation", "trademark"]
+    rsshub_routes: []
+
+  - name: "Civil Aviation Administration of China (中国民用航空局)"
+    name_cn: "民航局"
+    url: "http://www.caac.gov.cn"
+    category: "regulator"
+    content_types: ["aviation_regulation", "airline_policy"]
+    rsshub_routes:
+      - route: "/gov/caac/cjwt"
+        description: "CAAC common questions/announcements"
+
+  - name: "National Radio and Television Administration (国家广播电视总局)"
+    name_cn: "广电总局"
+    url: "http://www.nrta.gov.cn"
+    category: "regulator"
+    content_types: ["media_regulation", "broadcasting", "content_censorship"]
+    rsshub_routes:
+      - route: "/gov/nrta/news"
+        description: "NRTA news"
+      - route: "/gov/nrta/dsj"
+        description: "NRTA data/statistics"
+
+  - name: "National Energy Administration (国家能源局)"
+    name_cn: "国家能源局"
+    url: "http://www.nea.gov.cn"
+    category: "regulator"
+    content_types: ["energy_policy", "renewables", "coal", "electricity"]
+    rsshub_routes:
+      - route: "/gov/nea/sjzz/ghs"
+        description: "NEA planning department"
+
+  - name: "National Forestry and Grassland Administration (国家林业和草原局)"
+    name_cn: "国家林草局"
+    url: "http://www.forestry.gov.cn"
+    category: "regulator"
+    content_types: ["forestry_policy", "conservation"]
+    rsshub_routes:
+      - route: "/gov/forestry/gjlyjxw"
+        description: "Forestry administration news"
+
+  - name: "China National Space Administration (国家航天局)"
+    name_cn: "国家航天局"
+    url: "http://www.cnsa.gov.cn"
+    category: "regulator"
+    content_types: ["space_policy", "satellite", "exploration"]
+    rsshub_routes:
+      - route: "/gov/cmse/xwdt"
+        description: "Space engineering news"
+
+# -----------------------------------------------------------------------------
+# 4. PARTY & DISCIPLINE BODIES
+# -----------------------------------------------------------------------------
+party_bodies:
+
+  - name: "Central Commission for Discipline Inspection (中央纪委国家监委)"
+    name_cn: "中央纪委国家监委"
+    url: "https://www.ccdi.gov.cn"
+    category: "party"
+    content_types: ["anti_corruption", "discipline_inspection", "investigations"]
+    rsshub_routes:
+      - route: "/gov/ccdi/scdc"
+        description: "CCDI audit and inspection announcements"
+    notes: "Anti-corruption investigations and party discipline"
+
+  - name: "CPC Central Committee (中共中央)"
+    name_cn: "中共中央"
+    url: "http://cpc.people.com.cn"
+    category: "party"
+    content_types: ["party_directives", "ideology", "plenum_decisions"]
+    rsshub_routes: []
+    notes: "Top-level party decisions published via Xinhua/People's Daily"
+
+# -----------------------------------------------------------------------------
+# 5. JUDICIARY & LEGAL
+# -----------------------------------------------------------------------------
+judiciary:
+
+  - name: "Supreme People's Court (最高人民法院)"
+    name_cn: "最高人民法院"
+    url: "https://www.court.gov.cn"
+    category: "judiciary"
+    content_types: ["judicial_interpretations", "court_decisions", "judicial_policy"]
+    rsshub_routes: []
+
+  - name: "Supreme People's Procuratorate (最高人民检察院)"
+    name_cn: "最高人民检察院"
+    url: "https://www.spp.gov.cn"
+    category: "judiciary"
+    content_types: ["prosecution_policy", "legal_oversight"]
+    rsshub_routes: []
+
+  - name: "National Laws & Regulations Database (国家法律法规数据库)"
+    name_cn: "国家法律法规数据库"
+    url: "https://flk.npc.gov.cn"
+    category: "legal_database"
+    content_types: ["laws", "regulations", "administrative_rules"]
+    rsshub_routes: []
+    notes: "FREE official database of all national laws and regulations"
+
+  - name: "China Judgments Online (中国裁判文书网)"
+    name_cn: "裁判文书网"
+    url: "https://wenshu.court.gov.cn"
+    category: "legal_database"
+    content_types: ["court_judgments", "case_law"]
+    rsshub_routes: []
+    notes: "FREE — largest open judicial database in the world"
+
+# -----------------------------------------------------------------------------
+# 6. STATE MEDIA & NEWS AGENCIES
+# -----------------------------------------------------------------------------
+state_media:
+
+  - name: "Xinhua News Agency (新华社)"
+    name_cn: "新华社"
+    url: "http://www.news.cn"
+    category: "state_media"
+    content_types: ["official_news", "policy_announcements", "commentary"]
+    rsshub_routes: []
+    notes: "Official news wire; first to publish major policy announcements"
+
+  - name: "People's Daily (人民日报)"
+    name_cn: "人民日报"
+    url: "http://www.people.com.cn"
+    category: "state_media"
+    content_types: ["editorials", "policy_commentary", "party_line"]
+    rsshub_routes: []
+    notes: "CPC official newspaper; editorials signal policy direction"
+
+  - name: "People's Daily Overseas Edition (人民日报海外版)"
+    name_cn: "人民日报海外版"
+    url: "http://paper.people.com.cn/rmrbhwb/"
+    category: "state_media"
+    content_types: ["foreign_policy_commentary", "diaspora"]
+    rsshub_routes: []
+
+  - name: "China Daily"
+    name_cn: "中国日报"
+    url: "https://www.chinadaily.com.cn"
+    category: "state_media"
+    content_types: ["english_language_news", "policy_commentary"]
+    rsshub_routes: []
+    notes: "English-language; useful for official English framings of policy"
+
+  - name: "Global Times (环球时报)"
+    name_cn: "环球时报"
+    url: "https://www.globaltimes.cn"
+    category: "state_media"
+    content_types: ["foreign_affairs_commentary", "nationalism", "policy_signals"]
+    rsshub_routes: []
+    notes: "English and Chinese; hawkish foreign policy commentary"
+
+  - name: "CCTV / China Central Television (中央广播电视总台)"
+    name_cn: "央视"
+    url: "https://www.cctv.com"
+    category: "state_media"
+    content_types: ["broadcast_news", "policy_coverage"]
+    rsshub_routes: []
+
+  - name: "Economic Daily (经济日报)"
+    name_cn: "经济日报"
+    url: "http://www.ce.cn"
+    category: "state_media"
+    content_types: ["economic_policy", "economic_commentary"]
+    rsshub_routes: []
+    notes: "State Council-affiliated; key for economic policy signals"
+
+  - name: "Legal Daily (法治日报)"
+    name_cn: "法治日报"
+    url: "http://www.legaldaily.com.cn"
+    category: "state_media"
+    content_types: ["legal_news", "judicial_reform", "legislation"]
+    rsshub_routes: []
+    notes: "Ministry of Justice-affiliated newspaper"
+
+  - name: "Caixin (财新)"
+    name_cn: "财新"
+    url: "https://www.caixin.com"
+    category: "media"
+    content_types: ["financial_news", "investigative", "economic_analysis"]
+    rsshub_routes: []
+    notes: "Semi-independent financial media; paywalled but highly influential"
+
+  - name: "The Paper (澎湃新闻)"
+    name_cn: "澎湃新闻"
+    url: "https://www.thepaper.cn"
+    category: "media"
+    content_types: ["news", "policy_analysis", "investigative"]
+    rsshub_routes: []
+    notes: "Shanghai state-backed but relatively independent"
+
+# -----------------------------------------------------------------------------
+# 7. OFFICIAL SOCIAL MEDIA / WECHAT ACCOUNTS
+# -----------------------------------------------------------------------------
+social_media:
+  notes: |
+    Major government bodies operate official WeChat Public Accounts (微信公众号).
+    These often publish policy documents BEFORE or simultaneously with official websites.
+    RSSHub can convert many WeChat accounts to RSS feeds.
+    WeChat accounts cannot be directly scraped — use intermediary services.
+
+  wechat_accounts:
+    - name: "国务院客户端"
+      entity: "State Council"
+      wechat_id: "zhongguo-zhengfu"
+      notes: "State Council official account"
+
+    - name: "新华社"
+      entity: "Xinhua News Agency"
+      wechat_id: "xinhuashefabu1"
+      notes: "Xinhua breaking news and policy announcements"
+
+    - name: "人民日报"
+      entity: "People's Daily"
+      wechat_id: "rmrb"
+      notes: "People's Daily official account"
+
+    - name: "央视新闻"
+      entity: "CCTV News"
+      wechat_id: "cctvnewscenter"
+      notes: "CCTV news highlights"
+
+    - name: "中国政府网"
+      entity: "gov.cn"
+      wechat_id: "zhengfu"
+      notes: "Central government portal account"
+
+    - name: "最高人民法院"
+      entity: "Supreme People's Court"
+      wechat_id: "ch_zgrmfy"
+      notes: "Judicial announcements"
+
+    - name: "中国证监会发布"
+      entity: "CSRC"
+      wechat_id: "csaborui"
+      notes: "Securities regulation announcements"
+
+    - name: "网信中国"
+      entity: "Cyberspace Administration"
+      wechat_id: "cacweixin"
+      notes: "Internet/AI regulation updates"
+
+  intermediary_services:
+    - name: "WeRSS"
+      url: "https://werss.app"
+      notes: "Converts WeChat public accounts to RSS feeds (paid service)"
+    - name: "Feeddd"
+      url: "https://feeddd.org"
+      notes: "Community-maintained WeChat-to-RSS service"
+
+# -----------------------------------------------------------------------------
+# 8. OPEN LEGAL & DATA RESOURCES
+# -----------------------------------------------------------------------------
+open_resources:
+
+  - name: "National Laws & Regulations Database"
+    url: "https://flk.npc.gov.cn"
+    type: "free"
+    notes: "Official NPC database — all current Chinese laws and regulations"
+
+  - name: "China Judgments Online"
+    url: "https://wenshu.court.gov.cn"
+    type: "free"
+    notes: "Court judgment database from Supreme People's Court"
+
+  - name: "PKULaw (北大法宝)"
+    url: "https://www.pkulaw.com"
+    type: "commercial"
+    notes: "Most comprehensive Chinese legal database; requires subscription"
+
+  - name: "LawInfoChina"
+    url: "https://www.lawinfochina.com"
+    type: "commercial"
+    notes: "English translations of Chinese laws; PKULaw sister site"
+
+  - name: "OpenLaw (开放法学)"
+    url: "https://openlaw.cn"
+    type: "free"
+    notes: "Open case law platform"
+
+  - name: "China Government Open Data"
+    url: "https://data.gov.cn"
+    type: "free"
+    notes: "National open data portal"
+
+  - name: "Beijing Open Data"
+    url: "https://data.beijing.gov.cn"
+    type: "free"
+    notes: "Beijing municipal open data"
+
+  - name: "Shanghai Open Data"
+    url: "https://data.sh.gov.cn"
+    type: "free"
+    notes: "Shanghai municipal open data"
+
+# -----------------------------------------------------------------------------
+# 9. DIRECT RSS FEEDS — VERIFIED WORKING FROM OUTSIDE CHINA
+# -----------------------------------------------------------------------------
+# These feeds are directly accessible without RSSHub or a Chinese VPS.
+# Last verified: 2026-04-09
+# -----------------------------------------------------------------------------
+direct_feeds:
+
+  - name: "China Daily — China News"
+    name_cn: "中国日报"
+    url: "https://www.chinadaily.com.cn/rss/china_rss.xml"
+    category: "state_media"
+    content_types: ["english_language_news", "policy_coverage"]
+    verified: true
+    notes: "~100 items per fetch; English-language state media"
+
+  - name: "Global Times"
+    name_cn: "环球时报"
+    url: "https://www.globaltimes.cn/rss/outbrain.xml"
+    category: "state_media"
+    content_types: ["foreign_affairs_commentary", "policy_signals"]
+    verified: true
+    notes: "~50 items; English; hawkish foreign policy signals"
+
+  - name: "Xinhua English — China"
+    name_cn: "新华社英文"
+    url: "http://www.xinhuanet.com/english/rss/chinarss.xml"
+    category: "state_media"
+    content_types: ["official_news", "policy_announcements"]
+    verified: true
+    notes: "~20 items; official news wire English feed"
+
+  - name: "People's Daily English — Politics"
+    name_cn: "人民日报英文版-政治"
+    url: "http://en.people.cn/rss/90785.xml"
+    category: "state_media"
+    content_types: ["politics", "party_line", "policy_commentary"]
+    verified: true
+    notes: "~50 items; CPC official newspaper English politics section"
+
+  - name: "People's Daily English — Business"
+    name_cn: "人民日报英文版-经济"
+    url: "http://en.people.cn/rss/90883.xml"
+    category: "state_media"
+    content_types: ["economic_policy", "trade", "business"]
+    verified: true
+    notes: "~50 items; economic/business coverage"
+
+  - name: "People's Daily English — Opinions"
+    name_cn: "人民日报英文版-评论"
+    url: "http://en.people.cn/rss/90777.xml"
+    category: "state_media"
+    content_types: ["editorials", "policy_commentary", "ideology"]
+    verified: true
+    notes: "~50 items; opinion pieces signal policy direction"
+
+  - name: "ECNS — China News Service English"
+    name_cn: "中新网英文"
+    url: "http://www.ecns.cn/rss/rss.xml"
+    category: "state_media"
+    content_types: ["news", "policy_coverage"]
+    verified: true
+    notes: "~100 items; second-largest state news agency after Xinhua"
+
+  - name: "SCMP — China Politics"
+    name_cn: "南华早报-中国政治"
+    url: "https://www.scmp.com/rss/4/feed"
+    category: "media"
+    content_types: ["politics", "policy_analysis", "investigative"]
+    verified: true
+    notes: "~50 items; Hong Kong-based; strong China political coverage"
+
+  - name: "MFA English — Diplomatic Developments"
+    name_cn: "外交部英文"
+    url: "https://www.mfa.gov.cn/eng/rss/wjdt_eng.xml"
+    category: "ministry"
+    content_types: ["foreign_policy", "diplomatic_statements"]
+    verified: true
+    notes: "Feed exists but may return 0 items; check periodically"
+
+  - name: "Gov.cn English — Policies"
+    name_cn: "中国政府网英文-政策"
+    url: "http://english.www.gov.cn/rss/policies.xml"
+    category: "central_government"
+    content_types: ["policies", "regulations"]
+    verified: true
+    notes: "Feed exists but may return 0 items; check periodically"
+
+  - name: "Gov.cn English — News"
+    name_cn: "中国政府网英文-新闻"
+    url: "http://english.www.gov.cn/rss/news.xml"
+    category: "central_government"
+    content_types: ["official_news", "policy_announcements"]
+    verified: true
+    notes: "Feed exists but may return 0 items; check periodically"
