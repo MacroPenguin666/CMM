@@ -1385,8 +1385,10 @@ async function initMap() {
       layer.on({
         mouseover: (e) => {
           e.target.setStyle({ fillColor: '#d4483b', fillOpacity: 0.25, color: '#d4483b', weight: 1.2 });
-          e.target.bringToFront();
-          // Keep province lines on top
+          // Keep province lines on top (do NOT bringToFront on e.target — doing so
+          // causes the browser to fire a synthetic mouseout mid-handler, which resets
+          // the style and then fires a second mouseover, leaving the feature stuck red
+          // when the cursor finally leaves).
           if (provLayer) provLayer.bringToFront();
           info.update(feature.properties);
         },
