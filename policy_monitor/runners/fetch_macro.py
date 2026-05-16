@@ -116,6 +116,81 @@ def run():
     except Exception as e:
         log.error(f"Macro fetch error: {e}")
 
+    # --- BIS ---
+    log.info("")
+    log.info("=" * 60)
+    log.info("BIS DATA")
+    log.info("=" * 60)
+    try:
+        from policy_monitor.bis import fetch_all_bis, get_bis_db
+
+        conn = get_bis_db()
+        ok, fail = fetch_all_bis(conn)
+        log.info(f"BIS: {ok} datasets OK, {fail} failed")
+        conn.close()
+    except Exception as e:
+        log.error(f"BIS fetch error: {e}")
+
+    # --- ECB ---
+    log.info("")
+    log.info("=" * 60)
+    log.info("ECB DATA")
+    log.info("=" * 60)
+    try:
+        from policy_monitor.ecb import fetch_all_ecb, get_ecb_db
+
+        conn = get_ecb_db()
+        ok, fail = fetch_all_ecb(conn)
+        log.info(f"ECB: {ok} datasets OK, {fail} failed")
+        conn.close()
+    except Exception as e:
+        log.error(f"ECB fetch error: {e}")
+
+    # --- Destatis ---
+    log.info("")
+    log.info("=" * 60)
+    log.info("DESTATIS DATA")
+    log.info("=" * 60)
+    try:
+        from policy_monitor.destatis import fetch_all_destatis, get_destatis_db
+
+        conn = get_destatis_db()
+        ok, fail = fetch_all_destatis(conn)
+        log.info(f"Destatis: {ok} datasets OK, {fail} failed")
+        conn.close()
+    except Exception as e:
+        log.error(f"Destatis fetch error: {e}")
+
+    # --- IMF + World Bank Global Macro ---
+    log.info("")
+    log.info("=" * 60)
+    log.info("IMF + WORLD BANK GLOBAL MACRO")
+    log.info("=" * 60)
+    try:
+        from policy_monitor.global_macro import fetch_all_global_macro, get_global_macro_db
+
+        conn = get_global_macro_db()
+        ok, fail = fetch_all_global_macro(conn)
+        log.info(f"Global macro: {ok} indicators OK, {fail} failed")
+        conn.close()
+    except Exception as e:
+        log.error(f"Global macro fetch error: {e}")
+
+    # --- IMF Fiscal Monitor ---
+    log.info("")
+    log.info("=" * 60)
+    log.info("IMF FISCAL MONITOR")
+    log.info("=" * 60)
+    try:
+        from policy_monitor.imf_fiscal import fetch_all_imf_fiscal, get_imf_fiscal_db
+
+        conn = get_imf_fiscal_db()
+        ok, fail = fetch_all_imf_fiscal(conn)
+        log.info(f"IMF Fiscal: {ok} indicators OK, {fail} failed")
+        conn.close()
+    except Exception as e:
+        log.error(f"IMF Fiscal fetch error: {e}")
+
     log.info("")
     log.info("Macro fetch complete.")
 

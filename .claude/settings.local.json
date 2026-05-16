@@ -3,7 +3,14 @@
     "allow": [
       "Bash(git add:*)",
       "Bash(python:*)",
-      "Bash(kill 48313)"
+      "Bash(kill 48313)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Hanne\\\\OneDrive\\\\Documents\\\\GitHub\\\\CMM\\\\policy_monitor\\\\\" -Recurse -File | Select-Object FullName | Sort-Object FullName)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\Hanne\\\\OneDrive\\\\Documents\\\\GitHub\\\\CMM\\\\policy_monitor\\\\\" -Recurse -File | ForEach-Object { $_.FullName -replace [regex]::Escape\\(\"c:\\\\Users\\\\Hanne\\\\OneDrive\\\\Documents\\\\GitHub\\\\CMM\\\\\"\\), \"\" } | Sort-Object)",
+      "Read(//c/Users/Hanne/.claude/projects/c--Users-Hanne-OneDrive-Documents-GitHub-CMM/**)",
+      "Read(//c/Users/Hanne/OneDrive/Documents/GitHub/**)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\Hanne\\.claude\\projects\\c--Users-Hanne-OneDrive-Documents-GitHub-CMM\\memory"
     ]
   }
 }

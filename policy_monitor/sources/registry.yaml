@@ -239,6 +239,16 @@ ministries:
     content_types: ["public_security", "immigration", "cybersecurity"]
     rsshub_routes: []
 
+  - name: "Ministry of National Defense (国防部)"
+    name_cn: "国防部"
+    url: "http://www.mod.gov.cn"
+    category: "ministry"
+    content_types: ["defense_policy", "military_statements", "defense_white_papers"]
+    rsshub_routes:
+      - route: "/gov/mod/xwfb"
+        description: "MND press briefings"
+    notes: "Defense white papers, official military statements, and PLA-related policy"
+
 # -----------------------------------------------------------------------------
 # 3. REGULATORY & SUPERVISORY BODIES
 # -----------------------------------------------------------------------------

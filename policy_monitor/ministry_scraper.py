@@ -9,6 +9,7 @@ appear in the dashboard and are available for the Policy Advisor.
 """
 
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from urllib.parse import urljoin
@@ -93,6 +94,112 @@ TARGETS = [
         "base": "https://www.samr.gov.cn",
         "description": "State Administration for Market Regulation news and enforcement",
     },
+
+    # -------------------------------------------------------------------------
+    # Financial Regulators
+    # -------------------------------------------------------------------------
+    {
+        "name": "PBOC — Policy Communications",
+        "name_cn": "中国人民银行-沟通交流",
+        "category": "regulator",
+        "url": "http://www.pbc.gov.cn/rmyh/108976/index.html",
+        "base": "http://www.pbc.gov.cn",
+        "description": "People's Bank of China monetary policy communications and press releases",
+    },
+    {
+        "name": "NFRA — Banking & Insurance Supervision",
+        "name_cn": "国家金融监督管理总局-最新动态",
+        "category": "regulator",
+        "url": "https://www.nfra.gov.cn/cn/view/pages/ItemList.html?itemPid=923&itemId=4115&itemUrl=ItemList.html",
+        "base": "https://www.nfra.gov.cn",
+        "description": "National Financial Regulatory Administration banking and insurance supervision updates",
+    },
+    {
+        "name": "CSRC — Securities Regulation",
+        "name_cn": "中国证监会-最新动态",
+        "category": "regulator",
+        "url": "http://www.csrc.gov.cn/csrc/c101954/",
+        "base": "http://www.csrc.gov.cn",
+        "description": "China Securities Regulatory Commission capital markets policy and enforcement",
+    },
+    {
+        "name": "SAFE — FX Policy",
+        "name_cn": "国家外汇管理局-通知公告",
+        "category": "regulator",
+        "url": "http://www.safe.gov.cn/safe/",
+        "base": "http://www.safe.gov.cn",
+        "description": "State Administration of Foreign Exchange FX policy announcements and capital controls",
+    },
+    # GAC (customs.gov.cn) and MPS (mps.gov.cn) block all external traffic — tracked
+    # in registry.yaml but cannot be directly scraped from outside China.
+
+    # -------------------------------------------------------------------------
+    # Security & Strategy
+    # -------------------------------------------------------------------------
+    {
+        "name": "MSS — National Security Notices",
+        "name_cn": "国家安全部-警示提示",
+        "category": "ministry",
+        "url": "https://www.12339.gov.cn/",
+        "base": "https://www.12339.gov.cn",
+        "description": "Ministry of State Security national security warnings and notices",
+    },
+
+    # -------------------------------------------------------------------------
+    # Industry & Technology
+    # -------------------------------------------------------------------------
+    {
+        "name": "MOST — Science & Technology Policy",
+        "name_cn": "科学技术部-科技报告",
+        "category": "ministry",
+        "url": "https://www.most.gov.cn/kjbgz/",
+        "base": "https://www.most.gov.cn",
+        "description": "Ministry of Science and Technology R&D policy, tech regulations, and innovation funding",
+    },
+    {
+        "name": "CAC — Internet & AI Regulation",
+        "name_cn": "国家互联网信息办公室",
+        "category": "regulator",
+        "url": "https://www.cac.gov.cn/",
+        "base": "https://www.cac.gov.cn",
+        "description": "Cyberspace Administration of China internet, data governance, and AI regulation",
+    },
+    {
+        "name": "NEA — Energy Policy",
+        "name_cn": "国家能源局-政府信息公开",
+        "category": "regulator",
+        "url": "http://www.nea.gov.cn/zfxxgk/",
+        "base": "http://www.nea.gov.cn",
+        "description": "National Energy Administration energy policy, renewables, and electricity regulation",
+    },
+
+    # -------------------------------------------------------------------------
+    # Social & Environment
+    # -------------------------------------------------------------------------
+    {
+        "name": "MEE — Environmental Standards",
+        "name_cn": "生态环境部-重要动态",
+        "category": "ministry",
+        "url": "https://www.mee.gov.cn/ywdt/ywdtjj/",
+        "base": "https://www.mee.gov.cn",
+        "description": "Ministry of Ecology and Environment carbon policy and environmental standards",
+    },
+    {
+        "name": "MOFCOM — Free Trade Zone Announcements",
+        "name_cn": "商务部-新闻发布",
+        "category": "ministry",
+        "url": "http://www.mofcom.gov.cn/xwfb/",
+        "base": "http://www.mofcom.gov.cn",
+        "description": "Ministry of Commerce FTZ and trade-related news releases (separate from zcfb policy docs)",
+    },
+    {
+        "name": "MARA — Agriculture Policy",
+        "name_cn": "农业农村部-新闻",
+        "category": "ministry",
+        "url": "http://www.moa.gov.cn/xw/",
+        "base": "http://www.moa.gov.cn",
+        "description": "Ministry of Agriculture and Rural Affairs agricultural policy and rural development",
+    },
 ]
 
 
@@ -138,9 +245,24 @@ def _date_from_href(href: str) -> str:
 # ---------------------------------------------------------------------------
 _MIN_TITLE_LEN = 8
 _NAV_SKIP = {"首页", "上一页", "下一页", "末页", "更多", ">>", "<<", "...", "返回", "查看更多"}
+_NEXT_PAGE_TEXTS = {"下一页", "下页", "后页", "后一页", "next", ">", "»"}
 
 
-def _extract_articles(tree, base_url: str, max_items: int = 25) -> list[dict]:
+def _find_next_page_url(tree, current_url: str, base_url: str) -> str | None:
+    """Detect the next-page URL from pagination controls on a gov.cn list page."""
+    for a in tree.xpath("//a[@href]"):
+        text = (a.text_content() or "").strip()
+        href = a.get("href", "")
+        if not href or href.startswith("javascript") or href.startswith("#"):
+            continue
+        if text in _NEXT_PAGE_TEXTS or "下一" in text:
+            url = urljoin(current_url, href)
+            if url != current_url:
+                return url
+    return None
+
+
+def _extract_articles(tree, base_url: str, max_items: int = 200) -> list[dict]:
     """
     Extract article (title, link, published) from a typical gov.cn list page.
 
@@ -239,14 +361,127 @@ def scrape_target(target: dict, timeout: int = 20) -> dict:
         }
 
 
-def scrape_all(targets: list[dict] | None = None, max_workers: int = 6,
-               timeout: int = 20) -> list[dict]:
-    """Fetch all ministry targets concurrently."""
+def scrape_target_paginated(
+    target: dict,
+    max_pages: int = 50,
+    known_links: set | None = None,
+    page_delay: float = 1.0,
+    timeout: int = 20,
+) -> dict:
+    """
+    Fetch one ministry with full pagination support.
+
+    max_pages   — hard ceiling on pages to fetch (use 100+ for initial full fetch,
+                  3-5 for incremental runs)
+    known_links — set of URLs already in the per-ministry DB; when every article on
+                  a page is already known, pagination stops (incremental mode)
+    page_delay  — seconds between page requests to avoid hammering the server
+    """
+    name = target["name"]
+    url = target["url"]
+    base = target["base"]
+    all_articles: list[dict] = []
+    seen_links: set[str] = set()
+    current_url = url
+    pages_fetched = 0
+
+    try:
+        for page_num in range(1, max_pages + 1):
+            resp = requests.get(current_url, headers=HEADERS, timeout=timeout)
+            resp.raise_for_status()
+            tree = lhtml.fromstring(resp.content)
+            articles = _extract_articles(tree, base, max_items=200)
+            pages_fetched = page_num
+
+            if not articles:
+                break
+
+            new_on_page = 0
+            for art in articles:
+                link = art.get("link", "")
+                if link in seen_links:
+                    continue
+                seen_links.add(link)
+                art["page_num"] = page_num
+                if known_links and link in known_links:
+                    continue  # already stored — don't add to result, but keep paginating
+                all_articles.append(art)
+                new_on_page += 1
+
+            # Incremental stop: if the whole page was already known we've caught up
+            if known_links is not None and new_on_page == 0:
+                break
+
+            next_url = _find_next_page_url(tree, current_url, base)
+            if not next_url:
+                break
+            current_url = next_url
+            if page_num < max_pages:
+                time.sleep(page_delay)
+
+        return {
+            "source": name,
+            "source_cn": target.get("name_cn", ""),
+            "category": target.get("category", "ministry"),
+            "feed_url": target["url"],
+            "description": target.get("description", ""),
+            "entries": all_articles,
+            "pages_fetched": pages_fetched,
+            "ok": True,
+        }
+    except Exception as exc:
+        return {
+            "source": name,
+            "source_cn": target.get("name_cn", ""),
+            "category": target.get("category", "ministry"),
+            "feed_url": target["url"],
+            "entries": all_articles,
+            "pages_fetched": pages_fetched,
+            "ok": False,
+            "error": str(exc),
+        }
+
+
+def scrape_all(
+    targets: list[dict] | None = None,
+    max_workers: int = 4,
+    timeout: int = 20,
+    paginate: bool = False,
+    max_pages: int = 3,
+    known_links_by_source: dict | None = None,
+    page_delay: float = 1.0,
+) -> list[dict]:
+    """
+    Fetch all ministry targets.
+
+    paginate=False  — quick single-page fetch (original behaviour, for dashboard refresh)
+    paginate=True   — full paginated fetch; use known_links_by_source for incremental stop
+    """
     if targets is None:
         targets = TARGETS
+
     results = []
-    with ThreadPoolExecutor(max_workers=max_workers) as pool:
-        futures = {pool.submit(scrape_target, t, timeout): t for t in targets}
-        for fut in as_completed(futures):
-            results.append(fut.result())
+    if not paginate:
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            futures = {pool.submit(scrape_target, t, timeout): t for t in targets}
+            for fut in as_completed(futures):
+                results.append(fut.result())
+    else:
+        # Paginated: sequential per target to respect page_delay rate-limiting
+        # but concurrent across targets up to max_workers
+        known = known_links_by_source or {}
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            futures = {
+                pool.submit(
+                    scrape_target_paginated,
+                    t,
+                    max_pages,
+                    known.get(t["name"]),
+                    page_delay,
+                    timeout,
+                ): t
+                for t in targets
+            }
+            for fut in as_completed(futures):
+                results.append(fut.result())
     return results

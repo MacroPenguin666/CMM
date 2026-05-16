@@ -28,6 +28,12 @@ from policy_monitor.macro import (
 )
 from policy_monitor.academic import get_academic_db, get_recent_articles, get_journal_summary, cast_vote, get_preferences
 from policy_monitor.advisor import generate_brief
+from policy_monitor.polity import get_polity_data, scrape_meeting_news
+from policy_monitor.eurostat import (
+    get_eurostat_db, get_eurostat_datasets, get_eurostat_series,
+    get_eurostat_latest, get_eurostat_indicators,
+    get_sme_scorecard, get_policy_scorecard, DATASET_META,
+)
 from policy_monitor.sources.loader import (
     get_all_sources,
     get_direct_feeds,
@@ -981,6 +987,119 @@ def api_advisor_brief():
 # Dashboard HTML — single-page app
 # ---------------------------------------------------------------------------
 
+@app.route("/api/polity")
+def api_polity():
+    return jsonify(get_polity_data())
+
+
+@app.route("/api/polity/meeting-news")
+def api_polity_meeting_news():
+    try:
+        items = scrape_meeting_news(max_items=20)
+    except Exception as e:
+        return jsonify({"error": str(e), "items": []})
+    return jsonify({"items": items})
+
+
+# ---------------------------------------------------------------------------
+# Eurostat — EU-China competitive intelligence
+# ---------------------------------------------------------------------------
+
+@app.route("/api/eurostat/datasets")
+def api_eurostat_datasets():
+    """List all stored Eurostat datasets with metadata and row counts."""
+    try:
+        conn = get_eurostat_db()
+        datasets = get_eurostat_datasets(conn)
+        conn.close()
+        return jsonify({"datasets": datasets, "meta": DATASET_META})
+    except Exception as e:
+        return jsonify({"datasets": [], "error": str(e)})
+
+
+@app.route("/api/eurostat/series")
+def api_eurostat_series():
+    """Time series for a dataset. ?dataset=ext_lt_intertrd&indicator=BAL_EU27_2020&start=2015"""
+    try:
+        dataset = request.args.get("dataset", "")
+        if not dataset:
+            return jsonify({"error": "dataset parameter required"}), 400
+        indicator = request.args.get("indicator") or None
+        geo = request.args.get("geo") or None
+        partner = request.args.get("partner") or None
+        nace = request.args.get("nace") or None
+        unit = request.args.get("unit") or None
+        start_year = request.args.get("start", type=int)
+        conn = get_eurostat_db()
+        data = get_eurostat_series(conn, dataset, indicator=indicator, geo=geo,
+                                   partner=partner, nace=nace, unit=unit,
+                                   start_year=start_year)
+        conn.close()
+        return jsonify({"dataset": dataset, "count": len(data), "data": data})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/eurostat/latest")
+def api_eurostat_latest():
+    """Latest value per indicator for a dataset. ?dataset=ext_lt_intertrd"""
+    try:
+        dataset = request.args.get("dataset", "")
+        if not dataset:
+            return jsonify({"error": "dataset parameter required"}), 400
+        conn = get_eurostat_db()
+        data = get_eurostat_latest(conn, dataset)
+        conn.close()
+        return jsonify({"dataset": dataset, "data": data})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/eurostat/indicators")
+def api_eurostat_indicators():
+    """List indicators stored for a dataset with year ranges. ?dataset=ext_lt_intertrd"""
+    try:
+        dataset = request.args.get("dataset", "")
+        if not dataset:
+            return jsonify({"error": "dataset parameter required"}), 400
+        conn = get_eurostat_db()
+        data = get_eurostat_indicators(conn, dataset)
+        conn.close()
+        return jsonify({"dataset": dataset, "indicators": data})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/eurostat/sme-scorecard")
+def api_eurostat_sme_scorecard():
+    """
+    SME competitive-intelligence scorecard:
+    EU-China trade flows, R&D investment, labour costs, patent trends.
+    """
+    try:
+        conn = get_eurostat_db()
+        scorecard = get_sme_scorecard(conn)
+        conn.close()
+        return jsonify(scorecard)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/eurostat/policy-scorecard")
+def api_eurostat_policy_scorecard():
+    """
+    Regulatory / policy-maker scorecard:
+    Chinese FDI in EU, trade imbalance trend, R&D intensity gap.
+    """
+    try:
+        conn = get_eurostat_db()
+        scorecard = get_policy_scorecard(conn)
+        conn.close()
+        return jsonify(scorecard)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/")
 def index():
     return DASHBOARD_HTML
@@ -1174,6 +1293,7 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
   <div class="tab" data-panel="history">Historical Context</div>
   <div class="tab" data-panel="academic">Academic</div>
   <div class="tab" data-panel="advisor">Policy Advisor</div>
+  <div class="tab" data-panel="polity">Political Structure</div>
 </div>
 
 <div class="wrap">
@@ -1405,6 +1525,72 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
     </div>
 
     <div id="adv-error" style="display:none;color:var(--accent);font-size:13px;margin-top:12px;"></div>
+  </div>
+</div>
+
+<!-- ====== POLITICAL STRUCTURE ====== -->
+<div class="panel" id="panel-polity">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;" id="polity-top-grid">
+
+    <!-- Hierarchy tree -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;">Political Hierarchy</span>
+        <span style="font-size:10px;color:var(--text3);">Click to expand</span>
+      </div>
+      <div id="polity-tree" style="padding:12px 16px;max-height:520px;overflow-y:auto;font-size:12px;"></div>
+    </div>
+
+    <!-- PSC members -->
+    <div>
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:12px;">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+          <span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;">Politburo Standing Committee</span>
+          <span style="font-size:10px;color:var(--text3);margin-left:8px;">7 members · supreme power</span>
+        </div>
+        <div id="polity-psc" style="padding:8px 0;"></div>
+      </div>
+
+      <!-- Recent meeting news -->
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+          <span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;">Recent Meeting News</span>
+          <button onclick="refreshMeetingNews()" style="margin-left:auto;padding:3px 10px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:4px;font-size:10px;cursor:pointer;">Refresh</button>
+        </div>
+        <div id="polity-news" style="padding:8px 0;max-height:220px;overflow-y:auto;font-size:12px;">
+          <div style="padding:12px 16px;color:var(--text3);">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Meeting calendar -->
+  <div class="card" style="padding:0;overflow:hidden;margin-bottom:20px;">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;">
+      <span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;">Meeting Calendar</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="polity-cal-filters">
+        <span class="pill active" onclick="setCalFilter('all',this)">All</span>
+        <span class="pill" onclick="setCalFilter('party_congress',this)">Party Congress</span>
+        <span class="pill" onclick="setCalFilter('plenum',this)">Plenums</span>
+        <span class="pill" onclick="setCalFilter('npc',this)">NPC</span>
+        <span class="pill" onclick="setCalFilter('cppcc',this)">CPPCC</span>
+        <span class="pill" onclick="setCalFilter('cewc',this)">CEWC</span>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:6px;">
+        <span class="pill active" id="cal-show-past" onclick="toggleCalPast()">Past</span>
+        <span class="pill active" id="cal-show-upcoming" onclick="toggleCalUpcoming()">Upcoming</span>
+      </div>
+    </div>
+    <div id="polity-calendar" style="padding:0;max-height:380px;overflow-y:auto;"></div>
+  </div>
+
+  <!-- Decision-making process -->
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+      <span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;">How China Makes Decisions</span>
+      <span style="font-size:10px;color:var(--text3);margin-left:8px;">Policy decision flow from top to implementation</span>
+    </div>
+    <div id="polity-process" style="padding:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;"></div>
   </div>
 </div>
 
@@ -2766,6 +2952,222 @@ async function generateBrief() {
 document.getElementById('adv-topic').addEventListener('keydown', e => {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) generateBrief();
 });
+
+// ========== POLITICAL STRUCTURE ==========
+let polityData = null;
+let calFilter = 'all';
+let calShowPast = true;
+let calShowUpcoming = true;
+
+const NODE_COLORS = {
+  root: 'var(--text2)', party: 'var(--accent)', psc: 'var(--accent)',
+  politburo: '#e8503b', committee: 'var(--accent2)', congress: 'var(--accent2)',
+  military_cmd: 'var(--purple)', discipline: 'var(--purple)', secretariat: 'var(--blue)',
+  state_gov: 'var(--blue)', legislature: 'var(--blue)', cabinet: 'var(--blue)',
+  advisory: 'var(--text2)', judiciary: 'var(--text2)',
+  military: 'var(--purple)', service: 'var(--purple)',
+  official: 'var(--green)', officials: 'var(--green)', ministries: 'var(--green)',
+};
+
+const EVENT_COLORS = {
+  party_congress: 'var(--accent)', plenum: 'var(--accent2)',
+  npc: 'var(--blue)', cppcc: 'var(--text2)', cewc: 'var(--green)',
+  politburo_regular: '#e8503b', psc_regular: 'var(--accent)',
+};
+
+const EVENT_LABELS = {
+  party_congress: 'Party Congress', plenum: 'Plenum', npc: 'NPC',
+  cppcc: 'CPPCC', cewc: 'CEWC', politburo_regular: 'Politburo', psc_regular: 'PSC',
+};
+
+async function loadPolity() {
+  if (polityData) return;
+  polityData = await api('/api/polity');
+  renderTree();
+  renderPSC();
+  renderCalendar();
+  renderProcess();
+  refreshMeetingNews();
+}
+
+// --- Hierarchy tree ---
+function renderTree() {
+  const el = document.getElementById('polity-tree');
+  el.innerHTML = renderNode(polityData.structure, 0);
+  el.querySelectorAll('.pt-header').forEach(h => {
+    h.addEventListener('click', () => {
+      const children = h.nextElementSibling;
+      if (children) {
+        const open = children.style.display !== 'none';
+        children.style.display = open ? 'none' : '';
+        h.querySelector('.pt-arrow').textContent = open ? '▶' : '▼';
+      }
+    });
+  });
+}
+
+function renderNode(node, depth) {
+  const color = NODE_COLORS[node.type] || 'var(--text2)';
+  const hasChildren = node.children && node.children.length > 0;
+  const indent = depth * 14;
+  const arrow = hasChildren ? '<span class="pt-arrow" style="font-size:8px;margin-right:5px;color:var(--text3);">▼</span>' : '<span style="display:inline-block;width:13px;"></span>';
+  let html = `<div style="margin-bottom:3px;">
+    <div class="pt-header" style="display:flex;align-items:flex-start;padding:5px 6px;padding-left:${indent + 6}px;border-radius:5px;cursor:${hasChildren ? 'pointer' : 'default'};transition:background 0.1s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+      ${arrow}
+      <div style="min-width:0;">
+        <span style="font-weight:600;color:${color};">${esc(node.name)}</span>
+        ${node.name_cn ? `<span style="font-size:10px;color:var(--text3);margin-left:6px;">${esc(node.name_cn)}</span>` : ''}
+        ${node.meeting_freq ? `<span style="font-size:9px;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;margin-left:6px;color:var(--text3);">${esc(node.meeting_freq)}</span>` : ''}
+        <div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.4;">${esc(node.desc || '')}</div>
+        ${node.members_note ? `<div style="font-size:10px;color:var(--text3);margin-top:1px;">${esc(node.members_note)}</div>` : ''}
+      </div>
+    </div>`;
+  if (hasChildren) {
+    html += `<div class="pt-children">` + node.children.map(c => renderNode(c, depth + 1)).join('') + `</div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+// --- PSC members ---
+function renderPSC() {
+  const el = document.getElementById('polity-psc');
+  const psc = findNode(polityData.structure, 'psc');
+  if (!psc || !psc.members) return;
+  el.innerHTML = psc.members.map(m => `
+    <div style="display:flex;align-items:flex-start;padding:7px 16px;border-bottom:1px solid var(--border);">
+      <div style="width:22px;height:22px;border-radius:50%;background:var(--surface2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--accent);flex-shrink:0;margin-right:10px;margin-top:1px;">${m.rank}</div>
+      <div>
+        <div style="font-weight:600;font-size:12px;">${esc(m.name)} <span style="font-size:10px;color:var(--text3);font-weight:400;">${esc(m.name_cn)}</span></div>
+        <div style="font-size:10px;color:var(--text2);margin-top:1px;">${m.roles.map(r => esc(r)).join(' · ')}</div>
+      </div>
+    </div>`).join('');
+}
+
+function findNode(node, id) {
+  if (node.id === id) return node;
+  for (const c of (node.children || [])) {
+    const r = findNode(c, id);
+    if (r) return r;
+  }
+  return null;
+}
+
+// --- Calendar ---
+function setCalFilter(f, el) {
+  calFilter = f;
+  document.querySelectorAll('#polity-cal-filters .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderCalendar();
+}
+
+function toggleCalPast() {
+  calShowPast = !calShowPast;
+  document.getElementById('cal-show-past').classList.toggle('active', calShowPast);
+  renderCalendar();
+}
+
+function toggleCalUpcoming() {
+  calShowUpcoming = !calShowUpcoming;
+  document.getElementById('cal-show-upcoming').classList.toggle('active', calShowUpcoming);
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const el = document.getElementById('polity-calendar');
+  let events = polityData.calendar.filter(e => {
+    if (calFilter !== 'all' && e.type !== calFilter) return false;
+    if (e.status === 'past' && !calShowPast) return false;
+    if (e.status === 'upcoming' && !calShowUpcoming) return false;
+    return true;
+  });
+
+  if (!events.length) { el.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:12px;">No events match filters.</div>'; return; }
+
+  const today = new Date().toISOString().slice(0,10);
+  el.innerHTML = events.map(ev => {
+    const color = EVENT_COLORS[ev.type] || 'var(--text2)';
+    const label = EVENT_LABELS[ev.type] || ev.type;
+    const isPast = ev.status === 'past';
+    const isApprox = ev.approximate;
+    const daysFrom = ev.start ? Math.round((new Date(ev.start) - new Date(today)) / 86400000) : null;
+    let daysStr = '';
+    if (daysFrom !== null) {
+      if (daysFrom === 0) daysStr = 'Today';
+      else if (daysFrom > 0) daysStr = `in ${daysFrom}d`;
+      else daysStr = `${-daysFrom}d ago`;
+    }
+    return `<div style="display:flex;align-items:flex-start;padding:10px 16px;border-bottom:1px solid var(--border);opacity:${isPast ? '0.7' : '1'};">
+      <div style="width:3px;min-height:36px;border-radius:2px;background:${color};margin-right:12px;flex-shrink:0;margin-top:2px;"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:9px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:0.5px;">${label}</span>
+          ${isApprox ? '<span style="font-size:9px;color:var(--text3);background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 4px;">~approx</span>' : ''}
+          ${!isPast ? `<span style="font-size:10px;font-weight:600;color:${color};margin-left:auto;">${daysStr}</span>` : ''}
+        </div>
+        <div style="font-weight:600;font-size:12px;margin-top:2px;">${esc(ev.name)}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px;">${esc(ev.name_cn || '')}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:3px;">${esc(ev.significance || '')}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;margin-left:12px;font-size:10px;color:var(--text3);">
+        ${ev.start ? `<div>${esc(ev.start)}</div>` : ''}
+        ${ev.end && ev.end !== ev.start ? `<div>${esc(ev.end)}</div>` : ''}
+        ${isPast ? '<div style="color:var(--text3);margin-top:2px;">past</div>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// --- Decision process ---
+function renderProcess() {
+  const el = document.getElementById('polity-process');
+  const proc = polityData.decision_process;
+  const typeColors = {
+    psc: 'var(--accent)', politburo: '#e8503b', committee: 'var(--accent2)',
+    legislature: 'var(--blue)', ministries: 'var(--green)', feedback: 'var(--purple)',
+  };
+  el.innerHTML = proc.map(p => {
+    const color = typeColors[p.type] || 'var(--text2)';
+    return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;position:relative;">
+      <div style="position:absolute;top:-1px;left:-1px;width:28px;height:28px;border-radius:7px 0 7px 0;background:${color};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;">${p.step}</div>
+      <div style="margin-left:24px;margin-bottom:6px;">
+        <div style="font-weight:700;font-size:12px;color:${color};">${esc(p.name)}</div>
+        <div style="font-size:10px;color:var(--text3);">${esc(p.body_cn)}</div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px;border-top:1px solid var(--border);padding-top:6px;">${esc(p.body)}</div>
+      <div style="font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:8px;">${esc(p.desc)}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;">
+        ${p.examples.map(ex => `<span style="font-size:9px;background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:2px 6px;color:var(--text3);">${esc(ex)}</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// --- Meeting news ---
+async function refreshMeetingNews() {
+  const el = document.getElementById('polity-news');
+  el.innerHTML = '<div style="padding:12px 16px;color:var(--text3);">Fetching from Xinhua...</div>';
+  try {
+    const data = await api('/api/polity/meeting-news');
+    const items = data.items || [];
+    if (!items.length) {
+      el.innerHTML = '<div style="padding:12px 16px;color:var(--text3);font-size:11px;">No recent meeting news found.</div>';
+      return;
+    }
+    el.innerHTML = items.map(item => `
+      <div style="padding:7px 16px;border-bottom:1px solid var(--border);">
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:2px;">
+          <span style="font-size:9px;font-weight:700;color:var(--accent);text-transform:uppercase;">${esc(item.body)}</span>
+          ${item.date ? `<span style="font-size:9px;color:var(--text3);">${esc(item.date)}</span>` : ''}
+        </div>
+        <div style="font-size:11px;">${item.link ? `<a href="${esc(item.link)}" target="_blank" style="color:var(--text);">${esc(item.title)}</a>` : esc(item.title)}</div>
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = `<div style="padding:12px 16px;color:var(--text3);font-size:11px;">Could not load: ${esc(e.message)}</div>`;
+  }
+}
+
+document.querySelector('[data-panel="polity"]').addEventListener('click', () => { loadPolity(); }, {once: true});
 
 </script>
 </body>

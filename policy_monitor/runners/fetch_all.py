@@ -23,23 +23,13 @@ log = logging.getLogger("fetch_all")
 
 
 def run():
-    # --- Ministry HTML scrapers ---
+    # --- Ministry HTML scrapers (incremental paginated) ---
     log.info("=" * 60)
     log.info("MINISTRY SCRAPERS (direct HTML)")
     log.info("=" * 60)
     try:
-        from policy_monitor.ministry_scraper import TARGETS, scrape_all
-        from policy_monitor.storage import get_db, get_item_count, store_feed_result
-
-        results = scrape_all(TARGETS, timeout=20)
-        db = get_db()
-        for r in results:
-            store_feed_result(db, r)
-        ok = sum(1 for r in results if r["ok"])
-        fail = len(results) - ok
-        total = sum(len(r.get("entries", [])) for r in results)
-        log.info(f"Ministries: {ok} OK, {fail} failed, {total} items fetched, {get_item_count(db)} total in DB")
-        db.close()
+        from policy_monitor.runners.fetch_ministries import run as run_ministries
+        run_ministries(force_full=False)
     except Exception as e:
         log.error(f"Ministry scrape error: {e}")
 
@@ -159,6 +149,21 @@ def run():
     #     conn.close()
     # except Exception as e:
     #     log.error(f"NBS fetch error: {e}")
+
+    # --- Eurostat EU-China competitive intelligence ---
+    log.info("")
+    log.info("=" * 60)
+    log.info("EUROSTAT — EU-China Competitive Intelligence")
+    log.info("=" * 60)
+    try:
+        from policy_monitor.eurostat import fetch_all_eurostat
+
+        results = fetch_all_eurostat()
+        ok = sum(1 for r in results if r["ok"])
+        stored = sum(r.get("stored", 0) for r in results)
+        log.info(f"Eurostat: {ok}/{len(results)} datasets OK, {stored} rows stored")
+    except Exception as e:
+        log.error(f"Eurostat fetch error: {e}")
 
     # --- Academic publications ---
     log.info("")
