@@ -1,19 +1,16 @@
 """
-WTO Data Portal fetcher.
+WTO Timeseries API fetcher.
 Requires WTO_API_KEY — free developer tier at https://api.wto.org
 
-Table: wto_series, wto_disputes in data/trade_stats.db
+Table: wto_series in data/trade_stats.db
 
-Indicators fetched (when key available):
-  TA_2_010   Bound tariff rates (simple avg, all products)
-  TA_1_020   Applied MFN tariff rates
-  TP_A010    Merchandise exports value (USD)
-  TP_A020    Merchandise imports value (USD)
-  TP_A050    Commercial services exports
-  TP_A060    Commercial services imports
-
-Dispute settlement:
-  All WTO dispute cases — DS number, parties, status, agreements cited
+Indicators fetched:
+  TP_A_0010   Simple average MFN applied tariff — all products
+  TP_A_0030   Trade-weighted MFN applied tariff — all products
+  TP_A_0160   Simple average MFN applied tariff — agricultural
+  TP_A_0430   Simple average MFN applied tariff — non-agricultural
+  ITS_MTV_AX  Merchandise exports by product group (annual)
+  ITS_MTV_AM  Merchandise imports by product group (annual)
 """
 
 import logging
@@ -33,43 +30,31 @@ CREATE TABLE IF NOT EXISTS wto_series (
     reporter_iso  TEXT    NOT NULL,
     partner_iso   TEXT    NOT NULL DEFAULT '',
     indicator     TEXT    NOT NULL,
+    product_code  TEXT    NOT NULL DEFAULT '',
     year          INTEGER NOT NULL,
     value         REAL,
     unit          TEXT,
     fetched_at    TEXT    NOT NULL,
-    PRIMARY KEY (reporter_iso, partner_iso, indicator, year)
+    PRIMARY KEY (reporter_iso, partner_iso, indicator, product_code, year)
 );
 CREATE INDEX IF NOT EXISTS idx_wto_reporter  ON wto_series(reporter_iso);
 CREATE INDEX IF NOT EXISTS idx_wto_indicator ON wto_series(indicator);
 CREATE INDEX IF NOT EXISTS idx_wto_year      ON wto_series(year);
-
-CREATE TABLE IF NOT EXISTS wto_disputes (
-    ds_number    TEXT PRIMARY KEY,
-    title        TEXT,
-    complainant  TEXT,
-    respondent   TEXT,
-    third_parties TEXT,
-    agreement    TEXT,
-    date_req     TEXT,
-    status       TEXT,
-    fetched_at   TEXT NOT NULL
-);
 """
 
+# Indicator code → short column name stored in wto_series.indicator
+# TP_B_0090 (bound tariff) omitted — it rejects year filters (static negotiated values)
 _WTO_INDICATORS = {
-    "TA_2_010": "bound_tariff_simple_avg",
-    "TA_1_020": "applied_mfn_tariff_avg",
-    "TP_A010":  "merch_exports_usd",
-    "TP_A020":  "merch_imports_usd",
-    "TP_A050":  "services_exports_usd",
-    "TP_A060":  "services_imports_usd",
+    "TP_A_0010":  "mfn_applied_simple_avg",
+    "TP_A_0030":  "mfn_applied_weighted_avg",
+    "TP_A_0160":  "mfn_applied_agri",
+    "TP_A_0430":  "mfn_applied_noagri",
+    "ITS_MTV_AX": "merch_exports_usd",
+    "ITS_MTV_AM": "merch_imports_usd",
 }
 
 HISTORY_YEARS = 10
 MAX_YEAR = 2024
-
-# China's WTO reporter code
-_CHINA_CODE = "156"
 
 
 def _ensure_schema(conn: sqlite3.Connection):
@@ -116,10 +101,6 @@ def _stored_years_wto(conn: sqlite3.Connection) -> set[int]:
         return set()
 
 
-# ---------------------------------------------------------------------------
-# Timeseries indicators
-# ---------------------------------------------------------------------------
-
 def fetch_indicators(conn: sqlite3.Connection, years: list[int]) -> int:
     if not WTO_API_KEY:
         log.info("  WTO_API_KEY not set — skipping WTO timeseries")
@@ -128,101 +109,52 @@ def fetch_indicators(conn: sqlite3.Connection, years: list[int]) -> int:
 
     now = datetime.now(timezone.utc).isoformat()
     total = 0
-    years_str = ",".join(str(y) for y in years)
+    years_str = ",".join(str(y) for y in sorted(years))
 
     for indicator, col_name in _WTO_INDICATORS.items():
         log.info(f"  WTO {indicator} ({col_name}) years={years_str}")
         j = _get_json(
             f"{WTO_BASE_URL}/data",
             params={
-                "indicators": indicator,
-                "years": years_str,
-                "format": "json",
+                "i":   indicator,
+                "ps":  years_str,   # period(s), comma-separated years
+                "fmt": "json",
+                "max": 50000,
             },
         )
         if not j:
             continue
 
-        dataset = j.get("Dataset") or j.get("data") or []
+        dataset = j.get("Dataset") or []
         records = []
         for row in (dataset if isinstance(dataset, list) else []):
-            reporter = row.get("ReporterCode", row.get("reporterCode", ""))
-            partner  = row.get("PartnerCode",  row.get("partnerCode", "")) or ""
-            year     = row.get("Year",  row.get("year"))
-            value    = row.get("Value", row.get("value"))
-            unit     = row.get("Unit",  row.get("unit", ""))
+            reporter = row.get("ReportingEconomyCode") or ""
+            partner  = row.get("PartnerEconomyCode")   or ""
+            product  = row.get("ProductOrSectorCode")  or ""
+            year     = row.get("Year")
+            value    = row.get("Value")
+            unit     = row.get("UnitCode") or row.get("Unit") or ""
             if reporter and year and value is not None:
                 try:
                     records.append((
-                        str(reporter), str(partner), col_name, int(year),
-                        float(value), str(unit), now,
+                        str(reporter), str(partner), col_name, str(product),
+                        int(year), float(value), str(unit), now,
                     ))
                 except (ValueError, TypeError):
                     pass
 
         conn.executemany(
             "INSERT OR REPLACE INTO wto_series "
-            "(reporter_iso, partner_iso, indicator, year, value, unit, fetched_at) "
-            "VALUES (?,?,?,?,?,?,?)",
+            "(reporter_iso, partner_iso, indicator, product_code, year, value, unit, fetched_at) "
+            "VALUES (?,?,?,?,?,?,?,?)",
             records,
         )
         conn.commit()
         total += len(records)
+        log.info(f"    → {len(records)} rows")
         time.sleep(0.5)
 
     return total
-
-
-# ---------------------------------------------------------------------------
-# Dispute settlement cases
-# ---------------------------------------------------------------------------
-
-def fetch_disputes(conn: sqlite3.Connection) -> int:
-    if not WTO_API_KEY:
-        return 0
-
-    log.info("  Fetching WTO dispute settlement cases …")
-    now = datetime.now(timezone.utc).isoformat()
-
-    # Try the disputes endpoint (path may vary by API version)
-    for path in ["/disputes/cases", "/dispu/cases", "/disputes"]:
-        j = _get_json(f"{WTO_BASE_URL}{path}", params={"format": "json", "rows": 10000})
-        if j:
-            break
-    else:
-        log.warning("  WTO disputes endpoint not found — skipping")
-        return 0
-
-    cases = j.get("Dataset") or j.get("cases") or j.get("data") or []
-    if not isinstance(cases, list):
-        return 0
-
-    records = []
-    for c in cases:
-        ds_num = str(c.get("CaseNumber") or c.get("ds_number") or c.get("number", ""))
-        if not ds_num:
-            continue
-        records.append((
-            ds_num,
-            c.get("Title") or c.get("title", ""),
-            c.get("Complainant") or c.get("complainant", ""),
-            c.get("Respondent") or c.get("respondent", ""),
-            c.get("ThirdParties") or c.get("third_parties", ""),
-            c.get("Agreement") or c.get("agreement", ""),
-            c.get("RequestDate") or c.get("date_req", ""),
-            c.get("Status") or c.get("status", ""),
-            now,
-        ))
-
-    conn.executemany(
-        "INSERT OR REPLACE INTO wto_disputes "
-        "(ds_number, title, complainant, respondent, third_parties, agreement, date_req, status, fetched_at) "
-        "VALUES (?,?,?,?,?,?,?,?,?)",
-        records,
-    )
-    conn.commit()
-    log.info(f"  {len(records)} dispute cases stored")
-    return len(records)
 
 
 def fetch_all(conn: sqlite3.Connection, force_full: bool = False) -> int:
@@ -231,6 +163,7 @@ def fetch_all(conn: sqlite3.Connection, force_full: bool = False) -> int:
     target = [MAX_YEAR - i for i in range(HISTORY_YEARS)]
     years = target if (force_full or not stored) else [MAX_YEAR]
 
-    n1 = fetch_indicators(conn, years)
-    n2 = fetch_disputes(conn)
-    return n1 + n2
+    log.info(f"WTO timeseries — years: {years}")
+    n = fetch_indicators(conn, years)
+    log.info(f"  WTO total: {n} rows")
+    return n
