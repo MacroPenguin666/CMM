@@ -47,3 +47,20 @@ WB_BASE_URL = os.getenv("WB_BASE_URL", "https://api.worldbank.org/v2/country/all
 # =========================
 COMTRADE_API_KEY  = os.getenv("COMTRADE_API_KEY", "")
 COMTRADE_BASE_URL = os.getenv("COMTRADE_BASE_URL", "https://comtradeapi.un.org/data/v1/get/C/A/HS")
+
+# =========================
+# WITS / UNCTAD TRAINS API (tariff data by HS code)
+# Used by: policy_monitor/wits.py
+# Register free at: https://wits.worldbank.org → My Account → API Access
+# =========================
+WITS_API_KEY  = os.getenv("WITS_API_KEY", "")
+WITS_BASE_URL = os.getenv("WITS_BASE_URL", "https://wits.worldbank.org/API/V1/SDMX/V21/datasource")
+
+# =========================
+# WTO DATA PORTAL API (tariff tracker, dispute settlement)
+# Used by: policy_monitor/wto.py
+# Register at: https://api.wto.org  (free developer tier)
+# Auth header: Ocp-Apim-Subscription-Key
+# =========================
+WTO_API_KEY  = os.getenv("WTO_API_KEY", "")
+WTO_BASE_URL = os.getenv("WTO_BASE_URL", "https://api.wto.org/timeseries/v1")
