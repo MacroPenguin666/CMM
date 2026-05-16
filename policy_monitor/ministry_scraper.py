@@ -30,26 +30,135 @@ HEADERS = {
 # Each entry: name, name_cn, category, url (list page), base (for relative hrefs)
 # ---------------------------------------------------------------------------
 TARGETS = [
+    # =========================================================================
+    # NDRC — news releases + full policy archive (xxgk/zcfb, ~66 pages back to 1999)
+    # =========================================================================
     {
         "name": "NDRC — News Releases",
         "name_cn": "国家发展改革委-新闻发布",
         "category": "central_government",
+        "doc_type": "新闻发布",
         "url": "https://www.ndrc.gov.cn/xwdt/xwfb/",
         "base": "https://www.ndrc.gov.cn",
         "description": "NDRC economic planning news and press releases",
     },
     {
-        "name": "MOFCOM — Policy Releases",
-        "name_cn": "商务部-政策文件",
+        "name": "NDRC — Orders",
+        "name_cn": "国家发展改革委-发展改革委令",
+        "category": "central_government",
+        "doc_type": "发展改革委令",
+        "url": "https://www.ndrc.gov.cn/xxgk/zcfb/fzggwl/",
+        "base": "https://www.ndrc.gov.cn",
+        "description": "NDRC formal regulatory orders and decrees (9 pages, back to 1999)",
+    },
+    {
+        "name": "NDRC — Normative Documents",
+        "name_cn": "国家发展改革委-规范性文件",
+        "category": "central_government",
+        "doc_type": "规范性文件",
+        "url": "https://www.ndrc.gov.cn/xxgk/zcfb/ghxwj/",
+        "base": "https://www.ndrc.gov.cn",
+        "description": "NDRC normative and regulatory documents (8 pages)",
+    },
+    {
+        "name": "NDRC — Planning Documents",
+        "name_cn": "国家发展改革委-规划文本",
+        "category": "central_government",
+        "doc_type": "规划文本",
+        "url": "https://www.ndrc.gov.cn/xxgk/zcfb/ghwb/",
+        "base": "https://www.ndrc.gov.cn",
+        "description": "NDRC national planning documents and five-year plans (9 pages)",
+    },
+    {
+        "name": "NDRC — Announcements",
+        "name_cn": "国家发展改革委-公告",
+        "category": "central_government",
+        "doc_type": "公告",
+        "url": "https://www.ndrc.gov.cn/xxgk/zcfb/gg/",
+        "base": "https://www.ndrc.gov.cn",
+        "description": "NDRC official announcements (20 pages)",
+    },
+    {
+        "name": "NDRC — Notices",
+        "name_cn": "国家发展改革委-通知",
+        "category": "central_government",
+        "doc_type": "通知",
+        "url": "https://www.ndrc.gov.cn/xxgk/zcfb/tz/",
+        "base": "https://www.ndrc.gov.cn",
+        "description": "NDRC policy notices and circulars (20 pages)",
+    },
+
+    # =========================================================================
+    # Other ministries
+    # =========================================================================
+    {
+        "name": "MOFCOM — Orders & Announcements",
+        "name_cn": "商务部-部令公告",
         "category": "ministry",
-        "url": "http://www.mofcom.gov.cn/zcfb/",
+        "doc_type": "部令公告",
+        "url": "http://www.mofcom.gov.cn/zcfb/blgg/",
         "base": "http://www.mofcom.gov.cn",
-        "description": "Ministry of Commerce trade policy and regulatory releases",
+        "description": "MOFCOM ministerial orders and official announcements",
+    },
+    {
+        "name": "MOFCOM — Regulations",
+        "name_cn": "商务部-规章",
+        "category": "ministry",
+        "doc_type": "规章",
+        "url": "http://www.mofcom.gov.cn/zcfb/zc/",
+        "base": "http://www.mofcom.gov.cn",
+        "description": "MOFCOM trade regulations and legal rules",
+    },
+    {
+        "name": "MOFCOM — Comprehensive Policy",
+        "name_cn": "商务部-综合政策",
+        "category": "ministry",
+        "doc_type": "综合政策",
+        "url": "http://www.mofcom.gov.cn/zcfb/zhzc/",
+        "base": "http://www.mofcom.gov.cn",
+        "description": "MOFCOM comprehensive and cross-sector trade policy documents",
+    },
+    {
+        "name": "MOFCOM — Domestic Trade Policy",
+        "name_cn": "商务部-国内贸易管理",
+        "category": "ministry",
+        "doc_type": "国内贸易管理",
+        "url": "http://www.mofcom.gov.cn/zcfb/gnmygl/",
+        "base": "http://www.mofcom.gov.cn",
+        "description": "MOFCOM domestic commerce and retail trade policy",
+    },
+    {
+        "name": "MOFCOM — Foreign Trade Policy",
+        "name_cn": "商务部-对外贸易管理",
+        "category": "ministry",
+        "doc_type": "对外贸易管理",
+        "url": "http://www.mofcom.gov.cn/zcfb/dwmygl/",
+        "base": "http://www.mofcom.gov.cn",
+        "description": "MOFCOM foreign trade management policy",
+    },
+    {
+        "name": "MOFCOM — Service Trade",
+        "name_cn": "商务部-服务贸易",
+        "category": "ministry",
+        "doc_type": "服务贸易",
+        "url": "http://www.mofcom.gov.cn/zcfb/fwmy/",
+        "base": "http://www.mofcom.gov.cn",
+        "description": "MOFCOM service trade policy",
+    },
+    {
+        "name": "MOFCOM — Fair Trade",
+        "name_cn": "商务部-公平贸易",
+        "category": "ministry",
+        "doc_type": "公平贸易",
+        "url": "http://www.mofcom.gov.cn/zcfb/gpmy/",
+        "base": "http://www.mofcom.gov.cn",
+        "description": "MOFCOM fair trade, anti-dumping, and countervailing policy",
     },
     {
         "name": "SASAC — SOE News",
         "name_cn": "国务院国有资产监督管理委员会-新闻",
         "category": "regulator",
+        "doc_type": "新闻",
         "url": "http://www.sasac.gov.cn/n2588025/n2588124/",
         "base": "http://www.sasac.gov.cn",
         "description": "SASAC state-owned enterprise supervision news",
@@ -58,6 +167,7 @@ TARGETS = [
         "name": "MFA — Press Briefings",
         "name_cn": "外交部-发言人答问",
         "category": "ministry",
+        "doc_type": "发言人答问",
         "url": "https://www.mfa.gov.cn/wjdt_674879/fyrbt_674889/",
         "base": "https://www.mfa.gov.cn",
         "description": "Ministry of Foreign Affairs spokesperson press briefings",
@@ -66,14 +176,25 @@ TARGETS = [
         "name": "Ministry of Finance — News",
         "name_cn": "财政部-财政新闻",
         "category": "ministry",
+        "doc_type": "新闻发布",
         "url": "http://www.mof.gov.cn/zhengwuxinxi/",
         "base": "http://www.mof.gov.cn",
         "description": "Ministry of Finance fiscal policy and financial news",
     },
     {
+        "name": "Ministry of Finance — Policy Releases",
+        "name_cn": "财政部-政策发布",
+        "category": "ministry",
+        "doc_type": "政策文件",
+        "url": "http://www.mof.gov.cn/zhengwuxinxi/zhengcefabu/",
+        "base": "http://www.mof.gov.cn",
+        "description": "Ministry of Finance official policy releases (20 pages of history)",
+    },
+    {
         "name": "MIIT — Industrial Policy",
         "name_cn": "工业和信息化部-工作动态",
         "category": "ministry",
+        "doc_type": "工作动态",
         "url": "https://www.miit.gov.cn/xwdt/",
         "base": "https://www.miit.gov.cn",
         "description": "MIIT industrial and information technology policy updates",
@@ -82,6 +203,7 @@ TARGETS = [
         "name": "State Council — Latest Policies",
         "name_cn": "国务院-最新政策",
         "category": "central_government",
+        "doc_type": "最新政策",
         "url": "https://www.gov.cn/zhengce/",
         "base": "https://www.gov.cn",
         "description": "State Council top-level policy releases and regulations",
@@ -90,6 +212,7 @@ TARGETS = [
         "name": "SAMR — Market Regulation News",
         "name_cn": "市场监督管理总局-新闻",
         "category": "regulator",
+        "doc_type": "新闻",
         "url": "https://www.samr.gov.cn/xw/",
         "base": "https://www.samr.gov.cn",
         "description": "State Administration for Market Regulation news and enforcement",
@@ -102,6 +225,7 @@ TARGETS = [
         "name": "PBOC — Policy Communications",
         "name_cn": "中国人民银行-沟通交流",
         "category": "regulator",
+        "doc_type": "政策沟通",
         "url": "http://www.pbc.gov.cn/rmyh/108976/index.html",
         "base": "http://www.pbc.gov.cn",
         "description": "People's Bank of China monetary policy communications and press releases",
@@ -110,6 +234,7 @@ TARGETS = [
         "name": "NFRA — Banking & Insurance Supervision",
         "name_cn": "国家金融监督管理总局-最新动态",
         "category": "regulator",
+        "doc_type": "最新动态",
         "url": "https://www.nfra.gov.cn/cn/view/pages/ItemList.html?itemPid=923&itemId=4115&itemUrl=ItemList.html",
         "base": "https://www.nfra.gov.cn",
         "description": "National Financial Regulatory Administration banking and insurance supervision updates",
@@ -118,6 +243,7 @@ TARGETS = [
         "name": "CSRC — Securities Regulation",
         "name_cn": "中国证监会-最新动态",
         "category": "regulator",
+        "doc_type": "最新动态",
         "url": "http://www.csrc.gov.cn/csrc/c101954/",
         "base": "http://www.csrc.gov.cn",
         "description": "China Securities Regulatory Commission capital markets policy and enforcement",
@@ -126,12 +252,12 @@ TARGETS = [
         "name": "SAFE — FX Policy",
         "name_cn": "国家外汇管理局-通知公告",
         "category": "regulator",
+        "doc_type": "通知公告",
         "url": "http://www.safe.gov.cn/safe/",
         "base": "http://www.safe.gov.cn",
-        "description": "State Administration of Foreign Exchange FX policy announcements and capital controls",
+        "description": "State Administration of Foreign Exchange — full listing page (168 items)",
     },
-    # GAC (customs.gov.cn) and MPS (mps.gov.cn) block all external traffic — tracked
-    # in registry.yaml but cannot be directly scraped from outside China.
+    # GAC (customs.gov.cn) and MPS (mps.gov.cn) block all external traffic.
 
     # -------------------------------------------------------------------------
     # Security & Strategy
@@ -140,6 +266,7 @@ TARGETS = [
         "name": "MSS — National Security Notices",
         "name_cn": "国家安全部-警示提示",
         "category": "ministry",
+        "doc_type": "警示提示",
         "url": "https://www.12339.gov.cn/",
         "base": "https://www.12339.gov.cn",
         "description": "Ministry of State Security national security warnings and notices",
@@ -152,6 +279,7 @@ TARGETS = [
         "name": "MOST — Science & Technology Policy",
         "name_cn": "科学技术部-科技报告",
         "category": "ministry",
+        "doc_type": "科技报告",
         "url": "https://www.most.gov.cn/kjbgz/",
         "base": "https://www.most.gov.cn",
         "description": "Ministry of Science and Technology R&D policy, tech regulations, and innovation funding",
@@ -160,6 +288,7 @@ TARGETS = [
         "name": "CAC — Internet & AI Regulation",
         "name_cn": "国家互联网信息办公室",
         "category": "regulator",
+        "doc_type": "新闻发布",
         "url": "https://www.cac.gov.cn/",
         "base": "https://www.cac.gov.cn",
         "description": "Cyberspace Administration of China internet, data governance, and AI regulation",
@@ -168,6 +297,7 @@ TARGETS = [
         "name": "NEA — Energy Policy",
         "name_cn": "国家能源局-政府信息公开",
         "category": "regulator",
+        "doc_type": "政府信息公开",
         "url": "http://www.nea.gov.cn/zfxxgk/",
         "base": "http://www.nea.gov.cn",
         "description": "National Energy Administration energy policy, renewables, and electricity regulation",
@@ -180,25 +310,37 @@ TARGETS = [
         "name": "MEE — Environmental Standards",
         "name_cn": "生态环境部-重要动态",
         "category": "ministry",
+        "doc_type": "重要动态",
         "url": "https://www.mee.gov.cn/ywdt/ywdtjj/",
         "base": "https://www.mee.gov.cn",
         "description": "Ministry of Ecology and Environment carbon policy and environmental standards",
     },
     {
-        "name": "MOFCOM — Free Trade Zone Announcements",
-        "name_cn": "商务部-新闻发布",
+        "name": "MEE — Laws & Standards",
+        "name_cn": "生态环境部-法律法规",
         "category": "ministry",
-        "url": "http://www.mofcom.gov.cn/xwfb/",
-        "base": "http://www.mofcom.gov.cn",
-        "description": "Ministry of Commerce FTZ and trade-related news releases (separate from zcfb policy docs)",
+        "doc_type": "法律法规",
+        "url": "https://www.mee.gov.cn/ywgz/fgbz/fl/",
+        "base": "https://www.mee.gov.cn",
+        "description": "MEE environmental laws, regulations, and standards (3 pages)",
     },
     {
-        "name": "MARA — Agriculture Policy",
-        "name_cn": "农业农村部-新闻",
+        "name": "MOFCOM — News Releases",
+        "name_cn": "商务部-新闻发布",
         "category": "ministry",
-        "url": "http://www.moa.gov.cn/xw/",
+        "doc_type": "新闻发布",
+        "url": "http://www.mofcom.gov.cn/xwfb/",
+        "base": "http://www.mofcom.gov.cn",
+        "description": "Ministry of Commerce press releases and news",
+    },
+    {
+        "name": "MARA — Agriculture Regulations",
+        "name_cn": "农业农村部-政策法规",
+        "category": "ministry",
+        "doc_type": "政策法规",
+        "url": "http://www.moa.gov.cn/zwllm/zcfg/",
         "base": "http://www.moa.gov.cn",
-        "description": "Ministry of Agriculture and Rural Affairs agricultural policy and rural development",
+        "description": "Ministry of Agriculture and Rural Affairs agricultural policy regulations (83 items)",
     },
 ]
 
@@ -247,9 +389,23 @@ _MIN_TITLE_LEN = 8
 _NAV_SKIP = {"首页", "上一页", "下一页", "末页", "更多", ">>", "<<", "...", "返回", "查看更多"}
 _NEXT_PAGE_TEXTS = {"下一页", "下页", "后页", "后一页", "next", ">", "»"}
 
+# createPageHTML(totalPages, currentPage, "basename", "ext") — embedded in an HTML comment
+_CREATE_PAGE_RE = re.compile(
+    r'createPageHTML\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)'
+)
+# Matches .../index_3.html or .../list_3.shtml style URLs
+_INDEX_N_RE = re.compile(r'/(index|list)_(\d+)\.(s?html?)$', re.I)
+
 
 def _find_next_page_url(tree, current_url: str, base_url: str) -> str | None:
-    """Detect the next-page URL from pagination controls on a gov.cn list page."""
+    """Detect the next-page URL from pagination controls on a gov.cn list page.
+
+    Strategies (in order):
+    1. Explicit next-page anchor text (下一页, next, etc.)
+    2. createPageHTML(total, current, base, ext) in an HTML comment
+    3. index_N.html / list_N.html URL increment pattern
+    """
+    # 1. Explicit next-page link
     for a in tree.xpath("//a[@href]"):
         text = (a.text_content() or "").strip()
         href = a.get("href", "")
@@ -259,6 +415,36 @@ def _find_next_page_url(tree, current_url: str, base_url: str) -> str | None:
             url = urljoin(current_url, href)
             if url != current_url:
                 return url
+
+    # 2. createPageHTML(total, current, basename, ext) — HTML comment or <script> tag
+    for node in [*tree.xpath("//comment()"), *tree.xpath("//script")]:
+        try:
+            text = node.text_content()
+        except (TypeError, ValueError):
+            text = str(node)  # lxml comment nodes expose text via str()
+        m = _CREATE_PAGE_RE.search(text or "")
+        if m:
+            total_pages = int(m.group(1))
+            current_page = int(m.group(2))
+            basename, ext = m.group(3), m.group(4)
+            next_page = current_page + 1
+            if next_page < total_pages:
+                return urljoin(current_url, f"{basename}_{next_page}.{ext}")
+            return None  # already on the last page
+
+    # 3. index_N.html / list_N.html URL increment (.gov.cn convention)
+    path = current_url.split("?")[0]
+    m = _INDEX_N_RE.search(path)
+    if m:
+        name, num, ext = m.group(1), int(m.group(2)), m.group(3)
+        return _INDEX_N_RE.sub(f"/{name}_{num + 1}.{ext}", path)
+    # First page: directory or explicit index.html → try index_1.html
+    if path.endswith("/") or re.search(r'/index\.s?html?$', path, re.I):
+        base_path = path.rstrip("/")
+        if "." in path.rsplit("/", 1)[-1]:
+            base_path = path.rsplit("/", 1)[0]
+        return base_path + "/index_1.html"
+
     return None
 
 
@@ -344,6 +530,7 @@ def scrape_target(target: dict, timeout: int = 20) -> dict:
             "source": name,
             "source_cn": target.get("name_cn", ""),
             "category": target.get("category", "ministry"),
+            "doc_type": target.get("doc_type"),
             "feed_url": url,
             "description": target.get("description", ""),
             "entries": articles,
@@ -354,6 +541,7 @@ def scrape_target(target: dict, timeout: int = 20) -> dict:
             "source": name,
             "source_cn": target.get("name_cn", ""),
             "category": target.get("category", "ministry"),
+            "doc_type": target.get("doc_type"),
             "feed_url": url,
             "entries": [],
             "ok": False,
@@ -388,6 +576,9 @@ def scrape_target_paginated(
     try:
         for page_num in range(1, max_pages + 1):
             resp = requests.get(current_url, headers=HEADERS, timeout=timeout)
+            # 404/410 on any page after the first means we've passed the end
+            if page_num > 1 and resp.status_code in (404, 410):
+                break
             resp.raise_for_status()
             tree = lhtml.fromstring(resp.content)
             articles = _extract_articles(tree, base, max_items=200)
@@ -423,6 +614,7 @@ def scrape_target_paginated(
             "source": name,
             "source_cn": target.get("name_cn", ""),
             "category": target.get("category", "ministry"),
+            "doc_type": target.get("doc_type"),
             "feed_url": target["url"],
             "description": target.get("description", ""),
             "entries": all_articles,
@@ -434,6 +626,7 @@ def scrape_target_paginated(
             "source": name,
             "source_cn": target.get("name_cn", ""),
             "category": target.get("category", "ministry"),
+            "doc_type": target.get("doc_type"),
             "feed_url": target["url"],
             "entries": all_articles,
             "pages_fetched": pages_fetched,
@@ -448,6 +641,7 @@ def scrape_all(
     timeout: int = 20,
     paginate: bool = False,
     max_pages: int = 3,
+    max_pages_by_source: dict | None = None,
     known_links_by_source: dict | None = None,
     page_delay: float = 1.0,
 ) -> list[dict]:
@@ -470,12 +664,13 @@ def scrape_all(
         # Paginated: sequential per target to respect page_delay rate-limiting
         # but concurrent across targets up to max_workers
         known = known_links_by_source or {}
+        per_source = max_pages_by_source or {}
         with ThreadPoolExecutor(max_workers=max_workers) as pool:
             futures = {
                 pool.submit(
                     scrape_target_paginated,
                     t,
-                    max_pages,
+                    per_source.get(t["name"], max_pages),
                     known.get(t["name"]),
                     page_delay,
                     timeout,

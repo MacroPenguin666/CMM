@@ -18,6 +18,7 @@ load_dotenv()
 DB_DIR = Path(__file__).parent.parent / "data"
 DB_PATH = DB_DIR / "feeds.db"
 MINISTRY_DB_DIR = DB_DIR / "ministries"
+MINISTRY_DB_PATH = DB_DIR / "ministries.db"
 
 MINISTRY_SCHEMA = """
 CREATE TABLE IF NOT EXISTS articles (
@@ -33,6 +34,25 @@ CREATE TABLE IF NOT EXISTS articles (
 );
 CREATE INDEX IF NOT EXISTS idx_art_source    ON articles(source);
 CREATE INDEX IF NOT EXISTS idx_art_published ON articles(published);
+"""
+
+
+def _ministry_table_schema(table: str) -> str:
+    return f"""
+CREATE TABLE IF NOT EXISTS "{table}" (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    source      TEXT NOT NULL,
+    title       TEXT NOT NULL,
+    link        TEXT UNIQUE,
+    published   TEXT,
+    summary     TEXT,
+    category    TEXT,
+    doc_type    TEXT,
+    page_num    INTEGER DEFAULT 1,
+    fetched_at  TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS "idx_{table}_published" ON "{table}"(published);
+CREATE INDEX IF NOT EXISTS "idx_{table}_source"    ON "{table}"(source);
 """
 
 SCHEMA = """
@@ -185,6 +205,80 @@ def _ministry_slug(name: str) -> str:
     """'NDRC — News Releases' → 'ndrc'  |  'Ministry of Finance — News' → 'ministry_of_finance'"""
     part = name.split("—")[0].strip()
     return re.sub(r'[^a-z0-9]+', '_', part.lower()).strip('_')[:40]
+
+
+# ---------------------------------------------------------------------------
+# Consolidated ministries.db — one table per ministry slug
+# ---------------------------------------------------------------------------
+
+def get_ministries_db() -> sqlite3.Connection:
+    """Open (or create) the single consolidated ministries.db."""
+    DB_DIR.mkdir(parents=True, exist_ok=True)
+    return sqlite3.connect(str(MINISTRY_DB_PATH))
+
+
+def ensure_ministry_table(conn: sqlite3.Connection, source_name: str) -> str:
+    """Create the per-ministry table if missing. Returns the table name (slug)."""
+    table = _ministry_slug(source_name)
+    conn.executescript(_ministry_table_schema(table))
+    return table
+
+
+def get_ministry_known_links_t(conn: sqlite3.Connection, table: str) -> set:
+    cur = conn.execute(f'SELECT link FROM "{table}" WHERE link IS NOT NULL')
+    return {row[0] for row in cur.fetchall()}
+
+
+def get_ministry_article_count_t(conn: sqlite3.Connection, table: str) -> int:
+    try:
+        return conn.execute(f'SELECT COUNT(*) FROM "{table}"').fetchone()[0]
+    except sqlite3.OperationalError:
+        return 0
+
+
+def get_ministry_article_count_by_source(conn: sqlite3.Connection, table: str, source: str) -> int:
+    """Count articles for a specific source within a table (for per-source full/incremental decision)."""
+    try:
+        return conn.execute(
+            f'SELECT COUNT(*) FROM "{table}" WHERE source = ?', (source,)
+        ).fetchone()[0]
+    except sqlite3.OperationalError:
+        return 0
+
+
+def store_ministry_result_t(conn: sqlite3.Connection, table: str, result: dict) -> int:
+    """Insert articles into a named table. Returns count of newly inserted rows."""
+    now = datetime.utcnow().isoformat()
+    inserted = 0
+    # Migrate: add doc_type column if this is an older table
+    try:
+        conn.execute(f'ALTER TABLE "{table}" ADD COLUMN doc_type TEXT')
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass  # column already exists
+    for entry in result.get("entries", []):
+        try:
+            conn.execute(
+                f'INSERT OR IGNORE INTO "{table}" '
+                '(source, title, link, published, summary, category, doc_type, page_num, fetched_at) '
+                'VALUES (?,?,?,?,?,?,?,?,?)',
+                (
+                    result["source"],
+                    entry.get("title", ""),
+                    entry.get("link") or None,
+                    entry.get("published", ""),
+                    entry.get("summary", ""),
+                    result.get("category", ""),
+                    result.get("doc_type") or entry.get("doc_type"),
+                    entry.get("page_num", 1),
+                    now,
+                ),
+            )
+            inserted += conn.total_changes
+        except sqlite3.IntegrityError:
+            pass
+    conn.commit()
+    return inserted
 
 
 def get_ministry_db(source_name: str) -> sqlite3.Connection:
