@@ -23,6 +23,26 @@ log = logging.getLogger("fetch_all")
 
 
 def run():
+    # --- Ministry HTML scrapers ---
+    log.info("=" * 60)
+    log.info("MINISTRY SCRAPERS (direct HTML)")
+    log.info("=" * 60)
+    try:
+        from policy_monitor.ministry_scraper import TARGETS, scrape_all
+        from policy_monitor.storage import get_db, get_item_count, store_feed_result
+
+        results = scrape_all(TARGETS, timeout=20)
+        db = get_db()
+        for r in results:
+            store_feed_result(db, r)
+        ok = sum(1 for r in results if r["ok"])
+        fail = len(results) - ok
+        total = sum(len(r.get("entries", [])) for r in results)
+        log.info(f"Ministries: {ok} OK, {fail} failed, {total} items fetched, {get_item_count(db)} total in DB")
+        db.close()
+    except Exception as e:
+        log.error(f"Ministry scrape error: {e}")
+
     # --- News feeds ---
     log.info("=" * 60)
     log.info("NEWS FEEDS")
@@ -127,6 +147,18 @@ def run():
         log.info(f"Macro: {result['status']} (version {result['version']})")
     except Exception as e:
         log.error(f"Macro fetch error: {e}")
+
+    # --- NBS (National Bureau of Statistics) — disabled, API changed ---
+    # try:
+    #     from policy_monitor.nbs import fetch_all_nbs, get_nbs_db, store_nbs_data
+    #     conn = get_nbs_db()
+    #     all_rows, all_snapshots, ok, fail = fetch_all_nbs()
+    #     inserted = store_nbs_data(conn, all_rows, all_snapshots)
+    #     total = conn.execute("SELECT COUNT(*) FROM nbs_series").fetchone()[0]
+    #     log.info(f"NBS: {ok} OK, {fail} failed, {inserted} new points, {total} total in DB")
+    #     conn.close()
+    # except Exception as e:
+    #     log.error(f"NBS fetch error: {e}")
 
     # --- Academic publications ---
     log.info("")

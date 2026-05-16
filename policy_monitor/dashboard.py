@@ -27,6 +27,7 @@ from policy_monitor.macro import (
     VARIABLE_META, CATEGORIES,
 )
 from policy_monitor.academic import get_academic_db, get_recent_articles, get_journal_summary, cast_vote, get_preferences
+from policy_monitor.advisor import generate_brief
 from policy_monitor.sources.loader import (
     get_all_sources,
     get_direct_feeds,
@@ -949,6 +950,34 @@ def api_academic_journals():
 
 
 # ---------------------------------------------------------------------------
+# Policy Advisor
+# ---------------------------------------------------------------------------
+
+@app.route("/api/advisor/brief", methods=["POST"])
+def api_advisor_brief():
+    """Generate a structured policy brief. Body: {topic: str, days: int}"""
+    try:
+        data = request.get_json(force=True) or {}
+        topic = (data.get("topic") or "").strip()
+        if not topic:
+            return jsonify({"error": "topic is required"}), 400
+        days = min(int(data.get("days", 90)), 365)
+        brief = generate_brief(topic, days=days)
+        return jsonify({
+            "topic": brief.topic,
+            "generated_at": brief.generated_at,
+            "days": brief.days,
+            "source_count": brief.source_count,
+            "stub": brief.stub,
+            "content": brief.content,
+            "sources": brief.sources,
+            "error": brief.error,
+        })
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+# ---------------------------------------------------------------------------
 # Dashboard HTML — single-page app
 # ---------------------------------------------------------------------------
 
@@ -1144,6 +1173,7 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
   <div class="tab" data-panel="sources">All Sources</div>
   <div class="tab" data-panel="history">Historical Context</div>
   <div class="tab" data-panel="academic">Academic</div>
+  <div class="tab" data-panel="advisor">Policy Advisor</div>
 </div>
 
 <div class="wrap">
@@ -1311,6 +1341,71 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
   </div>
   <div id="acad-summary" style="margin-bottom:12px;font-size:12px;color:var(--text2);"></div>
   <div class="news-list" id="acad-list"><div class="loading">Loading...</div></div>
+</div>
+
+<!-- ====== POLICY ADVISOR ====== -->
+<div class="panel" id="panel-advisor">
+  <div style="max-width:860px;margin:0 auto;">
+    <p style="color:var(--text2);font-size:13px;margin-bottom:20px;">
+      Generate a structured policy brief for European government officials based on recent Chinese policy developments tracked in this database.
+    </p>
+
+    <!-- Input form -->
+    <div class="card" style="padding:20px;margin-bottom:20px;">
+      <div style="margin-bottom:14px;">
+        <label style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Topic / Question</label>
+        <textarea id="adv-topic" rows="3" placeholder="e.g. China EV industrial policy and subsidies&#10;e.g. MIIT semiconductor export controls impact on European manufacturers&#10;e.g. Belt and Road Initiative investment in Eastern Europe"
+          style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:6px;font-size:13px;font-family:inherit;outline:none;resize:vertical;"></textarea>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div>
+          <label style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px;">Time window</label>
+          <select id="adv-days" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:6px;font-size:12px;outline:none;">
+            <option value="30">Last 30 days</option>
+            <option value="90" selected>Last 90 days</option>
+            <option value="180">Last 180 days</option>
+            <option value="365">Last 12 months</option>
+          </select>
+        </div>
+        <button id="adv-submit" onclick="generateBrief()"
+          style="margin-top:16px;padding:8px 22px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity 0.15s;">
+          Generate Brief
+        </button>
+        <span id="adv-spinner" style="display:none;color:var(--text3);font-size:12px;">Generating...</span>
+      </div>
+    </div>
+
+    <!-- Output -->
+    <div id="adv-output" style="display:none;">
+      <!-- Stub banner -->
+      <div id="adv-stub-banner" style="display:none;background:rgba(232,168,56,0.12);border:1px solid rgba(232,168,56,0.35);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--accent2);">
+        <b>AI analysis not enabled.</b> Add <code style="background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:3px;">ANTHROPIC_API_KEY</code> to your <code style="background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:3px;">.env</code> file to generate full policy briefs. Showing retrieved sources only.
+      </div>
+
+      <!-- Brief header -->
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;">
+        <div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Policy Brief</div>
+          <div id="adv-brief-topic" style="font-size:18px;font-weight:700;letter-spacing:-0.3px;margin-top:2px;"></div>
+        </div>
+        <div style="text-align:right;font-size:11px;color:var(--text3);">
+          <div id="adv-brief-date"></div>
+          <div id="adv-brief-sources" style="margin-top:2px;"></div>
+        </div>
+      </div>
+
+      <!-- Brief body -->
+      <div id="adv-brief-body" class="card" style="padding:24px;line-height:1.7;font-size:13px;"></div>
+
+      <!-- Source list -->
+      <div id="adv-source-list" style="margin-top:16px;display:none;">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Source Documents</div>
+        <div id="adv-sources-body" style="display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+    </div>
+
+    <div id="adv-error" style="display:none;color:var(--accent);font-size:13px;margin-top:12px;"></div>
+  </div>
 </div>
 
 </div><!-- wrap -->
@@ -2587,6 +2682,90 @@ api('/api/academic/summary').then(s => {
 document.getElementById('acad-search').addEventListener('input', () => { clearTimeout(acadDebounce); acadDebounce = setTimeout(loadAcademic, 300); });
 document.getElementById('acad-journal-filter').addEventListener('change', loadAcademic);
 document.querySelector('[data-panel="academic"]').addEventListener('click', () => { loadAcademic(); }, {once: true});
+
+// ========== POLICY ADVISOR ==========
+function mdToHtml(md) {
+  // Minimal markdown renderer: headers, bold, bullets, line breaks
+  return md
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^## (.+)$/gm, '<h3 style="font-size:13px;font-weight:700;color:var(--text);margin:18px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border);">$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/`(.+?)`/g, '<code style="background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:3px;font-size:12px;">$1</code>')
+    .replace(/^\- (.+)$/gm, '<div style="padding:2px 0 2px 14px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">•</span>$1</div>')
+    .replace(/^\d+\. (.+)$/gm, '<div style="padding:2px 0;">$1</div>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+    .replace(/\n\n/g, '<div style="height:8px;"></div>')
+    .replace(/\n/g, '<br>');
+}
+
+async function generateBrief() {
+  const topic = document.getElementById('adv-topic').value.trim();
+  if (!topic) { alert('Please enter a topic.'); return; }
+  const days = parseInt(document.getElementById('adv-days').value);
+
+  document.getElementById('adv-submit').disabled = true;
+  document.getElementById('adv-spinner').style.display = 'inline';
+  document.getElementById('adv-output').style.display = 'none';
+  document.getElementById('adv-error').style.display = 'none';
+
+  try {
+    const resp = await fetch('/api/advisor/brief', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({topic, days}),
+    });
+    const data = await resp.json();
+
+    if (data.error && !data.content) {
+      document.getElementById('adv-error').textContent = 'Error: ' + data.error;
+      document.getElementById('adv-error').style.display = 'block';
+      return;
+    }
+
+    // Stub banner
+    document.getElementById('adv-stub-banner').style.display = data.stub ? 'block' : 'none';
+
+    // Header
+    document.getElementById('adv-brief-topic').textContent = data.topic;
+    document.getElementById('adv-brief-date').textContent = 'Generated: ' + (data.generated_at || '');
+    document.getElementById('adv-brief-sources').textContent = data.source_count + ' source' + (data.source_count !== 1 ? 's' : '') + ' reviewed · last ' + data.days + ' days';
+
+    // Body
+    document.getElementById('adv-brief-body').innerHTML = mdToHtml(data.content || '');
+
+    // Source list
+    const sourcesBody = document.getElementById('adv-sources-body');
+    sourcesBody.innerHTML = '';
+    if (data.sources && data.sources.length > 0) {
+      data.sources.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'news-item';
+        div.style.cssText = 'padding:8px 12px;';
+        const titleHtml = s.link
+          ? `<a href="${esc(s.link)}" target="_blank">${esc(s.title)}</a>`
+          : esc(s.title);
+        div.innerHTML = `<div class="ni-top"><span class="source">${esc(s.source)}</span><span class="time">${esc(s.published)}</span></div><div class="title">${titleHtml}</div>`;
+        sourcesBody.appendChild(div);
+      });
+      document.getElementById('adv-source-list').style.display = 'block';
+    } else {
+      document.getElementById('adv-source-list').style.display = 'none';
+    }
+
+    document.getElementById('adv-output').style.display = 'block';
+  } catch(e) {
+    document.getElementById('adv-error').textContent = 'Request failed: ' + e.message;
+    document.getElementById('adv-error').style.display = 'block';
+  } finally {
+    document.getElementById('adv-submit').disabled = false;
+    document.getElementById('adv-spinner').style.display = 'none';
+  }
+}
+
+// Submit on Ctrl+Enter in the textarea
+document.getElementById('adv-topic').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) generateBrief();
+});
 
 </script>
 </body>
