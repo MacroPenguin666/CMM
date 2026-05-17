@@ -223,22 +223,14 @@ TARGETS = [
     # -------------------------------------------------------------------------
     {
         "name": "PBOC — Policy Communications",
-        "name_cn": "中国人民银行-沟通交流",
+        "name_cn": "中国人民银行-货币政策",
         "category": "regulator",
         "doc_type": "政策沟通",
-        "url": "http://www.pbc.gov.cn/rmyh/108976/index.html",
+        "url": "http://www.pbc.gov.cn/rmyh/index.html",
         "base": "http://www.pbc.gov.cn",
-        "description": "People's Bank of China monetary policy communications and press releases",
+        "description": "People's Bank of China monetary policy, financial stats, and press releases",
     },
-    {
-        "name": "NFRA — Banking & Insurance Supervision",
-        "name_cn": "国家金融监督管理总局-最新动态",
-        "category": "regulator",
-        "doc_type": "最新动态",
-        "url": "https://www.nfra.gov.cn/cn/view/pages/ItemList.html?itemPid=923&itemId=4115&itemUrl=ItemList.html",
-        "base": "https://www.nfra.gov.cn",
-        "description": "National Financial Regulatory Administration banking and insurance supervision updates",
-    },
+    # NFRA (nfra.gov.cn) blocks all external traffic — excluded until accessible.
     {
         "name": "CSRC — Securities Regulation",
         "name_cn": "中国证监会-最新动态",
@@ -258,19 +250,6 @@ TARGETS = [
         "description": "State Administration of Foreign Exchange — full listing page (168 items)",
     },
     # GAC (customs.gov.cn) and MPS (mps.gov.cn) block all external traffic.
-
-    # -------------------------------------------------------------------------
-    # Security & Strategy
-    # -------------------------------------------------------------------------
-    {
-        "name": "MSS — National Security Notices",
-        "name_cn": "国家安全部-警示提示",
-        "category": "ministry",
-        "doc_type": "警示提示",
-        "url": "https://www.12339.gov.cn/",
-        "base": "https://www.12339.gov.cn",
-        "description": "Ministry of State Security national security warnings and notices",
-    },
 
     # -------------------------------------------------------------------------
     # Industry & Technology
@@ -295,10 +274,10 @@ TARGETS = [
     },
     {
         "name": "NEA — Energy Policy",
-        "name_cn": "国家能源局-政府信息公开",
+        "name_cn": "国家能源局-新闻",
         "category": "regulator",
-        "doc_type": "政府信息公开",
-        "url": "http://www.nea.gov.cn/zfxxgk/",
+        "doc_type": "新闻动态",
+        "url": "http://www.nea.gov.cn/news/",
         "base": "http://www.nea.gov.cn",
         "description": "National Energy Administration energy policy, renewables, and electricity regulation",
     },
@@ -311,7 +290,7 @@ TARGETS = [
         "name_cn": "生态环境部-重要动态",
         "category": "ministry",
         "doc_type": "重要动态",
-        "url": "https://www.mee.gov.cn/ywdt/ywdtjj/",
+        "url": "https://www.mee.gov.cn/ywdt/spxw/",
         "base": "https://www.mee.gov.cn",
         "description": "Ministry of Ecology and Environment carbon policy and environmental standards",
     },
@@ -356,6 +335,12 @@ _DATE_PATTERNS = [
 
 # Pattern in hrefs like t20260509_1234.html → 2026-05-09
 _HREF_DATE = re.compile(r't(\d{4})(\d{2})(\d{2})_')
+# CAC / many .gov.cn: /2026-05/15/c_... → 2026-05-15
+_HREF_DATE2 = re.compile(r'/(\d{4})-(\d{2})/(\d{2})/')
+# MIIT / similar: /art/2024/art_... → year 2024
+_HREF_YEAR = re.compile(r'/art/(\d{4})/')
+# Loose MM-DD in text (MIIT style: "09-19")
+_MMDD = re.compile(r'\b(\d{1,2})-(\d{1,2})\b')
 
 
 def _parse_date(text: str) -> str:
@@ -371,14 +356,43 @@ def _parse_date(text: str) -> str:
 
 
 def _date_from_href(href: str) -> str:
+    # t20260509_... pattern
     m = _HREF_DATE.search(href)
     if m:
         return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
-    # Try /YYYYMM/ path segment → YYYY-MM-01
-    m2 = re.search(r'/(\d{6})/', href)
+    # /2026-05/15/ pattern (CAC, Xinhua-style)
+    m2 = _HREF_DATE2.search(href)
     if m2:
-        s = m2.group(1)
+        return f"{m2.group(1)}-{m2.group(2)}-{m2.group(3)}"
+    # PBOC: /20260514XXXXXXXXXX/ — 8-digit YYYYMMDD as prefix of long number
+    m3 = re.search(r'/(20[0-3]\d[01]\d[0-3]\d)\d{5,}/', href)
+    if m3:
+        s = m3.group(1)
+        return f"{s[:4]}-{s[4:6]}-{s[6:8]}"
+    # /YYYYMM/ path segment — only accept plausible years (2000-2035)
+    m4 = re.search(r'/(20[0-3]\d[01]\d)/', href)
+    if m4:
+        s = m4.group(1)
         return f"{s[:4]}-{s[4:6]}-01"
+    # /art/YYYY/ — year only (SAMR, MIIT article archives)
+    m5 = _HREF_YEAR.search(href)
+    if m5:
+        return f"{m5.group(1)}-01-01"
+    return ""
+
+
+def _date_from_text_and_href(text: str, href: str) -> str:
+    """Extract date when text has MM-DD and year is embedded in href."""
+    m = _MMDD.search(text)
+    if m:
+        year_m = _HREF_YEAR.search(href)
+        if year_m:
+            y = year_m.group(1)
+            mo = m.group(1).zfill(2)
+            day = m.group(2).zfill(2)
+            # Sanity check: valid month/day
+            if 1 <= int(mo) <= 12 and 1 <= int(day) <= 31:
+                return f"{y}-{mo}-{day}"
     return ""
 
 
@@ -388,6 +402,15 @@ def _date_from_href(href: str) -> str:
 _MIN_TITLE_LEN = 8
 _NAV_SKIP = {"首页", "上一页", "下一页", "末页", "更多", ">>", "<<", "...", "返回", "查看更多"}
 _NEXT_PAGE_TEXTS = {"下一页", "下页", "后页", "后一页", "next", ">", "»"}
+
+
+def _root_domain(host: str) -> str:
+    """mee.gov.cn / www.mee.gov.cn / hbdc.mee.gov.cn → mee.gov.cn"""
+    parts = host.lower().split(".")
+    # Chinese .gov.cn: take last 3 parts  (mee.gov.cn)
+    if len(parts) >= 3 and parts[-1] == "cn" and parts[-2] == "gov":
+        return ".".join(parts[-3:])
+    return host.lower()
 
 # createPageHTML(totalPages, currentPage, "basename", "ext") — embedded in an HTML comment
 _CREATE_PAGE_RE = re.compile(
@@ -455,8 +478,10 @@ def _extract_articles(tree, base_url: str, max_items: int = 200) -> list[dict]:
     Tries two strategies:
     1. <ul><li> items with a link and an associated date
     2. Table rows with a link and a date cell
-    Falls back to any link with a date-like pattern in a plausible context.
     """
+    from urllib.parse import urlparse
+    base_root = _root_domain(urlparse(base_url).netloc)
+
     results: list[dict] = []
     seen_hrefs: set[str] = set()
 
@@ -469,6 +494,10 @@ def _extract_articles(tree, base_url: str, max_items: int = 200) -> list[dict]:
         if not href or href.startswith("javascript") or href.startswith("#"):
             return
         link = urljoin(base_url, href)
+        # Skip links that point to a completely different ministry/domain
+        link_root = _root_domain(urlparse(link).netloc)
+        if base_root and link_root and link_root != base_root:
+            return
         if link in seen_hrefs:
             return
         seen_hrefs.add(link)
@@ -485,7 +514,9 @@ def _extract_articles(tree, base_url: str, max_items: int = 200) -> list[dict]:
         title = a.text_content()
         href = a.get("href", "")
         li_text = li.text_content()
-        date = _parse_date(li_text) or _date_from_href(href)
+        date = (_parse_date(li_text)
+                or _date_from_text_and_href(li_text, href)
+                or _date_from_href(href))
         _add(title, href, date)
 
     if results:
@@ -506,7 +537,9 @@ def _extract_articles(tree, base_url: str, max_items: int = 200) -> list[dict]:
             if date:
                 break
         if not date:
-            date = _date_from_href(href)
+            tr_text = tr.text_content()
+            date = (_date_from_text_and_href(tr_text, href)
+                    or _date_from_href(href))
         _add(title, href, date)
 
     return results[:max_items]
