@@ -9,7 +9,7 @@ requires-python = ">=3.11"
 dependencies = []
 
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["scripts"]
 include = ["customs_scraper*", "policy_monitor*"]
 
 [tool.pytest.ini_options]
