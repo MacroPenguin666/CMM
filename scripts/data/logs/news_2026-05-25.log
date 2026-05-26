@@ -1,0 +1,4 @@
+2026-05-25 10:52:18  fetch_news.py is deprecated — news is now handled by fetch_realtime.py. This script still works for one-off manual runs.
+2026-05-25 10:52:18  NEWS FEEDS — hourly fetch
+2026-05-25 10:52:20  Fetching 11 feeds...
+2026-05-25 10:52:26  News: 11 OK, 0 failed, 341 total items in DB

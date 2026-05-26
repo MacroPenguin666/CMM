@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.DS_Store
+*.db
+customs_scraper.log
+.pytest_cache/
+
+# Policy Monitor
+data/feeds.db
+data/logs/
+data/config.json
+.idea/
