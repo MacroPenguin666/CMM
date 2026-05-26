@@ -137,7 +137,9 @@
       "Bash(awk '{print $1 \" \" $2}')",
       "Bash(grep -E \"^-.*\\\\.py$\")",
       "Bash(awk '{print $NF}')",
-      "Bash(grep \"\\\\.py$\")"
+      "Bash(grep \"\\\\.py$\")",
+      "Read(//Users/sd/.ssh/**)",
+      "Bash(gh auth *)"
     ]
   }
 }
