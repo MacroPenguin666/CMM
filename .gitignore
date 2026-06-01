@@ -3,12 +3,17 @@ __pycache__/
 *.pyo
 .env
 .DS_Store
-*.db
 customs_scraper.log
 .pytest_cache/
-
-# Policy Monitor
-data/feeds.db
-data/logs/
-data/config.json
 .idea/
+cmm.egg-info/
+*.egg-info/
+
+# Data — distribute cmm.db separately via Google Drive (see README)
+data/*.db
+data/*.db.bak
+data/*.db-shm
+data/*.db-wal
+data/logs/
+data/raw/
+data/*_cache.json

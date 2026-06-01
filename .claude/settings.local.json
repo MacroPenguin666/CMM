@@ -139,7 +139,27 @@
       "Bash(awk '{print $NF}')",
       "Bash(grep \"\\\\.py$\")",
       "Read(//Users/sd/.ssh/**)",
-      "Bash(gh auth *)"
+      "Bash(gh auth *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(cmm-fetch --help)",
+      "Bash(sed -n '75,95p' /Users/sd/PycharmProjects/CMM/backend/fetchers/ccp_elites.py)",
+      "Bash(sed -n '1460,1500p' /Users/sd/PycharmProjects/CMM/backend/api.py)",
+      "Bash(launchctl list *)",
+      "Bash(launchctl load *)",
+      "Bash(launchctl unload *)",
+      "Bash(grep -i '^data$')",
+      "Bash(set -e)",
+      "Bash(ps -p 43296 -o pid,ppid,etime,command)",
+      "Bash(nohup cmm-serve --port 5001)",
+      "Bash(echo \"launched PID $!\")",
+      "Read(//tmp/**)",
+      "Bash(grep -q '^data$')",
+      "Bash(echo \"yes \\(PID $\\(lsof -ti:5001\\)\\)\")",
+      "Bash(echo \"server still up: $\\(lsof -ti:5001 && echo \"yes \\(PID $\\(lsof -ti:5001\\)\\)\" || echo no\\)\")",
+      "Bash(echo \"✓ server up \\(PID $\\(lsof -ti:5001\\)\\) — HTTP $\\(curl -s -o /dev/null -w '%{http_code}' http://localhost:5001/\\)\")",
+      "Bash(open http://localhost:5001)",
+      "Bash(awk '{print $1}')",
+      "Bash(awk '{print $1, $NF}')"
     ]
   }
 }

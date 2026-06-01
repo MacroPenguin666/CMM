@@ -58,6 +58,7 @@
 - **Simplicity First:** Make every change as simple as possible. Impact minimal code.
 - **No Laziness:** Find root causes. No temporary fixes. Senior developer standards.
 - **Minimal Impact:** Only touch what’s necessary. No side effects with new bugs.
+- **Docs Discipline:** Only two permanent docs — `README.md` and `CLAUDE.md`. Never create new top-level docs or folders to "organize." Plans/status/TODOs live in `tasks/todo.md` and are deleted when done. Update info in place; never duplicate it across files. When asked to simplify, consolidate or delete — do not relocate.
 
 ---
 

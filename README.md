@@ -1,176 +1,159 @@
-# CMM — Project Structure
+# CMM — China Policy Monitor
 
-## What this project does
-China Policy Monitor (CMM) collects, standardises, and displays data about Chinese government policy, financial indicators, academic publications, trade data, and regulatory activity. It runs as a local web dashboard.
-
-## Folder overview
-
-### `dashboard.html`
-The full frontend. Open it by starting the API server (see `live/`) and visiting http://localhost:5001. This is a single HTML file containing all styles and JavaScript.
-
-### `live/`
-The Flask API server that feeds live data into the dashboard. Start it with:
-    python live/run.py
-Contains `api.py` (all API endpoints) and `run.py` (entry point). This is the ONLY code the dashboard depends on at runtime.
-
-### `scripts/`
-All data collection and standardisation code. Runs on a schedule (see `scheduler/`). Writes results to `data/feeds.db` and `data/regulations.db`. Completely independent of the dashboard — no Flask, no HTML.
-
-- `scripts/policy_monitor/` — main Python package
-  - `scrapers/` — web scrapers (NPC Observer, MOFCOM)
-  - `runners/` — scheduled job entry points (fetch_batch, fetch_macro, fetch_news, fetch_realtime)
-  - `sources/` — source registry (registry.yaml) and loader
-  - `storage.py` — SQLite DB layer (all read/write to data/feeds.db)
-  - Other modules: macro, financial, bruegel, regulations, academic, flights, ships, dissent, monitor
-- `scripts/customs_scraper/` — China Customs export data scraper
-
-### `data/`
-All data storage. Never commit the .db files.
-
-- `data/feeds.db` — canonical SQLite database (news items, fetch logs, financial data, etc.)
-- `data/regulations.db` — regulations database (MOFCOM, NPC)
-- `data/raw/` — raw fetched files (JSON dumps, CSVs) before processing
-- `data/reference/` — static lookup files (china_prefectures.json, china_provinces.json, config.json)
-- `data/logs/` — run logs from scheduled jobs
-
-### `outputs/`
-Generated exports, charts, and reports. Nothing here is source-controlled.
-
-### `literature/`
-Academic PDFs relevant to the project.
-
-### `scheduler/`
-macOS launchd .plist files that run the scripts in `scripts/runners/` on a schedule. Install with `launchctl load scheduler/<name>.plist`.
-
-### `tests/`
-Test suite. Run with `pytest`.
-
-### `.trash/`
-Files removed during the 2026-05-22 restructure. Safe to delete permanently once you're sure nothing is missing.
-
-## How to run
-
-1. Install: `pip install -e .`
-2. Start the API server: `python live/run.py`
-3. Open browser: http://localhost:5001
-
-## The two types of code
-
-| Folder | Purpose | Dashboard dependency? |
-|--------|---------|----------------------|
-| `scripts/` | Fetch + standardise data | None |
-| `live/` | Serve data to dashboard | Yes — this is the bridge |
-
-
-## Data pipeline
-
-### Databases
-
-| File | Size | Contents |
-|------|------|----------|
-| `data/feeds.db` | ~97 MB | **Primary DB** — 36 tables: news items, financial series, Bruegel macro, GMD, BIS, ECB, IMF Fiscal, academic articles, flights, ships, dissent events |
-| `data/trade_stats.db` | ~16 MB | Consolidated trade metrics — OECD TiVA, WTO, WITS tariffs (84k rows, 2019–2023), USITC HTS |
-| `data/unctad_trade.db` | ~8 MB | UN Comtrade bilateral merchandise trade by HS-2 chapter (China vs ~200 partners, ~8 years) |
-| `data/ccp_elites.db` | ~572 KB | Sine CPC leadership DB — CC/PB/PSC members across 7th–20th Party Congress |
-| `data/regulations.db` | ~152 KB | MOFCOM active laws + NPC bills under revision |
-
-Note: `data/` is gitignored. Never commit .db files.
+A local web dashboard that collects, standardises, and displays data about Chinese government policy, financial indicators, trade, regulatory activity, and CCP leadership.
 
 ---
 
-### External sources → DB mapping
+## Quick start
 
-**→ `feeds.db`**
-- **100+ RSS/RSSHub/WeChat feeds** (State Council, 12+ ministries, NDRC, regulators) → `items`
-- **AKShare API** (SHIBOR, bond yields, SSE/CSI 300, USD/CNH, CPI, PMI, trade balance) → `financial_series`, `financial_snapshots`
-- **Bruegel China Economic Dashboard** Excel files (100+ macro/financial indicators, all 31 provinces) → `bruegel_series`, `bruegel_provincial`
-- **GMD (Müller et al. 2025)** — 75 annual macro variables, 243 countries, 1640–2030 → `macro_series`
-- **BIS** (credit-to-GDP, policy rates, REER) → `bis_*` tables
-- **ECB** (yield curves, bank lending survey, CISS) → `ecb_*` tables
-- **IMF Fiscal Monitor** (revenue, debt, primary balance) → `imf_fiscal`
-- **CrossRef API** (China Quarterly, AER, JPE, QJE) → `academic_articles`
-- **OpenSky Network** (live aircraft over China) → `flight_positions`
-- **AISHub / AISStream** (live ships around China) → `ship_positions`
-- **China Dissent Monitor API** (protests, strikes by province) → `dissent_events`
+```bash
+pip install -e .
+cmm-serve                      # → http://localhost:5001
+cmm-serve --port 8080
+```
 
-**→ `unctad_trade.db`**
-- **UN Comtrade+ public API** (bilateral merchandise trade by HS-2)
-
-**→ `trade_stats.db`**
-- **WITS** (applied bilateral tariffs, HS-6), **OECD TiVA**, **WTO**, **USITC HTS**
-
-**→ `ccp_elites.db`**
-- **Sine CPC Elite Database** (static import from cpcleadershipdata.pages.dev)
-
-**→ `regulations.db`**
-- **MOFCOM website** scraper (active laws) + **NPC Observer** scraper (bills)
-
-**Note:** Political structure (PSC members, leading groups, state organs) is hardcoded in a Python dict inside `live/api.py` — no DB.
+**Fetch data (separate from the server):**
+```bash
+cmm-fetch news          # RSS + ministry scrapers (runs every 4 h via launchd)
+cmm-fetch realtime      # flights + ships (continuous daemon)
+cmm-fetch batch         # all non-realtime sources (runs daily at 03:00 via launchd)
+cmm-fetch macro         # GMD, IMF WEO/Fiscal, NBS, Bruegel
+cmm-fetch comtrade      # UN Comtrade bilateral trade
+cmm-fetch trade-stats   # WITS tariffs, WTO, USITC HTS, ILO, OECD
+cmm-fetch ccp-elites    # import CCP elite leadership xlsx
+```
 
 ---
 
-### Collection schedule
+## Database
 
-| Runner | Interval | What it fetches |
-|--------|----------|-----------------|
-| `fetch_news.py` | 4 hours | All RSS/RSSHub/WeChat |
-| `fetch_financial.py` | Daily | AKShare |
-| `fetch_bruegel.py` | Monthly | Bruegel Excel |
-| `fetch_macro.py` | On-demand | GMD, BIS, ECB, IMF, Eurostat, ILO |
-| `fetch_regulations.py` | On-demand | MOFCOM, NPC Observer |
-| `fetch_realtime.py` | 60 s | Flights (OpenSky), ships (AIS) |
-| `fetch_academic.py` | On-demand | CrossRef journals |
-| `fetch_dissent.py` | On-demand | China Dissent Monitor |
+All data lives in a single SQLite file: **`data/cmm.db`** (47 tables, ~623K rows).
 
----
+`data/` is gitignored — the database is distributed separately:
 
-### Dashboard endpoints → DB mapping
+> **Download `cmm.db`:** https://drive.google.com/drive/folders/1GNdPi-mAN2MpnCyA3qwucQidYRdnZqaq?usp=drive_link
 
-| Dashboard tab / feature | API endpoint | DB |
-|-------------------------|-------------|-----|
-| News feed | `/api/news` | `feeds.db` |
-| Financial indicators | `/api/financial/*` | `feeds.db` |
-| Bruegel macro | `/api/bruegel/*` | `feeds.db` |
-| Global macro (GMD) | `/api/macro/*` | `feeds.db` |
-| Academic papers | `/api/academic/*` | `feeds.db` |
-| Trade choropleth | `/api/trade/*` | `unctad_trade.db` |
-| Regulations timeline | `/api/regulations/*` | `regulations.db` |
-| Political structure | `/api/polity` | hardcoded dict in `api.py` |
-| CCP elites / purge heatmap | `/api/elites/*` | `ccp_elites.db` |
-| Flights / ships | `/api/flights/*`, `/api/ships/*` | `feeds.db` |
-| Dissent events | `/api/dissent/*` | `feeds.db` |
-| Pipeline status | `/api/pipeline/status` | `feeds.db` |
+Place the downloaded `cmm.db` in `data/` before starting the server.
 
-| Tariff rates | `/api/tariffs/china-applied`, `/api/tariffs/on-china` | `trade_stats.db` |
+**To build from scratch** (requires API keys in `.env`):
+```bash
+python -m backend.bootstrap_db
+```
 
----
+All code connects via `from backend.storage import get_conn`. Core tables:
 
-### API credentials
+| Table | Contents |
+|-------|----------|
+| `macro_series` | Country-level time series (IMF, GMD, BIS, ECB, Bruegel, ILO, Eurostat, Destatis) |
+| `bilateral_series` | Bilateral flows (Comtrade, WITS, OECD, WTO) |
+| `market_prices` | OHLCV (Yahoo Finance, AKShare) |
+| `news_items` | RSS + ministry scraper items |
+| `documents` / `document_events` | MOFCOM laws + NPC bills + bill timeline events |
+| `academic_articles` | CrossRef journals (DOI-deduped) |
+| `dissent_events` | China Dissent Monitor protests/strikes |
+| `ccp_members` | CC/PB/PSC members across 7th–20th congresses |
+| `customs_exports` | HS-8 export data from China Customs |
+| `positions_current` / `positions_history` | Live + rolling 30-day flight/ship positions |
+| `fetch_log` | Per-run audit log (source, ok, rows, duration) |
+| `countries` / `products` / `tickers` | ISO-3, HS/ISIC/WTO tree, instrument metadata |
 
-All keys live in `scripts/policy_monitor/config.py` (loaded from `.env`).
-
-| Service | Used by | Required? |
-|---------|---------|-----------|
-| Anthropic | `advisor.py` | Optional (stub mode if missing) |
-| OpenSky Network | `flights.py` | Optional (anonymous rate-limited) |
-| AISStream | `ships.py` | Optional |
-| Destatis GENESIS | `destatis.py` | Optional (GAST guest works) |
-| UN Comtrade+ | `unctad.py` | None (public API) |
-| WITS | `wits.py` | Optional |
-| WTO | `wto.py` | Optional |
-| IMF DataMapper | `global_macro.py` | None (public API) |
-| ECB / Eurostat / BIS | various | None (public APIs) |
+(Plus legacy tables preserved from the 5-DB migration: `items`, `financial_series`, `bruegel_*`, `bis_*`, `ecb_*`, `imf_fiscal`, `china_tariffs`, `unctad_trade`, `usitc_hts`, etc.)
 
 ---
 
-## GOOD TO KNOW:
- Changes made:
-  1. fetch_realtime.py — NEWS_INTERVAL changed from 3600 → 14400 (4 hours)
-  2. scheduler/com.chinapolicymonitor.news.plist — StartInterval changed 3600 → 14400, and fixed the broken path reference to
-  run_fetch_news.py (file was deleted in the restructure)
-  3. Created run_fetch_news.py at top level (was missing, breaking the launchd plist)
-  
-  To reload launchd so the new interval takes effect, run:
-  ! launchctl unload ~/PycharmProjects/CMM/scheduler/com.chinapolicymonitor.news.plist && launchctl load
-  ~/PycharmProjects/CMM/scheduler/com.chinapolicymonitor.news.plist
-  The realtime daemon will pick up the new interval automatically on its next restart.
+## Folder layout
+
+```
+backend/           All Python code
+  api.py           Flask server (all routes)
+  run.py           Entry point: python -m backend.run  (or: cmm-serve)
+  cli.py           Unified fetch CLI (cmm-fetch <command>)
+  storage.py       get_conn() + DATA_DIR/LOG_DIR/… → data/
+  config.py        All API keys (loaded from .env)
+  schema.sql       16-table unified DDL
+  bootstrap_db.py  Build fresh cmm.db from scratch
+  migrate_db.py    One-off migration tool (5 DBs → cmm.db)
+  fetchers/        29 source modules (bis, ecb, bruegel, …)
+  scrapers/        mofcom.py, npc_observer.py
+  sources/         registry.yaml, loader.py, validate.py
+  runners/         fetch_news, fetch_batch, fetch_macro, …
+  customs_scraper/ Browser-automation China Customs scraper
+  scheduler/       macOS launchd .plist files
+  literature/      Reference papers (DSGE / agent-based macro)
+  model/           Macro-model landscape notes
+
+frontend/
+  index.html       Dashboard (served by Flask at /)
+
+tasks/todo.md      Live task backlog
+data/              Gitignored — databases, logs, raw files
+  cmm.db           Canonical DB (download from Drive)
+.trash/            Retired files (old layout, tests, build artifacts, finished plans)
+```
+
+> Fetch from the command line with `cmm-fetch <command>` (see Quick start) or
+> `python -m backend.cli <command>` without installing.
+
+---
+
+## Data sources
+
+| Source | Table(s) | Frequency | Auth |
+|--------|----------|-----------|------|
+| 100+ RSS/RSSHub feeds (ministries, NDRC, …) | items | 4 h | None |
+| AKShare (SHIBOR, bonds, SSE/CSI 300, CNH, CPI, PMI) | financial_series, financial_snapshots | Daily | None |
+| Bruegel China Economic Dashboard | bruegel_series, bruegel_provincial | Monthly | None |
+| GMD (Müller et al. 2025) — 75 macro variables, 243 countries | macro_series | On-demand | None |
+| BIS (credit-to-GDP, policy rates, REER) | bis_* | On-demand | None |
+| ECB (yield curves, CISS, bank lending survey) | ecb_* | On-demand | None |
+| IMF Fiscal Monitor | imf_fiscal | On-demand | None |
+| Eurostat | eurostat_* | On-demand | None |
+| WITS tariffs (HS-6, 2019–2023) | china_tariffs | On-demand | None |
+| UN Comtrade bilateral trade (HS-2) | unctad_trade | On-demand | Optional |
+| WTO | wto_* | On-demand | Key needed |
+| OECD TiVA | oecd_tiva | On-demand | None |
+| USITC HTS product tree | usitc_hts | On-demand | None |
+| ILO | ilo_* | On-demand | None |
+| NPC Observer (bills) | npc_bills, npc_bill_events | On-demand | None |
+| MOFCOM (laws) | mofcom_docs | On-demand | China IP |
+| CrossRef (academic journals) | academic_articles | On-demand | None |
+| OpenSky Network (live flights) | flight_positions | 60 s | Optional |
+| AISStream / AISHub (live ships) | ship_positions | 60 s | Key in data/reference/config.json |
+| China Dissent Monitor | dissent_events | On-demand | None |
+| Sine CPC Elite Database | ccp_cc/pb/psc_members | On-demand | None |
+| Yahoo Finance / AKShare (OHLCV) | financial_series | Daily | None |
+
+---
+
+## API keys
+
+All keys in `backend/config.py`, loaded from `.env` at project root.
+
+| Key | Required? | Notes |
+|-----|-----------|-------|
+| `AISSTREAM_API_KEY` | Optional | Key already in `data/reference/config.json` |
+| `COMTRADE_API_KEY` | Optional | Paid; public preview works without key |
+| `WTO_API_KEY` | Optional | Free at api.wto.org |
+| `DESTATIS_TOKEN` | Optional | Guest access `GAST` works without key |
+| `ANTHROPIC_API_KEY` | Optional | `advisor.py` stub mode if missing |
+| `OPENSKY_USERNAME/PASSWORD` | Optional | Anonymous rate-limited access works |
+
+All other sources (ECB, BIS, IMF, Eurostat, WITS, OECD, ILO, Comtrade public) require no auth.
+
+---
+
+## Scheduler (macOS launchd)
+
+Four daemons in `backend/scheduler/`. Load with:
+```bash
+launchctl load ~/PycharmProjects/CMM/backend/scheduler/com.chinapolicymonitor.news.plist
+launchctl load ~/PycharmProjects/CMM/backend/scheduler/com.chinapolicymonitor.batch.plist
+launchctl load ~/PycharmProjects/CMM/backend/scheduler/com.chinapolicymonitor.realtime.plist
+```
+
+| Plist | Command | Schedule |
+|-------|---------|----------|
+| news | `cmm-fetch news` | Every 4 hours |
+| batch | `cmm-fetch batch` | Daily 03:00 + random 0–18 h offset |
+| realtime | `cmm-fetch realtime` | Continuous (KeepAlive) |
+| macro | `cmm-fetch macro` | Daily 03:00 (superseded by batch) |

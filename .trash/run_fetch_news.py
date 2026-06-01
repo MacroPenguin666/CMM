@@ -1,6 +1,8 @@
-#!/usr/bin/env python3
-"""Hourly news feed fetch."""
-from policy_monitor.runners.fetch_news import run
+"""Fetch RSS news feeds and store to feeds.db.
 
-if __name__ == "__main__":
-    run()
+Usage:
+    python run_fetch_news.py
+"""
+from scripts.policy_monitor.runners.fetch_news import run
+
+run()
