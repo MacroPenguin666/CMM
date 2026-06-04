@@ -802,18 +802,20 @@ def api_dissent_historical():
 # Real-time tracking endpoints (flights & ships)
 # ---------------------------------------------------------------------------
 
-_flight_cache = {"data": [], "ts": 0}
-_ship_cache = {"data": [], "ts": 0}
+_flight_cache = {"data": [], "ts": 0, "refreshing": False}
+_ship_cache = {"data": [], "ts": 0, "refreshing": False}
 
 
 @app.route("/api/flights/positions")
 def api_flight_positions():
     """Current flight positions over China (OpenSky Network).
 
-    Fetches live from OpenSky if cache is older than 60s (authenticated)
-    or 900s (anonymous).  No background process required.
+    Returns cached/DB positions immediately and refreshes live data in a
+    background thread, so the request never blocks on the external API.
+    The frontend polls every 30s and picks up fresh data on the next tick.
     """
     import time
+    import threading
     try:
         from backend.fetchers.flights import (
             _load_credentials,
@@ -826,19 +828,29 @@ def api_flight_positions():
         max_age = 60 if (u and p) else 900
         now = time.time()
 
-        if now - _flight_cache["ts"] >= max_age:
-            try:
-                positions = fetch_flight_positions(u, p)
-                conn = get_flights_db()
-                store_flight_positions(conn, positions)
-                conn.close()
-                _flight_cache["data"] = positions
-                _flight_cache["ts"] = now
-            except Exception:
-                # On fetch failure, serve stale cache or DB
-                conn = get_flights_db()
-                _flight_cache["data"] = get_current_flights(conn)
-                conn.close()
+        # Hydrate from DB on first call so there is always something to serve.
+        if _flight_cache["ts"] == 0 and not _flight_cache["data"]:
+            conn = get_flights_db()
+            _flight_cache["data"] = get_current_flights(conn)
+            conn.close()
+
+        if now - _flight_cache["ts"] >= max_age and not _flight_cache["refreshing"]:
+            _flight_cache["refreshing"] = True
+
+            def _refresh():
+                try:
+                    positions = fetch_flight_positions(u, p)
+                    conn = get_flights_db()
+                    store_flight_positions(conn, positions)
+                    conn.close()
+                    _flight_cache["data"] = positions
+                except Exception:
+                    pass
+                finally:
+                    _flight_cache["ts"] = time.time()
+                    _flight_cache["refreshing"] = False
+
+            threading.Thread(target=_refresh, daemon=True).start()
 
         return jsonify(_flight_cache["data"])
     except Exception:
@@ -849,9 +861,12 @@ def api_flight_positions():
 def api_ship_positions():
     """Current ship positions around China (AISHub or AISStream).
 
-    Fetches live if cache is older than 60s.
+    Returns cached/DB positions immediately and refreshes live data in a
+    background thread (the AISStream listen can take ~10s), so the request
+    never blocks. The frontend polls every 30s for fresh positions.
     """
     import time
+    import threading
     try:
         from backend.fetchers.ships import (
             _load_api_key,
@@ -865,19 +880,31 @@ def api_ship_positions():
             return jsonify([])
 
         now = time.time()
-        if now - _ship_cache["ts"] >= 60:
-            try:
-                positions = fetch_ship_positions(duration_seconds=10)
-                conn = get_ships_db()
-                store_ship_positions(conn, positions)
-                cleanup_stale(conn)
-                _ship_cache["data"] = get_current_ships(conn)
-                conn.close()
-                _ship_cache["ts"] = now
-            except Exception:
-                conn = get_ships_db()
-                _ship_cache["data"] = get_current_ships(conn)
-                conn.close()
+
+        # Hydrate from DB on first call so there is always something to serve.
+        if _ship_cache["ts"] == 0 and not _ship_cache["data"]:
+            conn = get_ships_db()
+            _ship_cache["data"] = get_current_ships(conn)
+            conn.close()
+
+        if now - _ship_cache["ts"] >= 60 and not _ship_cache["refreshing"]:
+            _ship_cache["refreshing"] = True
+
+            def _refresh():
+                try:
+                    positions = fetch_ship_positions(duration_seconds=10)
+                    conn = get_ships_db()
+                    store_ship_positions(conn, positions)
+                    cleanup_stale(conn)
+                    _ship_cache["data"] = get_current_ships(conn)
+                    conn.close()
+                except Exception:
+                    pass
+                finally:
+                    _ship_cache["ts"] = time.time()
+                    _ship_cache["refreshing"] = False
+
+            threading.Thread(target=_refresh, daemon=True).start()
 
         return jsonify(_ship_cache["data"])
     except Exception:

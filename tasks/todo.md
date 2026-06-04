@@ -99,3 +99,58 @@ endpoints verified 2026-06-01. (Old `scripts/`/`live/`/`feeds.db` layout retired
 
 - [ ] MT-1: Trade policy model — NQTM/KITE-style (BACI + WITS + WIOD inputs)
 - [ ] MT-2: China macro model — NK-SOE DSGE (PBoC rule, dual labour, LGFVs; Dynare vs Python TBD)
+
+---
+
+# 11. Ingest pycharm_archive + Zombies data into cmm.db (plan, 2026-06-03)
+
+Goal: pull as much *primary/curated* data as possible from `~/Documents/pycharm_archive/`
+(includes the Zombies projects) into the single `data/cmm.db` — **without** creating duplicates.
+Synergy: the archive's `data_raw/` already holds **WB WDI/WGI/DBI, OECD PISA, ILO, IMF findex,
+PWT 11.0** — directly ticks several §5 TODOs.
+
+## Two hard constraints found during recon
+1. **iCloud-offloaded.** Every large file is a dataless placeholder (`blocks=0`). The tree is
+   **82 GB logical, ~2 GB resident**. Must `brctl download` before reading; downloads are
+   currently slow/stalling (needs iCloud online, possibly Finder "Download Now").
+2. **2.6 GB free disk** (volume 82% full). Can't materialize 82 GB at once.
+→ Ingestion must be **streaming** (download→ingest→`brctl evict`, disk-budget aware) and
+   **selective** (curated/primary only; never the 82 GB of figures/outputs/caches/dupes).
+
+## Principles
+- One DB only (`storage.get_conn()` → `data/cmm.db`); no new .db files.
+- Namespacing so nothing collides with native tables: `repo_*` (from central_repo.db),
+  `zomb_*` (zombie/firm/bank/tribunal panels), `tfp_*` (TFP & city/province), `ext_*` (raw
+  reference: WB/OECD/ILO/PWT/Ember/IMF).
+- Provenance cols on every import: `_src_file`, `_src_sheet`, `_ingested_at`.
+- Dedup via `ingest_manifest(src_path, sha256, size, table, n_rows, ingested_at, status)` —
+  re-runs skip already-loaded files; overlaps with native tables reconciled, not duplicated.
+- Snapshot `cmm.db` → `cmm.db.pre_ingest.bak` first; all imports additive + namespaced (reversible).
+
+## Phases
+- [ ] **P0 Infra:** confirm iCloud downloads progress; add `backend/ingest/` (materialize.py,
+      manifest.py, loaders.py); create `ingest_manifest`; snapshot cmm.db.
+- [ ] **P1 Inventory:** walk both trees, classify each data file primary/curated/intermediate/noise
+      into `ingest_manifest`; **user reviews keep-list before bulk download.**
+- [ ] **P2 central_repo.db (1.13 GB, crown jewel):** download → ATTACH → list tables/schemas →
+      copy non-overlapping tables as `repo_*` (reconcile macro/WB/BIS/trade overlaps) → evict.
+- [ ] **P3 Curated panels:** Zombies_fixed/data/aggregated/*.parquet → `zomb_*`;
+      firm_bank_year_panel → `zomb_firm_bank_year`; TFPZombies/data/*.csv → `tfp_*`;
+      central_cities_panel + regional_rd_panel_clean → `tfp_*`.
+- [ ] **P4 Raw sources:** data_raw keepers → `ext_*` (WB, OECD PISA, ILO, IMF findex, PWT 11.0,
+      Ember, GEM, EPLEX, zombie_data*.xlsx, Datasets/China/Zombies/2021–2024.xlsx);
+      data_processed pickles (all_tfp, zombie_fin, global_macro, tfp components) → `tfp_*`/`zomb_*`.
+      Check merged.csv / yombie2_dataframes.pkl for unique cols before ingesting (likely derived joins).
+- [ ] **P5 Reconcile:** cross-check `ext_*` vs native (global_macro, bis_*, imf_fiscal, china_tariffs);
+      drop true overlaps, keep new coverage; collapse near-identical city panels.
+- [ ] **P6 Verify:** per-table row/null report + 3-value spot-checks vs source; confirm get_conn()
+      + dashboard boot; update README inventory; review section here; delete this section when done.
+
+## NOT ingested
+`__pycache__`, `.venv`, `.git`, `.idea`, `.opencode`, `*backup*`, `*trash*`, `_archive`,
+`outputs/`, `figures/`, `Graphs/`, `Heatmaps/`, `*.png/.html/.docx/.pdf/.pptx`, regression
+result dumps, duplicate xlsx of CSVs already ingested.
+
+## Decisions needed before P2
+- Scope: curated-only vs include raw reference (`ext_*`)?
+- If iCloud keeps stalling: you pre-download keep-list folders in Finder, or I run a retry loop.
