@@ -6,34 +6,37 @@ A local web dashboard that collects, standardises, and displays data about Chine
 
 ## Setup from scratch — read this first (humans and AI agents)
 
-Git carries **code only**. The database is distributed separately and the
-dashboard is empty without it, so a fresh clone needs three steps:
+The repo is **self-contained**: git carries code (plus `data/commodities.json`);
+the database is built locally from the original public sources. A fresh clone
+needs exactly two steps:
 
 ```bash
-# 1. Install
 pip install -e .
-
-# 2. Download the database (NOT in git) and place it at data/cmm.db
-#    → https://drive.google.com/drive/folders/1GNdPi-mAN2MpnCyA3qwucQidYRdnZqaq?usp=drive_link
-#    File: cmm.db (~450 MB SQLite). The dashboard STARTS without it but every
-#    panel will be empty — if panels are empty, this step is what's missing.
-
-# 3. Serve
 cmm-serve                      # → http://localhost:5001
 ```
 
+On first run `cmm-serve` detects that `data/cmm.db` is missing and builds it
+automatically in the background — no API keys, no manual downloads. The
+dashboard is usable immediately; panels fill in as fetches complete (news
+lands within minutes, the full batch of ~20 sources takes hours). Watch
+progress at `/api/refresh/status` or in `data/logs/auto_refresh.log`.
+
+Prefer a foreground build without serving? `python -m backend.bootstrap_db`
+runs the same pipeline (news → policies → batch → commodities) and prints a
+per-source summary.
+
 Notes for agents working on this repo:
-- **Do not** bootstrap a fresh DB (`python -m backend.bootstrap_db`) as a
-  substitute for step 2 — it creates empty tables and refetching everything
-  takes days and needs API keys. Always download `cmm.db` from the Drive link.
+- **Never** treat a missing `data/cmm.db` as an error — just start `cmm-serve`
+  (without `--no-refresh`) or run `python -m backend.bootstrap_db` and let the
+  fetchers build it. Empty dashboard panels simply mean the background build
+  hasn't reached that source yet.
 - `data/` is gitignored (except `data/commodities.json`, which is committed).
   Logs land in `data/logs/`.
-- After large refetches, upload the updated `cmm.db` back to the same Drive
-  folder so it stays the canonical copy.
 - Not every source in `backend/sources/registry.yaml` has been fetched into
   the DB yet — some sources are wired up in code but still empty.
 - `.env` API keys are optional (see "API keys" below); everything serves and
-  most fetchers run without any keys.
+  all fetchers run without keys — key-gated sources (WTO, paid Comtrade tier,
+  AIS ships) simply skip or degrade until a key is provided.
 
 ---
 
@@ -75,17 +78,14 @@ python -m backend.runners.fetch_commodities --trade-only # resume/top-up trade o
 
 ## Database
 
-All data lives in a single SQLite file: **`data/cmm.db`** (47 tables, ~623K rows).
+All data lives in a single SQLite file: **`data/cmm.db`** (47 tables, ~623K rows
+once fully built).
 
-`data/` is gitignored — the database is distributed separately:
+`data/` is gitignored — the database is **built locally from public sources**,
+either automatically by `cmm-serve` on first run (background) or explicitly with:
 
-> **Download `cmm.db`:** https://drive.google.com/drive/folders/1GNdPi-mAN2MpnCyA3qwucQidYRdnZqaq?usp=drive_link
-
-Place the downloaded `cmm.db` in `data/` before starting the server.
-
-**To build from scratch** (requires API keys in `.env`):
 ```bash
-python -m backend.bootstrap_db
+python -m backend.bootstrap_db      # foreground build, no API keys required
 ```
 
 All code connects via `from backend.storage import get_conn`. Core tables:
@@ -137,7 +137,7 @@ frontend/
 
 tasks/todo.md      Live task backlog
 data/              Gitignored — databases, logs, raw files
-  cmm.db           Canonical DB (download from Drive)
+  cmm.db           Canonical DB (auto-built from public sources on first run)
 .trash/            Retired files (old layout, tests, build artifacts, finished plans)
 ```
 

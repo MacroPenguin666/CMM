@@ -1,13 +1,14 @@
 """
 Build a fresh data/cmm.db from scratch by applying schema.sql then running all fetchers.
 
-Useful for users who have their own API keys and want to populate the database
-without the pre-built cmm.db from Google Drive.
+Foreground alternative to the automatic first-run bootstrap that cmm-serve
+performs in the background — same public sources, no API keys required
+(key-gated sources like WTO/paid-Comtrade soft-skip when keys are unset).
 
 Usage:
     python -m backend.bootstrap_db              # full build (all fetchers)
     python -m backend.bootstrap_db --schema-only  # apply DDL only, no fetch
-    python -m backend.bootstrap_db --skip news realtime  # skip specific runners
+    python -m backend.bootstrap_db --skip news commodities  # skip specific runners
 """
 
 import argparse
@@ -20,13 +21,14 @@ from backend.storage import DB_PATH, get_conn
 
 SCHEMA_PATH = Path(__file__).parent / "schema.sql"
 
+# batch covers all non-realtime DB sources (macro, comtrade, trade-stats,
+# ccp-elites, eurostat-trade, fyp-tech, chartbook, …) — see fetch_batch.ALL_SOURCES.
+# commodities writes data/commodities.json rather than cmm.db.
 RUNNERS = [
-    ("news",        "backend.runners.fetch_news",       "run"),
-    ("macro",       "backend.runners.fetch_macro",      "run"),
-    ("batch",       "backend.runners.fetch_batch",      "run"),
-    ("comtrade",    "backend.runners.fetch_comtrade",   "run"),
-    ("trade-stats", "backend.runners.fetch_trade_stats","run"),
-    ("ccp-elites",  "backend.runners.import_ccp_elites","run"),
+    ("news",        "backend.runners.fetch_news",        "run"),
+    ("policies",    "backend.runners.fetch_policies",    "run"),
+    ("batch",       "backend.runners.fetch_batch",       "run"),
+    ("commodities", "backend.runners.fetch_commodities", "run"),
 ]
 
 

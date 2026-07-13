@@ -94,3 +94,13 @@ def test_status_reports_per_group(conn):
     assert by_name["batch"]["last_success"] is None
     # next_due = last success + interval (unix seconds)
     assert by_name["news"]["next_due"] == pytest.approx(NOW - 3590 + 4 * 3600)
+
+
+def test_batch_covers_all_db_sources():
+    # A fresh clone bootstraps solely via the auto-refresh groups; the batch
+    # group must therefore reach every non-realtime DB source.
+    from backend.runners.fetch_batch import ALL_SOURCES, FETCHERS
+
+    assert set(FETCHERS) == set(ALL_SOURCES)
+    for source in ("fyp_tech", "chartbook", "eurostat_trade", "ccp_elites"):
+        assert source in ALL_SOURCES
