@@ -570,6 +570,22 @@ def api_pipeline_status():
     })
 
 
+@app.route("/api/refresh/status")
+def api_refresh_status():
+    """Auto-refresh scheduler status: per-group last run / next due / running."""
+    try:
+        from backend.auto_refresh import ensure_table, get_status, _state
+        from backend.storage import get_conn
+        conn = get_conn()
+        ensure_table(conn)
+        groups = get_status(conn)
+        conn.close()
+        alive = _state["thread"] is not None and _state["thread"].is_alive()
+        return jsonify({"scheduler_alive": alive, "groups": groups})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 # ---------------------------------------------------------------------------
 # GeoJSON endpoints — served locally to avoid CORS
 # ---------------------------------------------------------------------------
@@ -588,6 +604,20 @@ def api_geo_provinces():
         mimetype="application/json",
         headers={"Cache-Control": "public, max-age=86400"},
     )
+
+# ---------------------------------------------------------------------------
+# Commodity markets (copper prices, production, trade)
+# ---------------------------------------------------------------------------
+
+@app.route("/api/commodities")
+def api_commodities():
+    """Commodity markets blob (all materials: prices, production/refining by
+    country, trade per HS code) from data/commodities.json (schema 2)."""
+    try:
+        from backend.fetchers.commodities import get_commodities_data
+        return jsonify(get_commodities_data())
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 # ---------------------------------------------------------------------------
 # Dissent data endpoints

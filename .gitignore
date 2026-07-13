@@ -12,6 +12,7 @@ cmm.egg-info/
 # Data — distribute cmm.db separately via Google Drive (see README)
 data/*.db
 data/*.db.bak
+data/*.bak
 data/*.db-shm
 data/*.db-wal
 data/logs/

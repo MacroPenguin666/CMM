@@ -1,0 +1,50 @@
+{
+  "ndrc": {
+    "source": "NDRC — Notices",
+    "list_url": "https://www.ndrc.gov.cn/xxgk/zcfb/tz/",
+    "article_url": "https://www.ndrc.gov.cn/xxgk/zcfb/tz/202606/t20260625_1406079.html",
+    "article_title": "关于印发《新型能源体系建设“十五五”规划》的通知(发改能源〔2026〕884号)",
+    "article_published": "2026-06-25",
+    "n_entries": 49
+  },
+  "mofcom": {
+    "source": "MOFCOM — Orders & Announcements",
+    "list_url": "http://www.mofcom.gov.cn/zcfb/blgg/",
+    "article_url": "http://www.mofcom.gov.cn/zcfb/wwmwwzzccs/index.html",
+    "article_title": "稳外贸稳外资政策措施",
+    "article_published": "",
+    "n_entries": 10
+  },
+  "ministry": {
+    "source": "Ministry of Finance — Policy Releases",
+    "list_url": "http://www.mof.gov.cn/zhengwuxinxi/zhengcefabu/",
+    "article_url": "http://szs.mof.gov.cn/zhengcefabu/202607/t20260703_3992823.htm",
+    "article_title": "财政部 税务总局 工业和信息化部关于调整节能汽车、新能源汽车车船税优惠政策的公告",
+    "article_published": "2026-07-03",
+    "n_entries": 25
+  },
+  "mee": {
+    "source": "MEE — Environmental Standards",
+    "list_url": "https://www.mee.gov.cn/ywdt/spxw/",
+    "article_url": "https://www.mee.gov.cn/ywdt/spxw/202607/t20260705_1160959.shtml",
+    "article_title": "视频丨践行绿色发展理念 绘就生态中国壮美画卷（央视《新闻联播》）",
+    "article_published": "2026-07-05",
+    "n_entries": 22
+  },
+  "mem": {
+    "source": "MEM — Notices & Announcements",
+    "list_url": "https://www.mem.gov.cn/gk/tzgg/",
+    "article_url": "https://www.mem.gov.cn/gk/zfxxgkpt/fdzdgknr/202607/t20260703_674272.shtml",
+    "article_title": "关于印发《安全评价机构资质条件》的通知2026-07-03",
+    "article_published": "2026-07-03",
+    "n_entries": 20
+  },
+  "mct": {
+    "source": "MCT — Policies & Regulations",
+    "list_url": "https://zwgk.mct.gov.cn/zfxxgkml/zcfg/",
+    "article_url": "https://zwgk.mct.gov.cn/zfxxgkml/447/522/index_3081.html",
+    "article_title": "文化市场综合执法",
+    "article_published": "",
+    "n_entries": 16
+  }
+}

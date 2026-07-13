@@ -10,6 +10,7 @@ Usage:
     cmm-fetch comtrade      # UN Comtrade bilateral trade
     cmm-fetch eurostat      # Eurostat datasets
     cmm-fetch ministries    # ministry HTML scrapers only
+    cmm-fetch policies      # ministry policy docs incl. full text → policy_docs
     cmm-fetch trade-stats   # WITS, WTO, USITC, ILO, OECD
     cmm-fetch yfinance      # Yahoo Finance OHLCV
     cmm-fetch ccp-elites    # import CCP elite leadership xlsx
@@ -25,7 +26,7 @@ def main():
         "command",
         choices=[
             "news", "realtime", "financial", "macro", "batch",
-            "comtrade", "eurostat", "ministries", "trade-stats",
+            "comtrade", "eurostat", "ministries", "policies", "trade-stats",
             "yfinance", "ccp-elites",
         ],
     )
@@ -49,6 +50,8 @@ def main():
         from backend.runners.fetch_eurostat import run
     elif args.command == "ministries":
         from backend.runners.fetch_ministries import run
+    elif args.command == "policies":
+        from backend.runners.fetch_policies import run
     elif args.command == "trade-stats":
         from backend.runners.fetch_trade_stats import run
     elif args.command == "yfinance":

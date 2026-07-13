@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=0">
+		<title>政策法规</title>
+                <link href="//www.gov.cn/govweb/xhtml/favicon.ico" rel="shortcut icon" type="image/x-icon"> 
+                <meta name="SiteName" content="中华人民共和国文化和旅游部">
+<meta name="SiteDomain" content="https://www.mct.gov.cn">
+<meta name="SiteIDcode" content="bm23000001">
+<meta name="ArticleTitle" content=""/>
+<meta name="ColumnName" content="政策法规"  />
+<meta name="ColumnDescription" content="政策法规"  />
+<meta name="ColumnType" content="政策法规"  />
+<meta name="ColumnKeywords" content="政策法规"  />
+<meta name="PubDate" content=""/>
+<meta name="ContentSource" content=""/>
+		<link rel="stylesheet" type="text/css" href="../../images/base_4.css" />
+		<link rel="stylesheet" type="text/css" href="../../images/xxgk_1012_4.css" />
+		<link rel="stylesheet" type="text/css" href="../../images/style_left_4.css" />
+		<link rel="stylesheet" type="text/css" href="../../images/mobile_1012_4.css" media="screen and (max-width:767px) and (orientation:portrait)" />
+		<!--[if lt IE 9]>
+		<script type="text/javascript" src="../../images/respond_5.min.js"></script>
+		<![endif]-->
+		<script src="../../images/jquery-1_4.12.4.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../images/h5_4.js"></script>
+		<script src="../../images/resize_4.js"></script>
+		<script src="../../images/index_4.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../images/left_menu_6.js" type="text/javascript" charset="utf-8"></script>
+		<!--<script src="../../images/selfDefined_4.js" type="text/javascript" charset="utf-8"></script>-->
+		<style type="text/css">
+			.sub_sub_submenu{display: none;}
+                       
+                        .l_items .p1 a{width:360px;float: left;text-align: inherit;}
+                       
+		</style>
+	</head>
+
+	<body>
+		<!--头部开始-->
+		<!--<div class="header clearfix">
+			</div>-->
+		<!--头部结束-->
+		<div class="boxcenter">
+			<!--mainbox开始-->
+			<div class="mainbox clearfix">
+				<div class="mainCont">
+					<div class="mainTop">
+						<!--<div class="lineGreyl fl"></div>-->
+						<form class="sear-down" action="https://zwgk.mct.gov.cn/so/gzk/s" method="get" target="_blank" name="searchForm" id="form1">
+						<div class="searchBox"> 
+						
+							<input class="searchInput" type="text" autocomplete="off" name="qt" id="allSearchWord" placeholder="请输入搜索词" />
+							<input name="tab" type="hidden" value="gzk" />
+							
+							<input name="searchButton" type="button" id="searchButton" value="" onclick="checkForm();" class="searBtn" />
+						</div>
+						</form> 
+						
+
+<script type="text/javascript">
+    var ctx = "https://zwgk.mct.gov.cn";
+    $(document).ready(function(){
+        var siteCode = "bm23000001";
+    });
+
+
+    //跨浏览器事件函数
+    function addEvent(element, type, handler) {
+        if (element.addEventListener) {
+            element.addEventListener(type, handler, false);
+        } else if (element.attachEvent) { //兼容ie
+            element.attachEvent('on' + type, handler);
+        } else {
+            element['on' + type] = handler;
+        }
+    }
+
+    //存储最后搜索的信息
+    var allSearchWordTemp ="";
+    var columnTemp = "";
+    /*
+     * 监听input中value变化
+    **/
+   
+    // 进行搜索
+    function searchProcess(searchWord) {
+        if (searchWord != "" && typeof(searchWord) != "undefined") {
+            searchWord = searchWord.replace(/(^\s*)|(\s*$)/g, "");
+        }
+        // 搜索类别
+        var typeName = titleDates[0].channel;
+        // typeName = $("ol li a.on").text();
+        for (var i in titleDates) {
+            if(searchTitle==titleDates[i].id){
+                typeName= titleDates[i].channel
+            }
+        }
+        var siteCode = "bm23000001";
+        var searchMenuSelect=$("#searchMenuSelect").html();
+        if(siteCode=="3205000002"&&searchMenuSelect=="搜站群"){
+            typeName="站群"
+        }
+
+        if (searchWord == "" || typeof(searchWord) == "undefined") {
+            searchWord = $("#allSearchWord").val().replace(/(^\s*)|(\s*$)/g, ""); //.toLowerCase()
+        }
+        // 搜索词非空判断
+        if (searchWord == "") {
+            alert("搜索词不能为空！");
+            return;
+        }
+        if (searchWord.length>100){
+            alert("搜索词长度不能超过100")
+            return
+        }
+
+        if (checkIsHasSpecialStr(searchWord)) {
+            try{
+                event.returnValue = false;
+                location.href = ctx + "/s?siteCode=" + siteCode + "&qt=" + encodeURIComponent(encodeURIComponent(searchWord)) + "&column=" + encodeURIComponent(encodeURIComponent(typeName)) + "&checkHandle=" + 1 + "&pageSize=10&left_right_index=" +left_right_index;
+            }catch(ex){
+                //e.preventDefault();
+                setTimeout(function(){
+                    location.href = ctx + "/s?&siteCode=" + siteCode +"&qt=" + encodeURIComponent(encodeURIComponent(searchWord)) + "&column=" + encodeURIComponent(encodeURIComponent(typeName)) + 1 + "&checkHandle=" + 1 + "&pageSize=10&left_right_index=" +left_right_index;
+                },500)
+
+            }
+
+        }
+    }
+
+
+ 
+    $("#allSearchWord").on("click", function (e) {
+        stopPropagation(e);//阻止事件冒泡
+    })
+    document.onclick = function (e) {
+        $('#selectHint').hide();
+        $('.searchinput-wrap .searchDowmMenu ul').slideUp();
+        if($("#searchMenuSelect").html()=="搜本站"){
+            $(".con-list-b").css("visibility","visible");
+        }
+    }
+ 
+    function stringNotEmpty(str) {
+        if(str != null && str != "" && str != "undefined"){
+            return true;
+        }
+        return false;
+    }
+
+
+    
+
+function checkForm(){
+    var qt = searchForm.qt.value;
+    var tab = searchForm.tab.value;
+    var str = Math.round(Math.random()*10000);
+    if(qt==null || qt==""){
+        alert("请输入搜索词");
+    }
+    else{
+	var url='https://zwgk.mct.gov.cn/so/gzk/s?token=' + str + '&tab=' + tab + '&qt='+encodeURIComponent(qt);
+	window.open(url);
+    }
+}
+function entersearch(){  
+
+　　var event = window.event || arguments.callee.caller.arguments[0];  
+　　if (event.keyCode == 13)  
+　　{  
+    checkForm();
+　　}  
+}
+
+</script>
+						<div class="clear"></div>
+						<!--<div class="sswz">搜索位置：<label><input type="radio" name="wz" />标题</label><label><input type="radio" name="wz" />全文</label></div>-->
+						<!--<div class="lineGreyr fr"></div>-->
+					</div>				</div>
+				<div class="mainCont">
+					<!--左侧开始-->
+					<style>
+#lanmutop{top:-20px;left:-7px;}
+@media screen and (max-width: 767px) and (orientation: portrait){
+#lanmutop{top:-3px;left:-4px;}
+}
+.accordion .gknb .leftImg, .accordion .gknb.open .leftImg {background-position: 0px -263px;}</style>
+<ul id="accordion" class="accordion fl">
+						<li class="gknb open">
+							<div class="link"><font class="leftImg"></font><font class="lanmu" id="lanmutop">政策法规</font><font class="flodImg"></font></div>			
+							<ul class="submenu" style="display: block;">
+								<li><a href="./fl/">法律</a></li>
+								<li><a href="./xzfg/">行政法规</a></li>
+								<li><a href="./bmgz/">部门规章</a></li>
+								<li><a href="./gfxwj/">规范性文件</a></li>
+							</ul>
+						</li>
+                                             
+                                                  <a href="../../zfxxgkzn/">
+						<li class="gkzn">
+                                                <div class="link"><font class="leftImg"></font><font class="lanmu">政府信息公开指南</font></div>
+						</li>
+                                                       </a>
+                                                       <a href="../../zfxxgkzd/">
+						<li class="gkzn">
+                                                <div class="link"><font class="leftImg"></font><font class="lanmu">政府信息公开制度</font></div>
+						</li>
+                                                       </a>
+											
+					    <a href="../">            
+						<li class="gknr" >
+							<div class="link"><font class="leftImg"></font><font class="lanmu">政府信息公开目录</font><font class="flodImg"></font></div>			
+							<ul class="gknr_ul" style="padding: 10px;display:none;">
+								<li class="gknr_conList">
+									<div class="link"><font class="lanmu">主题分类</font><font class="open_close"></font></div>	
+									<ul class="submenu">
+										<li>
+										<font class="open_close"></font>
+										<span>&bull;</span><a href="../jggk/" id="9462">机构概况</a>
+											<div class="sub_submenu">
+											
+												 
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../jggk/jgzn/" id="9463" target="_self"> 
+                                                            机构职能</a>
+                                                        </div>
+                                                  
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../jggk/ldjj/" id="9464" target="_self"> 
+                                                            领导简介</a>
+                                                        </div>
+                                                  
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../jggk/jgsz/" id="9465" target="_self"> 
+                                                            机构设置</a>
+                                                        </div>
+                                                  
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../jggk/lxwm/" id="9466" target="_self"> 
+                                                            联系我们</a>
+                                                        </div>
+                                                  
+											
+
+											</div>
+
+										</li>
+
+
+									<li>
+										<font class="open_close"></font>
+										<span>&bull;</span><a href="./"  id="9472">政策解读</a>
+											<div class="sub_submenu">
+											
+												 
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../../zfxxgkml/./447/458/459/index_3081.html" id="459" target="_self"> 
+                                                            法律</a>
+                                                        </div>
+                                                  
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../../zfxxgkml/./447/458/460/index_3081.html" id="460" target="_self"> 
+                                                            行政法规</a>
+                                                        </div>
+                                                  
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../../zfxxgkml/./447/458/461/index_3081.html" id="461" target="_self"> 
+                                                            部门规章</a>
+                                                        </div>
+                                                  
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../../zfxxgkml/./447/458/462/index_3081.html" id="462" target="_self"> 
+                                                            规范性文件</a>
+                                                        </div>
+                                                  
+											
+
+											</div>
+
+										</li>
+							           
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./447/463/index_3081.html" id="463">政策解读</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+									      
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./447/464/index_3081.html" id="464">规划计划</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+									      
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./447/465/index_3081.html" id="465">统计信息</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+									
+
+
+								 <li>
+										<font class="open_close"></font>
+										<span>&bull;</span><a href="../xzql/" id="9475">行政权力</a>
+											<div class="sub_submenu">
+											           <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../xzql/qzqd/" target="_self" id="9476"> 
+                                                            权责清单</a>
+                                                        </div>
+												 
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../../zfxxgkml/./447/466/468/index_3081.html" id="468" target="_self"> 
+                                                            行政许可</a>
+                                                        </div>
+                                                  
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../../zfxxgkml/./447/466/470/index_3081.html" id="470" target="_self"> 
+                                                            行政事业性收费项目</a>
+                                                        </div>
+                                                  
+											
+
+											</div>
+
+										</li>
+									      
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./447/471/index_3081.html" id="471">行业标准</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+									
+									<li>
+										<font class="open_close"></font>
+										<span>&bull;</span><a href="../zhgl/" id="9481">综合管理</a>
+											<div class="sub_submenu">
+											
+												 
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../../zfxxgkml/./447/472/475/index_3081.html" id="475" target="_self"> 
+                                                            政务公开</a>
+                                                        </div>
+                                                  
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../../zfxxgkml/./447/472/476/index_3081.html" id="476" target="_self"> 
+                                                            建议提案答复</a>
+                                                        </div>
+                                                  
+											
+
+											</div>
+
+										</li>
+									<li>
+										<font class="open_close"></font>
+										<span>&bull;</span><a href="../rsxx/" id="9486">人事信息</a>
+											<div class="sub_submenu">
+											
+												 
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../../zfxxgkml/./447/480/481/index_3081.html" id="481" target="_self"> 
+                                                            公务员招考录用</a>
+                                                        </div>
+                                                  
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../../zfxxgkml/./447/480/482/index_3081.html" id="482" target="_self"> 
+                                                            人才管理</a>
+                                                        </div>
+                                                  
+											
+
+											</div>
+
+										</li>
+										<li>
+										<font class="open_close"></font>
+										<span>&bull;</span><a href="../cwxx/" id="9489">财务信息</a>
+											<div class="sub_submenu">
+											
+												 
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../../zfxxgkml/./447/483/484/index_3081.html" id="484" target="_self"> 
+                                                            预算决算</a>
+                                                        </div>
+                                                  
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../../zfxxgkml/./447/483/486/index_3081.html" id="486" target="_self"> 
+                                                            政府集中采购</a>
+                                                        </div>
+                                                  
+											
+
+											</div>
+
+										</li>
+										      
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./447/488/index_3081.html" id="488">文艺事业</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+									      
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./447/489/index_3081.html" id="489">公共服务</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+									      
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./447/490/index_3081.html" id="490">科技教育</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+									      
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./447/491/index_3081.html" id="491">非物质文化遗产</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+									      
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./447/494/index_3081.html" id="494">产业发展</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+									      
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./447/495/index_3081.html" id="495">资源开发</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+									      
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./447/496/index_3081.html" id="496">市场管理</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+									      
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./447/522/index_3081.html" id="522">文化市场综合执法</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+									
+									<li>
+										<font class="open_close"></font>
+										<span>&bull;</span><a href="../jlhz/" id="9502">交流合作</a>
+											<div class="sub_submenu">
+											
+												 
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../../zfxxgkml/./447/518/519/index_3081.html" id="519" target="_self"> 
+                                                            国际交流合作</a>
+                                                        </div>
+                                                  
+                                                        <div>
+                                                            <span>&bull;</span>
+                                                            <a href="../../zfxxgkml/./447/518/520/index_3081.html" id="520" target="_self"> 
+                                                            对港澳台交流合作</a>
+                                                        </div>
+                                                  
+											
+
+											</div>
+
+										</li>
+										      
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./447/521/index_3081.html" id="521">其他</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+									
+									</ul>
+								</li>
+								<li class="gknr_conList">
+									<div class="link"><font class="lanmu">体裁分类</font><font class="open_close"></font></div>	
+									<ul class="submenu open">
+										      
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./503/504/index_3081.html" id="504">决议决定</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+										       
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./503/505/index_3081.html" id="505">部令</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+										       
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./503/506/index_3081.html" id="506">公报</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+										       
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./503/507/index_3081.html" id="507">公告</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+										       
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./503/508/index_3081.html" id="508">通告</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+										       
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./503/509/index_3081.html" id="509">意见</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+										       
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./503/510/index_3081.html" id="510">通知</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+										       
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./503/511/index_3081.html" id="511">通报</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+										       
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./503/512/index_3081.html" id="512">报告</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+										       
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./503/513/index_3081.html" id="513">批复</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+										       
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./503/514/index_3081.html" id="514">函</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+										       
+										
+										<li>
+										
+										<span>&bull;</span><a href="../../zfxxgkml/./503/515/index_3081.html" id="515">其他</a>
+											<div class="sub_submenu">
+											
+
+											</div>
+
+										</li>
+										
+										 
+									</ul>
+								</li>
+							</ul>
+						</li>
+					   </a>
+                                    
+                                               <a href="../../zfxxgknb/">
+						<li class="gkzn">
+                                                <div class="link"><font class="leftImg"></font><font class="lanmu">政府信息公开年报</font><font class="flodImg"></font></div>
+						</li>
+                                               </a>
+<a href="../../ysqgk/">
+						<li class="ysqgk">
+                                                <div class="link"><font class="leftImg"></font><font class="lanmu">政府信息公开申请</font><font class="flodImg"></font></div>
+						</li>
+                                                       </a>
+						 
+                                                 
+					</ul>
+					<!--左侧结束-->
+					<!--右侧开始-->
+					<div class="rightBox rightBoxPd" style="height: auto;">
+						<!--行政法规-->
+						<div class="table_title">
+							<span class="xh">序号</span><span class="bt">标题</span><span class="xz">下载</span>
+						</div>
+						<ul class="r_content_2022">
+                                                       
+							  <li>
+								<div class="nums">1</div>
+								<div class="l_items" style="overflow: hidden;width: 360px">
+									<p class="p1" style="float:left;"><a href="./bmgz/202602/t20260211_964700.html" target="_blank">旅游投诉处理办法</a></p><br/>
+									<p class="p2" style="float:left;width:300px;">
+                                                                         
+                                                                           
+                                                                           	（中华人民共和国文化和旅游部令第14号公布 《旅游投诉处理办法》已经2025年12月29日文化和旅游部部务会议审议通过，现予公布，自2026年3月15日起施行。）
+                                                                           
+                                                                           
+                                                                         
+                                                                        </p>
+								</div>
+                                                                          <script language="javascript">
+						var str_appendix='<a href="./bmgz/202602/P020260211673176117428.docx">《旅游投诉处理办法》.docx</a>';
+						var file_appendix='<a href="./bmgz/202602/P020260211673176117428.docx">《旅游投诉处理办法》.docx</a>';
+						if(str_appendix!=""&file_appendix!=""){
+						document.write("<a href='./bmgz/202602/P020260211673176399426.pdf'  class='l1'>下载图片版</a>	<a href='./bmgz/202602/P020260211673176117428.docx'  class='l2'>下载文字版</a> ");
+						}
+
+		</script>
+							   </li>
+					             
+							  <li>
+								<div class="nums">2</div>
+								<div class="l_items" style="overflow: hidden;width: 360px">
+									<p class="p1" style="float:left;"><a href="./bmgz/202507/t20250725_961415.html" target="_blank">文化和旅游部行政复议和应诉办法</a></p><br/>
+									<p class="p2" style="float:left;width:300px;">
+                                                                         
+                                                                           
+                                                                           	（中华人民共和国文化和旅游部令第13号公布 《文化和旅游部行政复议和应诉办法》已经2025年6月30日文化和旅游部部务会议审议通过。现予公布，自2025年9月1日起施行。）
+                                                                           
+                                                                           
+                                                                         
+                                                                        </p>
+								</div>
+                                                                          <script language="javascript">
+						var str_appendix='<a href="./bmgz/202507/P020250725630453150014.doc">文化和旅游部行政复议和应诉办法.doc</a>';
+						var file_appendix='<a href="./bmgz/202507/P020250725630453150014.doc">文化和旅游部行政复议和应诉办法.doc</a>';
+						if(str_appendix!=""&file_appendix!=""){
+						document.write("<a href='./bmgz/202507/P020250725630453384133.pdf'  class='l1'>下载图片版</a>	<a href='./bmgz/202507/P020250725630453150014.doc'  class='l2'>下载文字版</a> ");
+						}
+
+		</script>
+							   </li>
+					             
+							  <li>
+								<div class="nums">3</div>
+								<div class="l_items" style="overflow: hidden;width: 360px">
+									<p class="p1" style="float:left;"><a href="./bmgz/202504/t20250425_959630.html" target="_blank">边境旅游管理办法</a></p><br/>
+									<p class="p2" style="float:left;width:300px;">
+                                                                         
+                                                                           
+                                                                           	（文化和旅游部、外交部、公安部、海关总署令第12号）
+                                                                           
+                                                                           
+                                                                         
+                                                                        </p>
+								</div>
+                                                                          <script language="javascript">
+						var str_appendix='<a href="./bmgz/202504/P020250425365021323032.doc">边境旅游管理办法.doc</a>';
+						var file_appendix='<a href="./bmgz/202504/P020250425365021323032.doc">边境旅游管理办法.doc</a>';
+						if(str_appendix!=""&file_appendix!=""){
+						document.write("<a href='./bmgz/202504/P020250425365021537007.pdf'  class='l1'>下载图片版</a>	<a href='./bmgz/202504/P020250425365021323032.doc'  class='l2'>下载文字版</a> ");
+						}
+
+		</script>
+							   </li>
+					             
+							  <li>
+								<div class="nums">4</div>
+								<div class="l_items" style="overflow: hidden;width: 360px">
+									<p class="p1" style="float:left;"><a href="./bmgz/202501/t20250109_957755.html" target="_blank">导游等级考核管理办法</a></p><br/>
+									<p class="p2" style="float:left;width:300px;">
+                                                                         
+                                                                           
+                                                                           	（中华人民共和国文化和旅游部令第11号公布　《导游等级考核管理办法》已经2024年12月27日文化和旅游部部务会议审议通过，自2025年3月1日起施行。《导游人员等级考核评定管理办法（试行）》《导游奖励晋升和加分备案办理程序》同时废止。）
+                                                                           
+                                                                           
+                                                                         
+                                                                        </p>
+								</div>
+                                                                          <script language="javascript">
+						var str_appendix='<a href="./bmgz/202501/P020250109612403067944.docx">导游等级考核管理办法.docx</a>';
+						var file_appendix='<a href="./bmgz/202501/P020250109612403067944.docx">导游等级考核管理办法.docx</a>';
+						if(str_appendix!=""&file_appendix!=""){
+						document.write("<a href='./bmgz/202501/P020250109613045020135.pdf'  class='l1'>下载图片版</a>	<a href='./bmgz/202501/P020250109612403067944.docx'  class='l2'>下载文字版</a> ");
+						}
+
+		</script>
+							   </li>
+					             
+							  <li>
+								<div class="nums">5</div>
+								<div class="l_items" style="overflow: hidden;width: 360px">
+									<p class="p1" style="float:left;"><a href="./bmgz/202205/t20220517_933037.html" target="_blank">文化和旅游部关于修改《营业性演出管理条例实施细则》的决定</a></p><br/>
+									<p class="p2" style="float:left;width:300px;">
+                                                                         
+                                                                           
+                                                                           	（中华人民共和国文化和旅游部令第9号公布　《文化和旅游部关于修改〈营业性演出管理条例实施细则〉的决定》已经2022年4月27日文化和旅游部部务会议审议通过，自公布之日起施行）
+                                                                           
+                                                                           
+                                                                         
+                                                                        </p>
+								</div>
+                                                                          <script language="javascript">
+						var str_appendix='<a href="./bmgz/202205/P020220517567579229522.doc">文化和旅游部关于修改《营业性演出管理条例实施细则》的决定.doc</a>';
+						var file_appendix='<a href="./bmgz/202205/P020220517567579229522.doc">文化和旅游部关于修改《营业性演出管理条例实施细则》的决定.doc</a>';
+						if(str_appendix!=""&file_appendix!=""){
+						document.write("<a href='./bmgz/202205/P020220517567579446524.pdf'  class='l1'>下载图片版</a>	<a href='./bmgz/202205/P020220517567579229522.doc'  class='l2'>下载文字版</a> ");
+						}
+
+		</script>
+							   </li>
+					             
+							  <li>
+								<div class="nums">6</div>
+								<div class="l_items" style="overflow: hidden;width: 360px">
+									<p class="p1" style="float:left;"><a href="./bmgz/202205/t20220517_933042.html" target="_blank">文化和旅游部关于修改《娱乐场所管理办法》的决定</a></p><br/>
+									<p class="p2" style="float:left;width:300px;">
+                                                                         
+                                                                           
+                                                                           	（中华人民共和国文化和旅游部令第10号公布　《文化和旅游部关于修改〈娱乐场所管理办法〉的决定》已经2022年4月27日文化和旅游部部务会议审议通过，自公布之日起施行）
+                                                                           
+                                                                           
+                                                                         
+                                                                        </p>
+								</div>
+                                                                          <script language="javascript">
+						var str_appendix='<a href="./bmgz/202205/P020220517593549882697.doc">文化和旅游部关于修改〈娱乐场所管理办法〉的决定.doc</a>';
+						var file_appendix='<a href="./bmgz/202205/P020220517593549882697.doc">文化和旅游部关于修改〈娱乐场所管理办法〉的决定.doc</a>';
+						if(str_appendix!=""&file_appendix!=""){
+						document.write("<a href='./bmgz/202205/P020220517593550090019.pdf'  class='l1'>下载图片版</a>	<a href='./bmgz/202205/P020220517593549882697.doc'  class='l2'>下载文字版</a> ");
+						}
+
+		</script>
+							   </li>
+					             
+							  <li>
+								<div class="nums">7</div>
+								<div class="l_items" style="overflow: hidden;width: 360px">
+									<p class="p1" style="float:left;"><a href="./bmgz/202112/t20211230_930186.html" target="_blank">文化和旅游部关于废止《旅游规划设计单位资质等级认定管理办法》的决定</a></p><br/>
+									<p class="p2" style="float:left;width:300px;">
+                                                                         
+                                                                           
+                                                                           	（中华人民共和国文化和旅游部令第8号公布　《文化和旅游部关于废止<旅游规划设计单位资质等级认定管理办法>的决定》已经2021年11月30日文化和旅游部部务会议审议通过，自公布之日起生效）
+                                                                           
+                                                                           
+                                                                         
+                                                                        </p>
+								</div>
+                                                                          <script language="javascript">
+						var str_appendix='<a href="./bmgz/202112/P020220523784807055928.docx">文化和旅游部关于废止《旅游规划设计单位资质等级认定管理办法》的决定.docx</a>';
+						var file_appendix='<a href="./bmgz/202112/P020220523784807055928.docx">文化和旅游部关于废止《旅游规划设计单位资质等级认定管理办法》的决定.docx</a>';
+						if(str_appendix!=""&file_appendix!=""){
+						document.write("<a href='./bmgz/202112/P020220523784807279741.pdf'  class='l1'>下载图片版</a>	<a href='./bmgz/202112/P020220523784807055928.docx'  class='l2'>下载文字版</a> ");
+						}
+
+		</script>
+							   </li>
+					             
+							  <li>
+								<div class="nums">8</div>
+								<div class="l_items" style="overflow: hidden;width: 360px">
+									<p class="p1" style="float:left;"><a href="./bmgz/202111/t20211115_929007.html" target="_blank">文化和旅游市场信用管理规定</a></p><br/>
+									<p class="p2" style="float:left;width:300px;">
+                                                                         
+                                                                           
+                                                                           	（中华人民共和国文化和旅游部令第7号公布　《文化和旅游市场信用管理规定》已经2021年10月25日文化和旅游部部务会议审议通过，自2022年1月1日起施行）
+                                                                           
+                                                                           
+                                                                         
+                                                                        </p>
+								</div>
+                                                                          <script language="javascript">
+						var str_appendix='<a href="./bmgz/202111/P020220218472015287854.docx">文化和旅游市场信用管理规定.docx</a>';
+						var file_appendix='<a href="./bmgz/202111/P020220218472015287854.docx">文化和旅游市场信用管理规定.docx</a>';
+						if(str_appendix!=""&file_appendix!=""){
+						document.write("<a href='./bmgz/202111/P020220218472015752659.pdf'  class='l1'>下载图片版</a>	<a href='./bmgz/202111/P020220218472015287854.docx'  class='l2'>下载文字版</a> ");
+						}
+
+		</script>
+							   </li>
+					             
+							  <li>
+								<div class="nums">9</div>
+								<div class="l_items" style="overflow: hidden;width: 360px">
+									<p class="p1" style="float:left;"><a href="./bmgz/202102/t20210222_921738.html" target="_blank">文化和旅游部立法工作规定</a></p><br/>
+									<p class="p2" style="float:left;width:300px;">
+                                                                         
+                                                                           
+                                                                           	（文化和旅游部令第6号公布　《文化和旅游部立法工作规定》已经2021年1月15日文化和旅游部部务会议审议通过，自2021年3月1日起施行）
+                                                                           
+                                                                           
+                                                                         
+                                                                        </p>
+								</div>
+                                                                          <script language="javascript">
+						var str_appendix='<a href="./bmgz/202102/P020220218472620442661.docx">文化和旅游部立法工作规定.docx</a>';
+						var file_appendix='<a href="./bmgz/202102/P020220218472620442661.docx">文化和旅游部立法工作规定.docx</a>';
+						if(str_appendix!=""&file_appendix!=""){
+						document.write("<a href='./bmgz/202102/P020220218472620913952.pdf'  class='l1'>下载图片版</a>	<a href='./bmgz/202102/P020220218472620442661.docx'  class='l2'>下载文字版</a> ");
+						}
+
+		</script>
+							   </li>
+					             
+							  <li>
+								<div class="nums">10</div>
+								<div class="l_items" style="overflow: hidden;width: 360px">
+									<p class="p1" style="float:left;"><a href="./bmgz/202012/t20201204_905349.html" target="_blank">在线旅游经营服务管理暂行规定</a></p><br/>
+									<p class="p2" style="float:left;width:300px;">
+                                                                         
+                                                                           
+                                                                           	（中华人民共和国文化和旅游部令第4号公布　《在线旅游经营服务管理暂行规定》已经2020年7月20日文化和旅游部部务会议审议通过，自2020年10月1日起施行）
+                                                                           
+                                                                           
+                                                                         
+                                                                        </p>
+								</div>
+                                                                          <script language="javascript">
+						var str_appendix='<a href="./bmgz/202012/P020220218477186442628.docx">在线旅游经营服务管理暂行规定.docx</a>';
+						var file_appendix='<a href="./bmgz/202012/P020220218477186442628.docx">在线旅游经营服务管理暂行规定.docx</a>';
+						if(str_appendix!=""&file_appendix!=""){
+						document.write("<a href='./bmgz/202012/P020220218477186918604.pdf'  class='l1'>下载图片版</a>	<a href='./bmgz/202012/P020220218477186442628.docx'  class='l2'>下载文字版</a> ");
+						}
+
+		</script>
+							   </li>
+					             
+							  <li>
+								<div class="nums">11</div>
+								<div class="l_items" style="overflow: hidden;width: 360px">
+									<p class="p1" style="float:left;"><a href="./bmgz/202012/t20201214_919516.html" target="_blank">国家级非物质文化遗产代表性传承人认定与管理办法</a></p><br/>
+									<p class="p2" style="float:left;width:300px;">
+                                                                         
+                                                                           
+                                                                           	（中华人民共和国文化和旅游部令第3号公布　《国家级非物质文化遗产代表性传承人认定与管理办法》已经2019年11月12日文化和旅游部部务会议审议通过，自2020年3月1日起施行）
+                                                                           
+                                                                           
+                                                                         
+                                                                        </p>
+								</div>
+                                                                          <script language="javascript">
+						var str_appendix='<a href="./bmgz/202012/P020220309598833452415.doc">国家级非物质文化遗产代表性传承人认定与管理办法.doc</a>';
+						var file_appendix='<a href="./bmgz/202012/P020220309598833452415.doc">国家级非物质文化遗产代表性传承人认定与管理办法.doc</a>';
+						if(str_appendix!=""&file_appendix!=""){
+						document.write("<a href='./bmgz/202012/P020220309598834070316.pdf'  class='l1'>下载图片版</a>	<a href='./bmgz/202012/P020220309598833452415.doc'  class='l2'>下载文字版</a> ");
+						}
+
+		</script>
+							   </li>
+					             
+							  <li>
+								<div class="nums">12</div>
+								<div class="l_items" style="overflow: hidden;width: 360px">
+									<p class="p1" style="float:left;"><a href="./bmgz/202012/t20201204_905345.html" target="_blank">国家级文化生态保护区管理办法</a></p><br/>
+									<p class="p2" style="float:left;width:300px;">
+                                                                         
+                                                                           
+                                                                           	（中华人民共和国文化和旅游部令第1号　《国家级文化生态保护区管理办法》已经2018年12月10日文化和旅游部部务会议审议通过，自2019年3月1日起施行）
+                                                                           
+                                                                           
+                                                                         
+                                                                        </p>
+								</div>
+                                                                          <script language="javascript">
+						var str_appendix='<a href="./bmgz/202012/P020220218478292717586.docx">国家级文化生态保护区管理办法.docx</a>';
+						var file_appendix='<a href="./bmgz/202012/P020220218478292717586.docx">国家级文化生态保护区管理办法.docx</a>';
+						if(str_appendix!=""&file_appendix!=""){
+						document.write("<a href='./bmgz/202012/P020220218478293330129.pdf'  class='l1'>下载图片版</a>	<a href='./bmgz/202012/P020220218478292717586.docx'  class='l2'>下载文字版</a> ");
+						}
+
+		</script>
+							   </li>
+					             
+							  <li>
+								<div class="nums">13</div>
+								<div class="l_items" style="overflow: hidden;width: 360px">
+									<p class="p1" style="float:left;"><a href="./bmgz/202012/t20201204_905344.html" target="_blank">旅游行政许可办法</a></p><br/>
+									<p class="p2" style="float:left;width:300px;">
+                                                                         
+                                                                           
+                                                                           	（中华人民共和国国家旅游局令第46号公布　《旅游行政许可办法》(详见附件)已经2018年3月2日国家旅游局第3次局长办公会议审议通过，自2018年5月1日起施行）
+                                                                           
+                                                                           
+                                                                         
+                                                                        </p>
+								</div>
+                                                                          <script language="javascript">
+						var str_appendix='<a href="./bmgz/202012/P020220218478886785122.docx">旅游行政许可办法.docx</a>';
+						var file_appendix='<a href="./bmgz/202012/P020220218478886785122.docx">旅游行政许可办法.docx</a>';
+						if(str_appendix!=""&file_appendix!=""){
+						document.write("<a href='./bmgz/202012/P020220218478887411663.pdf'  class='l1'>下载图片版</a>	<a href='./bmgz/202012/P020220218478886785122.docx'  class='l2'>下载文字版</a> ");
+						}
+
+		</script>
+							   </li>
+					             
+							  <li>
+								<div class="nums">14</div>
+								<div class="l_items" style="overflow: hidden;width: 360px">
+									<p class="p1" style="float:left;"><a href="./bmgz/202012/t20201204_905340.html" target="_blank">互联网文化管理暂行规定</a></p><br/>
+									<p class="p2" style="float:left;width:300px;">
+                                                                         
+                                                                           
+                                                                           	（2011年2月11日文化部部务会议审议通过，自2011年4月1日起施行。根据2017年12月15日发布的《文化部关于废止和修改部分部门规章的决定》（文化部令第57号）修订）
+                                                                           
+                                                                           
+                                                                         
+                                                                        </p>
+								</div>
+                                                                          <script language="javascript">
+						var str_appendix='<a href="./bmgz/202012/P020220218671687070357.docx">互联网文化管理暂行规定.docx</a>';
+						var file_appendix='<a href="./bmgz/202012/P020220218671687070357.docx">互联网文化管理暂行规定.docx</a>';
+						if(str_appendix!=""&file_appendix!=""){
+						document.write("<a href='./bmgz/202012/P020220218671687239517.pdf'  class='l1'>下载图片版</a>	<a href='./bmgz/202012/P020220218671687070357.docx'  class='l2'>下载文字版</a> ");
+						}
+
+		</script>
+							   </li>
+					             
+							  <li>
+								<div class="nums">15</div>
+								<div class="l_items" style="overflow: hidden;width: 360px">
+									<p class="p1" style="float:left;"><a href="./bmgz/202012/t20201204_905338.html" target="_blank">社会艺术水平考级管理办法</a></p><br/>
+									<p class="p2" style="float:left;width:300px;">
+                                                                         
+                                                                           
+                                                                           	（2004年6月2日文化部部务会议通过，自2004年7月1日起施行。根据2017年12月15日发布的《文化部关于废止和修改部分部门规章的决定》（文化部令第57号）修订）
+                                                                           
+                                                                           
+                                                                         
+                                                                        </p>
+								</div>
+                                                                          <script language="javascript">
+						var str_appendix='<a href="./bmgz/202012/P020220223532316112755.docx">社会艺术水平考级管理办法.docx</a>';
+						var file_appendix='<a href="./bmgz/202012/P020220223532316112755.docx">社会艺术水平考级管理办法.docx</a>';
+						if(str_appendix!=""&file_appendix!=""){
+						document.write("<a href='./bmgz/202012/P020220223532316429539.pdf'  class='l1'>下载图片版</a>	<a href='./bmgz/202012/P020220223532316112755.docx'  class='l2'>下载文字版</a> ");
+						}
+
+		</script>
+							   </li>
+					             						
+							
+						</ul>
+                                               <div class="fanye_list">
+   <!-- <a href="#">上一页</a><a href="#" class="curr">1</a><a href="#">2</a><a href="#">3</a>&nbsp;...&nbsp;<a href="#">40</a><a href="#">下一页</a>&nbsp;&nbsp;跳转到:&nbsp;<input class="pagetext" type="text" />&nbsp;页&nbsp;<a href="#">GO</a>-->
+
+  <script language="JavaScript" type="text/JavaScript">
+                    //createPageHTML(3, 0, "index", "html");
+                    var currentPage = 0;//所在页从0开始
+                    //var headPage = "index"+"."+"html";//首页
+                    //var tailPage = "index_" + (countPage-1) + ".html"//尾页
+                    var prevPage = currentPage-1//上一页
+                    var nextPage = currentPage+1//下一页
+                    var countPage = 3//共多少页
+
+                    // document.write("共"+countPage+"页&nbsp;&nbsp;");
+                    //设置上一页代码
+                    if(countPage>1&&currentPage!=0&&currentPage!=1)
+                        document.write("<a href=\"index.html\" class=\"not\">首页</a>&nbsp;&nbsp;<a href=\"index"+"_" + prevPage + "."+"html\" class=\"not\">上一页</a>&nbsp;");
+                    else if(countPage>1&&currentPage!=0&&currentPage==1)
+
+                        document.write("<a href=\"index.html\">首页</a>&nbsp;&nbsp;<a href=\"index.html\">上一页</a>&nbsp;");
+                    else
+                        document.write("<a class=\"not\">首页</a>&nbsp;&nbsp;<a class=\"not\">上一页</a>&nbsp;");
+                    //循环
+                    var num = 4;
+                    for(var i=0+(currentPage-1-(currentPage-1)%num) ; i<=(num+(currentPage-1-(currentPage-1)%num))&&(i<countPage) ; i++){
+                        if(currentPage==i)
+                            document.write("<span class=\"curr not\">"+(i+1)+"</span>&nbsp;&nbsp;");
+                        else if(i==0){
+                            document.write("<a class=\"not\" href=\"index.html\">"+1+"</a>&nbsp;");
+                        }else
+                            document.write("<a class=\"not\" href=\"index"+"_" + i + "."+"html\">"+(i+1)+"</a>&nbsp;");
+                    }
+
+                    //设置下一页代码
+                    if(countPage>1&&currentPage!=(countPage-1))
+                        document.write("<a href=\"index"+"_" + nextPage + "."+"html\" class=\"not\">下一页</a>&nbsp;&nbsp;<a href=\"index_" + (countPage-1) + ".html\" class=\"not\">尾页</a>&nbsp;");
+                    else
+                        document.write("<a class=\"not\">下一页</a>&nbsp;&nbsp;<a class=\"not\">尾页</a>&nbsp;");
+
+                    //跳转页面
+                    document.write("<i style='margin-left: 0px;'>跳转到&nbsp;&nbsp;<input class='pagetext' type='text' size='2' id='num' value="+(currentPage+1)+" />&nbsp;&nbsp;页"+
+                                         "&nbsp;<input type='submit' class='subm' value='GO' onClick=javacript:toPage() /></i>");
+                                    
+                    function toPage(){
+                        var _num = document.getElementById("num").value;
+                        var str = "index"+"_"+(_num-1)+"."+"html";
+                        var url = location.href.substring(0,location.href.lastIndexOf("/")+1);
+                        if(_num<=1||_num==null)
+                            location.href = url+"index"+"."+"html";
+                        else if(_num>countPage)
+                            alert("本频道最多"+countPage+"页");
+                        else
+                            location.href = url+str;
+                    }
+                    </script>
+</div>
+
+<style>
+  .fanye_list .curr{padding: 5px 10px;}
+  .subm{padding: 5px 10px;
+    color: #000000;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    margin: 0 5px;
+}}
+</style>
+						<!--<div class="fanye_list">
+							<a href="#">上一页</a><a href="#" class="curr">1</a><a href="#">2</a><a href="#">3</a>&nbsp;...&nbsp;<a href="#">40</a><a href="#">下一页</a>&nbsp;&nbsp;跳转到:&nbsp;<input class="pagetext" type="text" />&nbsp;页&nbsp;<a href="#">GO</a>
+						</div>-->
+						<div></div>
+					</div>
+					<!--右侧结束-->
+				</div>
+
+			</div>
+			<!--mainbox结束-->
+		</div>
+		<!--底部开始-->
+                <!DOCTYPE html>
+<html>
+
+	<head>
+		
+
+	</head>
+
+	<body>
+
+		<!--底部开始-->
+		<div class="footerBox">
+			<div class="boxcenter footer">
+				<div class="foot">
+					<img class="fl" src="../../images/dbimg_03.png" />
+					<font class="fl mhide">
+						<a href="https://www.mct.gov.cn/dbdh/gywm/201902/t20190202_837198.html">关于我们</a> | 
+						<a href="https://www.mct.gov.cn/dbdh/wzdt/">网站地图</a> | 
+						<a href="https://www.mct.gov.cn/dbdh/bqbh/201902/t20190202_837201.html">版权保护</a> | 
+						<a href="https://www.mct.gov.cn/dbdh/mzsm/201902/t20190202_837199.html">免责声明</a> <!-- | 
+					   <a href="#">访问分析</a>-->
+                                                <br/>
+					版权所有：中华人民共和国文化和旅游部  地址：东城区朝阳门北大街10号     邮政编码：100020 <br />
+	ICP备案编号：京ICP备18030242号-1 　电话：010-59881114<br/>
+	网站标识码bm23000001  <img src="../../images/dbimg_06.jpg" style="margin-right: 0px;" />京公网安备11040202440050号 
+					</font>
+                                        
+					<font class="fl pchide">
+						<a href="https://www.mct.gov.cn/dbdh/gywm/201902/t20190202_837198.html">关于我们</a> | 
+						<a href="https://www.mct.gov.cn/dbdh/wzdt/">网站地图</a> | 
+						<a href="https://www.mct.gov.cn/dbdh/bqbh/201902/t20190202_837201.html">版权保护</a> | 
+						<a href="https://www.mct.gov.cn/dbdh/mzsm/201902/t20190202_837199.html">免责声明</a> <!--| 
+					    <a href="#">访问分析</a>-->
+                                                <br/>
+					版权所有：中华人民共和国文化和旅游部<br/>  地址：东城区朝阳门北大街10号<br/>     邮政编码：100020 <br />
+	ICP备案编号：京ICP备18030242号-1 　电话：010-59881114<br/>
+	网站标识码bm23000001<br/>  <img src="../../images/dbimg_06.jpg" style="margin-right: 0px;" />京公网安备11040202440050号 
+					</font>
+                                        
+                                        <div class="jiucuo"><script id="_jiucuo_" sitecode='bm23000001' src="https://zfwzgl.www.gov.cn/exposure/jiucuo.js"></script></div>
+				</div>
+			</div>
+		</div>
+		<!--底部结束-->
+		<script type="text/javascript">
+			$(".workDynamic").on("mouseover", ".tabli", function(event){
+		     $(this).addClass("tabOn").siblings().removeClass("tabOn");
+		     $(this).parents(".workDynamic").find(".wdCon .wdListItem").eq($(this).index()/2).show().siblings().hide();
+		    });
+		    
+		    $(function(){
+		    	$(".wdCon .workDynamic:nth-child(2n)").css("margin-right","0px");
+		    })
+			
+		</script>
+
+
+
+<script id="_trs_ta_js" src="//ta.trs.cn/c/js/ta.js?mpid=4418" async="async" defer="defer"></script> 
+	</body>
+<style>
+   .rightBox h1.title{line-height: 38px;}
+   .jiucuo{padding-left:20px;float:left;}
+   .footerBox .footer .foot{width:750px;}
+
+@media screen and (max-width: 767px) and (orientation: portrait){
+  .jiucuo{position:absolute;top:12px;right:10px;}
+   .jiucuo img{width:90px;height:45px;}
+   
+   .footerBox .footer .foot{width: 690px;position:relative;}
+}
+</style>
+</html>
+		<!--<div class="footerBox">
+			<div class="boxcenter footer">
+				<div class="foot">
+					<img class="fl" src="../../images/dbimg_03_3.png" />
+					<font class="fl mhide">
+						<a href="#">关于我们</a> | <a href="#">网站地图</a> | <a href="#">版权保护</a> | <a href="#">免责声明</a> | <a href="#">访问分析</a><br/>
+					版权所有：中华人民共和国文化和旅游部  地址：东城区朝阳门北大街10号     邮政编码：100020 <br />
+	ICP备案编号：京ICP备05084924号　电话：010-59881114<br/>
+	网站标识码bm23000001  <img src="../../images/dbimg_06_3.jpg" style="margin-right: 0px;" />京公网安备110401300059号
+					</font>
+					<font class="fl pchide">
+						<a href="#">关于我们</a> | <a href="#">网站地图</a> | <a href="#">版权保护</a> | <a href="#">免责声明</a> | <a href="#">访问分析</a><br/>
+					版权所有：中华人民共和国文化和旅游部<br/>  地址：东城区朝阳门北大街10号<br/>     邮政编码：100020 <br />
+	ICP备案编号：京ICP备05084924号　电话：010-59881114<br/>
+	网站标识码bm23000001<br/>  <img src="../../images/dbimg_06_3.jpg" style="margin-right: 0px;" />京公网安备110401300059号
+					</font>
+				</div>
+			</div>
+		</div>-->
+		<!--底部结束-->
+		<script type="text/javascript">
+			$(".workDynamic").on("mouseover", ".tabli", function(event){
+		     $(this).addClass("tabOn").siblings().removeClass("tabOn");
+		     $(this).parents(".workDynamic").find(".wdCon .wdListItem").eq($(this).index()/2).show().siblings().hide();
+		    });
+		    
+		    $(function(){
+		    	$(".wdCon .workDynamic:nth-child(2n)").css("margin-right","0px");
+		    })
+			
+		</script>
+
+
+
+	</body>
+
+</html>

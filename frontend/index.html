@@ -294,6 +294,59 @@
   .fyp-card .fyp-card-title { font-size: 11px; font-weight: 700; color: var(--text);
     margin-bottom: 4px; letter-spacing: -0.1px; }
   .fyp-card .fyp-card-body { font-size: 11px; color: var(--text2); line-height: 1.45; }
+
+  /* ===== Commodity Markets tab ===== */
+  #panel-commodities .cm-head { margin-bottom: 16px; }
+  #panel-commodities .cm-matsel { background: var(--surface); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 8px; font-size: 12.5px; max-width: 360px; cursor: pointer; }
+  #panel-commodities .cm-matsel:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  #panel-commodities .cm-head h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  #panel-commodities .cm-sub { font-size: 12px; color: var(--text2); margin-top: 3px; max-width: 74ch; }
+  #panel-commodities .cm-updated { font-size: 10px; color: var(--text3); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  #panel-commodities .cm-section { margin-top: 30px; }
+  #panel-commodities .cm-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  #panel-commodities .cm-sectitle { font-size: 15px; font-weight: 700; letter-spacing: -0.2px; }
+  #panel-commodities .cm-secnote { font-size: 12px; color: var(--text2); margin: 3px 0 14px; max-width: 78ch; }
+  #panel-commodities .cm-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+  #panel-commodities .cm-clabel { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; }
+  #panel-commodities .cm-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 900px) { #panel-commodities .cm-grid2 { grid-template-columns: 1fr; } }
+  #panel-commodities .chart-box h3 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  #panel-commodities .cm-cnote { font-size: 11px; color: var(--text3); margin-bottom: 8px; }
+  #panel-commodities .cm-chart { position: relative; margin-top: 4px; }
+  #panel-commodities .cm-chart svg { display: block; width: 100%; }
+  #panel-commodities .cm-chart svg text { font-size: 11px; fill: var(--text3); font-variant-numeric: tabular-nums; }
+  #panel-commodities .cm-chart svg text.dl { font-weight: 700; font-size: 11.5px; fill: var(--text); }
+  #panel-commodities .cm-chart svg text.cap { fill: var(--text2); font-weight: 600; }
+  #panel-commodities .cm-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 2px; font-size: 11.5px; color: var(--text2); }
+  #panel-commodities .cm-legend .li { display: inline-flex; align-items: center; gap: 6px; }
+  #panel-commodities .cm-legend .sw { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+  #panel-commodities .cm-legend .lk { width: 14px; height: 0; border-top: 2.5px solid; border-radius: 2px; flex: none; }
+  #panel-commodities .cm-tip { position: absolute; pointer-events: none; z-index: 5; background: var(--surface2);
+    color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; font-size: 12px;
+    line-height: 1.45; max-width: 260px; box-shadow: 0 4px 14px rgba(0,0,0,.25); display: none; }
+  #panel-commodities .cm-tip .th { color: var(--text2); font-weight: 600; margin-bottom: 3px; }
+  #panel-commodities .cm-tip .row { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+  #panel-commodities .cm-tip .row .lk { width: 12px; height: 0; border-top: 2.5px solid; border-radius: 2px; flex: none; }
+  #panel-commodities .cm-tip .row b { font-variant-numeric: tabular-nums; }
+  #panel-commodities .cm-tip .row span.nm { color: var(--text2); }
+  #panel-commodities .cm-tbl { margin: 6px 0; }
+  #panel-commodities .cm-tbl summary { font-size: 11.5px; color: var(--text3); cursor: pointer; padding: 4px 0; }
+  #panel-commodities .cm-tbl summary:hover { color: var(--text2); }
+  #panel-commodities .cm-tbl .tw { overflow-x: auto; }
+  #panel-commodities .cm-tbl table { border-collapse: collapse; font-size: 11.5px; margin: 4px 0 8px; min-width: 420px; }
+  #panel-commodities .cm-tbl th, #panel-commodities .cm-tbl td { text-align: right; padding: 4px 12px 4px 0;
+    border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; color: var(--text2); }
+  #panel-commodities .cm-tbl th { color: var(--text3); font-weight: 600; }
+  #panel-commodities .cm-tbl th:first-child, #panel-commodities .cm-tbl td:first-child { text-align: left; }
+  #panel-commodities .cm-hero .value { font-size: 34px; }
+  #panel-commodities .card .value .unit { font-size: 13px; font-weight: 500; color: var(--text3); margin-left: 2px; }
+  #panel-commodities .cm-up { color: var(--green); font-weight: 600; }
+  #panel-commodities .cm-down { color: var(--accent); font-weight: 600; }
+  #panel-commodities .cm-vs { color: var(--text3); }
+  #panel-commodities .cm-spark { display: block; width: 100%; height: 34px; margin-top: 8px; }
+  #panel-commodities .cm-foot { margin-top: 32px; border-top: 1px solid var(--border); padding-top: 14px;
+    font-size: 11px; color: var(--text3); line-height: 1.6; }
 </style>
 </head>
 <body>
@@ -316,6 +369,7 @@
   <div class="tab" data-panel="history">Historical Context</div>
   <div class="tab" data-panel="regulations">Regulations</div>
   <div class="tab" data-panel="trade">Trade</div>
+  <div class="tab" data-panel="commodities">Commodity Markets</div>
   <div class="tab" data-panel="polity">Political Structure</div>
 </div>
 
@@ -755,6 +809,75 @@
     <div id="polity-purge-heatmap" style="padding:20px;overflow-x:auto;"></div>
   </div>
 
+</div>
+
+<!-- ====== COMMODITY MARKETS (all materials) ====== -->
+<div class="panel" id="panel-commodities">
+  <div class="cm-head">
+    <div class="cm-controls" style="margin-bottom:10px;">
+      <span class="cm-clabel">Material</span>
+      <select id="cm-mat" class="cm-matsel"></select>
+    </div>
+    <h2 id="cm-title">Commodity Markets</h2>
+    <div class="cm-sub" id="cm-sub"></div>
+    <div class="cm-sub" id="cm-sourcing" style="margin-top:2px;"></div>
+    <div class="cm-updated">Data as of <span id="cm-updated">—</span></div>
+  </div>
+
+  <div class="cards" id="cm-kpis"></div>
+
+  <section class="cm-section" id="cm-prices">
+    <div class="cm-eyebrow">Prices</div>
+    <div class="cm-sectitle">Market prices</div>
+    <div class="cm-secnote" id="cm-prices-note"></div>
+    <div class="cm-controls" id="cm-range-row"><span class="cm-clabel">Range</span><span id="cm-range"></span></div>
+    <div class="cm-grid2" id="cm-prices-grid"></div>
+  </section>
+
+  <section class="cm-section" id="cm-production">
+    <div class="cm-eyebrow">Production</div>
+    <div class="cm-sectitle">Production &amp; refining by country</div>
+    <div class="cm-secnote" id="cm-prod-note"></div>
+    <div class="cm-grid2" id="cm-prod-grid"></div>
+  </section>
+
+  <section class="cm-section" id="cm-trade-sec">
+    <div class="cm-eyebrow">Trade</div>
+    <div class="cm-sectitle">World trade</div>
+    <div class="cm-secnote" id="cm-trade-note"></div>
+    <div class="cm-controls"><span class="cm-clabel">Commodity</span><span id="cm-cmd"></span></div>
+    <div id="cm-trade-body">
+    <div class="cm-grid2">
+      <div class="chart-box">
+        <h3 id="cm-h-exp">Top exporters</h3>
+        <div class="cm-cnote" id="cm-n-exp"></div>
+        <div class="cm-chart" id="cm-ch-exp"></div>
+        <details class="cm-tbl" id="cm-tbl-exp"><summary>View as table</summary><div class="tw"></div></details>
+      </div>
+      <div class="chart-box">
+        <h3 id="cm-h-imp">Top importers</h3>
+        <div class="cm-cnote" id="cm-n-imp"></div>
+        <div class="cm-chart" id="cm-ch-imp"></div>
+        <details class="cm-tbl" id="cm-tbl-imp"><summary>View as table</summary><div class="tw"></div></details>
+      </div>
+    </div>
+    <div class="chart-box" style="margin-top:14px;">
+      <h3 id="cm-h-trend">Export value over time — top five exporters</h3>
+      <div class="cm-cnote" id="cm-n-trend"></div>
+      <div class="cm-legend" id="cm-lg-trend"></div>
+      <div class="cm-chart" id="cm-ch-trend"></div>
+      <details class="cm-tbl" id="cm-tbl-trend"><summary>View as table</summary><div class="tw"></div></details>
+    </div>
+    </div>
+    <div class="empty" id="cm-trade-empty" style="display:none;"></div>
+  </section>
+
+  <div class="cm-foot">
+    Sources: USGS Mineral Commodity Summaries data releases (production &amp; refining by country; latest year is a
+    USGS estimate, revised each Jan–Feb) · UN Comtrade (annual trade — the latest year is always shown; years marked *
+    have incomplete reporting and grow as filings catch up) · Yahoo Finance &amp; IMF via FRED (market prices, where the material is exchange-traded).
+    For materials without a quoted market price, the implied trade price (world export value ÷ weight) is shown instead.
+  </div>
 </div>
 
 </div><!-- wrap -->
@@ -2947,6 +3070,682 @@ async function loadPurgeHeatmap() {
 
 document.querySelector('[data-panel="polity"]').addEventListener('click', () => { loadPolity(); }, {once: true});
 
+// ========== COMMODITY MARKETS (copper) ==========
+(function(){
+  "use strict";
+  const NS="http://www.w3.org/2000/svg";
+  const $=id=>document.getElementById(id);
+  function sv(tag,attrs){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e;}
+  function elc(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+  let DATA=null, booted=false;
+
+  function tok(){
+    const cs=getComputedStyle(document.documentElement);
+    const g=n=>cs.getPropertyValue(n).trim();
+    return {card:g('--surface'), ink:g('--text'), ink2:g('--text2'), muted:g('--text3'),
+      grid:g('--chart-grid'), axis:g('--border'), accent:g('--accent'),
+      s:[g('--blue'),g('--green'),g('--accent2'),g('--purple'),g('--accent'),g('--chart-tick')],
+      other:g('--text3')};
+  }
+  let T=tok();
+
+  /* ---------- formatting ---------- */
+  const fmtPx    = v => Math.abs(v)>=1000 ? "$"+Math.round(v).toLocaleString("en-US")
+                       : "$"+v.toFixed(Math.abs(v)<10?3:2);
+  const fmtKt    = v => Math.round(v).toLocaleString("en-US");
+  const fmtNum   = v => {const a=Math.abs(v);
+    if(a>=1e6) return (v/1e6).toFixed(v%1e6?1:0)+"M";
+    if(a>=1e4) return Math.round(v/1e3).toLocaleString("en-US")+"k";
+    return (a>=100||v===Math.round(v)) ? Math.round(v).toLocaleString("en-US") : v.toFixed(1);};
+  const fmtVal   = v => {const a=Math.abs(v);
+    if(a>=1e9) return "$"+(v/1e9).toFixed(1)+" B";
+    if(a>=1e6) return "$"+(v/1e6).toFixed(1)+" M";
+    return "$"+Math.round(v/1e3).toLocaleString("en-US")+" k";};
+  const fmtValAxis = v => v===0 ? "0" : (Math.abs(v)>=1e9 ? "$"+ +(v/1e9).toFixed(1)+"B"
+                       : Math.abs(v)>=1e6 ? "$"+Math.round(v/1e6)+"M" : "$"+Math.round(v/1e3)+"k");
+  const fmtWgt   = kg => kg>=1e9 ? (kg/1e9).toFixed(2)+" Mt" : kg>=1e6 ? (kg/1e6).toFixed(1)+" kt"
+                       : kg>=1e3 ? Math.round(kg/1e3).toLocaleString("en-US")+" t" : Math.round(kg)+" kg";
+  const UNIT_SHORT = {"thousand metric tons":"kt","thousand metric dry tons":"kt (dry)",
+    "metric tons":"t","kilograms":"kg","million cubic meters":"Mm³","million liters":"ML"};
+  const unitShort = u => UNIT_SHORT[u] || u || "";
+  const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  function dParse(s){return new Date(s+"T00:00:00Z");}
+  function dLabel(s){const d=dParse(s);return MONTHS[d.getUTCMonth()]+" "+String(d.getUTCFullYear()).slice(2);}
+  function dFull(s){const d=dParse(s);return MONTHS[d.getUTCMonth()]+" "+d.getUTCDate()+", "+d.getUTCFullYear();}
+  function dMonth(s){const d=dParse(s);return MONTHS[d.getUTCMonth()]+" "+d.getUTCFullYear();}
+  function niceTicks(lo, hi, n){
+    if(lo===hi){hi=lo+1;}
+    const span=hi-lo, step0=span/Math.max(1,n), mag=Math.pow(10,Math.floor(Math.log10(step0)));
+    let step=mag; for(const m of [1,2,2.5,5,10]){if(step0<=m*mag){step=m*mag;break;}}
+    const t0=Math.ceil(lo/step)*step, out=[];
+    for(let v=t0;v<=hi+1e-9;v+=step)out.push(+v.toPrecision(12));
+    return out;
+  }
+  function barTicks(max, n){
+    const t=niceTicks(0, max, n);
+    const step=t.length>1 ? t[1]-t[0] : max||1;
+    while(t[t.length-1] < max) t.push(+(t[t.length-1]+step).toPrecision(12));
+    return t;
+  }
+
+  /* ---------- tooltip ---------- */
+  function makeTip(mount){const tip=elc("div","cm-tip"); mount.appendChild(tip); return tip;}
+  function tipShow(tip, mount, x, y, header, rows){
+    tip.textContent="";
+    if(header){tip.appendChild(elc("div","th",header));}
+    for(const r of rows){
+      const row=elc("div","row");
+      if(r.color){const lk=elc("span","lk");lk.style.borderTopColor=r.color;row.appendChild(lk);}
+      const b=elc("b",null,r.value); row.appendChild(b);
+      if(r.name){row.appendChild(elc("span","nm",r.name));}
+      tip.appendChild(row);
+    }
+    tip.style.display="block";
+    const mw=mount.clientWidth, tw=tip.offsetWidth, th=tip.offsetHeight;
+    let lx=x+14; if(lx+tw>mw) lx=x-tw-14; if(lx<0) lx=0;
+    let ly=y-th-10; if(ly<0) ly=y+16;
+    tip.style.left=lx+"px"; tip.style.top=ly+"px";
+  }
+  function tipHide(tip){tip.style.display="none";}
+
+  /* ---------- table twin ---------- */
+  function tableTwin(id, headers, rows){
+    const host=document.querySelector("#"+id+" .tw"); if(!host)return;
+    host.textContent="";
+    const t=elc("table"),tr=elc("tr");
+    headers.forEach(h=>tr.appendChild(elc("th",null,h)));
+    const thead=elc("thead");thead.appendChild(tr);t.appendChild(thead);
+    const tb=elc("tbody");
+    rows.forEach(r=>{const tr2=elc("tr");r.forEach(c=>tr2.appendChild(elc("td",null,c)));tb.appendChild(tr2);});
+    t.appendChild(tb); host.appendChild(t);
+  }
+
+  /* ---------- legend ---------- */
+  function legend(id, items, kind){
+    const host=$(id); if(!host)return;
+    host.textContent="";
+    items.forEach(it=>{
+      const li=elc("span","li");
+      const sw=elc("span",kind==="line"?"lk":"sw");
+      if(kind==="line")sw.style.borderTopColor=it.color; else sw.style.background=it.color;
+      li.appendChild(sw); li.appendChild(elc("span",null,it.name)); host.appendChild(li);
+    });
+  }
+
+  /* ---------- line chart ---------- */
+  function lineChart(mountId, cfg){
+    const mount=$(mountId); mount.textContent="";
+    const W=Math.max(280, mount.clientWidth), H=cfg.height||300;
+    const endPad=cfg.endLabel?64:16;
+    const M={t:14,r:endPad,b:26,l:8};
+    const labels=cfg.series[0].pts.map(p=>p[0]);
+    const n=labels.length;
+    let lo=Infinity,hi=-Infinity;
+    cfg.series.forEach(s=>s.pts.forEach(p=>{if(p[1]<lo)lo=p[1];if(p[1]>hi)hi=p[1];}));
+    const pad=(hi-lo)*0.07||1; lo-=pad; hi+=pad;
+    const ticks=niceTicks(lo,hi,5);
+    const yl=Math.max(...ticks.map(t=>(cfg.yAxisFmt||String)(t).length));
+    M.l=10+yl*7;
+    const iw=W-M.l-M.r, ih=H-M.t-M.b;
+    const X=i=>M.l+(n===1?iw/2:i/(n-1)*iw);
+    const Y=v=>M.t+ih-(v-lo)/(hi-lo)*ih;
+    const svg=sv("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":cfg.aria||""});
+    ticks.forEach(t=>{
+      svg.appendChild(sv("line",{x1:M.l,x2:M.l+iw,y1:Y(t),y2:Y(t),stroke:T.grid,"stroke-width":1}));
+      const tx=sv("text",{x:M.l-6,y:Y(t)+4,"text-anchor":"end"});tx.textContent=(cfg.yAxisFmt||String)(t);svg.appendChild(tx);
+    });
+    const nx=Math.min(6,Math.max(2,Math.floor(iw/110)));
+    let prev=null;
+    for(let k=0;k<nx;k++){
+      const i=Math.round(k*(n-1)/Math.max(1,nx-1));
+      const txt=(cfg.xTick||String)(labels[i]);
+      if(txt===prev)continue; prev=txt;
+      const tx=sv("text",{x:X(i),y:H-8,"text-anchor":k===0?"start":(k===nx-1?"end":"middle")});
+      tx.textContent=txt;svg.appendChild(tx);
+    }
+    svg.appendChild(sv("line",{x1:M.l,x2:M.l+iw,y1:M.t+ih,y2:M.t+ih,stroke:T.axis,"stroke-width":1}));
+    cfg.series.forEach(s=>{
+      const d=s.pts.map((p,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(p[1]).toFixed(1)).join("");
+      if(cfg.area){
+        const ad=d+`L${(M.l+iw).toFixed(1)} ${M.t+ih}L${M.l.toFixed(1)} ${M.t+ih}Z`;
+        svg.appendChild(sv("path",{d:ad,fill:s.color,opacity:.09}));
+      }
+      svg.appendChild(sv("path",{d,fill:"none",stroke:s.color,"stroke-width":2,
+        "stroke-linejoin":"round","stroke-linecap":"round"}));
+      const li=s.pts.length-1, ex=X(li), ey=Y(s.pts[li][1]);
+      svg.appendChild(sv("circle",{cx:ex,cy:ey,r:6.5,fill:T.card}));
+      svg.appendChild(sv("circle",{cx:ex,cy:ey,r:4.5,fill:s.color}));
+      if(cfg.endLabel){
+        const tx=sv("text",{x:ex+10,y:ey+4,class:"dl"});
+        tx.textContent=(cfg.yFmt||String)(s.pts[li][1]);svg.appendChild(tx);
+      }
+    });
+    const cross=sv("line",{y1:M.t,y2:M.t+ih,stroke:T.axis,"stroke-width":1,visibility:"hidden"});
+    svg.appendChild(cross);
+    const dots=cfg.series.map(s=>{
+      const g=sv("g",{visibility:"hidden"});
+      g.appendChild(sv("circle",{r:5.5,fill:T.card}));
+      g.appendChild(sv("circle",{r:3.5,fill:s.color}));
+      svg.appendChild(g);return g;
+    });
+    const ov=sv("rect",{x:M.l,y:M.t,width:iw,height:ih,fill:"transparent"});
+    svg.appendChild(ov);
+    const tip=makeTip(mount);
+    function move(ev){
+      const r=svg.getBoundingClientRect();
+      const px=ev.clientX-r.left;
+      let i=Math.round((px-M.l)/(iw||1)*(n-1)); i=Math.max(0,Math.min(n-1,i));
+      const cx=X(i);
+      cross.setAttribute("x1",cx);cross.setAttribute("x2",cx);cross.setAttribute("visibility","visible");
+      const rows=cfg.series.map((s,k)=>{
+        const y=Y(s.pts[i][1]);
+        dots[k].setAttribute("transform",`translate(${cx},${y})`);
+        dots[k].setAttribute("visibility","visible");
+        return {color:s.color, value:(cfg.yFmt||String)(s.pts[i][1]), name:cfg.series.length>1?s.name:null};
+      });
+      tipShow(tip,mount,cx,ev.clientY-r.top,(cfg.xHeader||String)(labels[i]),rows);
+    }
+    function leave(){cross.setAttribute("visibility","hidden");dots.forEach(d=>d.setAttribute("visibility","hidden"));tipHide(tip);}
+    ov.addEventListener("pointermove",move);
+    ov.addEventListener("pointerleave",leave);
+    mount.appendChild(svg);
+  }
+
+  /* ---------- stacked columns ---------- */
+  function stackedColumns(mountId, cfg){
+    const mount=$(mountId); mount.textContent="";
+    const W=Math.max(280,mount.clientWidth), H=cfg.height||320;
+    const M={t:26,r:8,b:26,l:8};
+    const nFmt=cfg.numFmt||fmtKt, cFmt=cfg.capFmt||nFmt, unit=cfg.unit?" "+cfg.unit:"";
+    const maxT=Math.max(...cfg.totals);
+    const ticks=barTicks(maxT*1.04,5);
+    const hi=ticks[ticks.length-1];
+    M.l=10+Math.max(...ticks.map(t=>nFmt(t).length))*7;
+    const iw=W-M.l-M.r, ih=H-M.t-M.b;
+    const n=cfg.years.length;
+    const band=iw/n, bw=Math.min(24,band*.6);
+    const Y=v=>M.t+ih-v/hi*ih;
+    const svg=sv("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":cfg.aria||""});
+    ticks.forEach(t=>{
+      svg.appendChild(sv("line",{x1:M.l,x2:M.l+iw,y1:Y(t),y2:Y(t),stroke:T.grid,"stroke-width":1}));
+      const tx=sv("text",{x:M.l-6,y:Y(t)+4,"text-anchor":"end"});tx.textContent=nFmt(t);svg.appendChild(tx);
+    });
+    svg.appendChild(sv("line",{x1:M.l,x2:M.l+iw,y1:M.t+ih,y2:M.t+ih,stroke:T.axis,"stroke-width":1}));
+    const tip=makeTip(mount);
+    cfg.years.forEach((yr,i)=>{
+      const cx=M.l+band*(i+.5), x=cx-bw/2;
+      let acc=0;
+      cfg.series.forEach((s,k)=>{
+        const v=s.vals[i]; if(!v)return;
+        const yTop=Y(acc+v), yBot=Y(acc);
+        const top=k===cfg.series.length-1;
+        let h=Math.max(0,yBot-yTop-2);
+        const rect= top
+          ? sv("path",{d:roundTopRect(x,yTop,bw,h,4),fill:s.color})
+          : sv("rect",{x,y:yTop,width:bw,height:h,fill:s.color});
+        rect.style.cursor="default";
+        rect.addEventListener("pointermove",ev=>{
+          rect.setAttribute("opacity",".82");
+          const r=mount.getBoundingClientRect();
+          tipShow(tip,mount,ev.clientX-r.left,ev.clientY-r.top,
+            yr+(cfg.estYear===+yr?" (est.)":""),
+            [{color:s.color,value:nFmt(v)+unit,name:s.name},
+             {value:nFmt(cfg.totals[i])+unit,name:cfg.totalName||"world total"}]);
+        });
+        rect.addEventListener("pointerleave",()=>{rect.removeAttribute("opacity");tipHide(tip);});
+        svg.appendChild(rect);
+        acc+=v;
+      });
+      const cap=sv("text",{x:cx,y:Y(cfg.totals[i])-6,"text-anchor":"middle",class:"cap"});
+      cap.textContent=cFmt(cfg.totals[i]);svg.appendChild(cap);
+      const xt=sv("text",{x:cx,y:H-8,"text-anchor":"middle"});
+      xt.textContent=yr+(cfg.estYear===+yr?"e":"");svg.appendChild(xt);
+    });
+    mount.appendChild(svg);
+  }
+  function roundTopRect(x,y,w,h,r){
+    r=Math.min(r,h/2,w/2);
+    return `M${x} ${y+h}L${x} ${y+r}Q${x} ${y} ${x+r} ${y}L${x+w-r} ${y}Q${x+w} ${y} ${x+w} ${y+r}L${x+w} ${y+h}Z`;
+  }
+
+  /* ---------- horizontal bars ---------- */
+  function hBars(mountId,cfg){
+    const mount=$(mountId); mount.textContent="";
+    const W=Math.max(280,mount.clientWidth);
+    const rowH=32, M={t:6,r:70,b:24,l:8};
+    const H=M.t+cfg.rows.length*rowH+M.b;
+    const lw=Math.max(...cfg.rows.map(r=>r.label.length))*6.6+14;
+    M.l=Math.min(190,Math.max(90,lw));
+    const iw=W-M.l-M.r;
+    const maxV=Math.max(...cfg.rows.map(r=>r.v));
+    const ticks=barTicks(maxV*1.02,4);
+    const hi=ticks[ticks.length-1];
+    const X=v=>M.l+v/hi*iw;
+    const svg=sv("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":cfg.aria||""});
+    ticks.forEach(t=>{
+      svg.appendChild(sv("line",{x1:X(t),x2:X(t),y1:M.t,y2:H-M.b,stroke:T.grid,"stroke-width":1}));
+      const tx=sv("text",{x:X(t),y:H-6,"text-anchor":"middle"});tx.textContent=cfg.vAxisFmt(t);svg.appendChild(tx);
+    });
+    svg.appendChild(sv("line",{x1:M.l,x2:M.l,y1:M.t,y2:H-M.b,stroke:T.axis,"stroke-width":1}));
+    const tip=makeTip(mount);
+    cfg.rows.forEach((r,i)=>{
+      const cy=M.t+rowH*(i+.5);
+      const lb=sv("text",{x:M.l-8,y:cy+4,"text-anchor":"end"});lb.textContent=r.label;svg.appendChild(lb);
+      const bw2=Math.max(2,X(r.v)-M.l), bh=Math.min(24,rowH-10);
+      const bar=sv("path",{d:roundRightRect(M.l,cy-bh/2,bw2,bh,4),fill:cfg.color});
+      bar.addEventListener("pointermove",ev=>{
+        bar.setAttribute("opacity",".82");
+        const rc=mount.getBoundingClientRect();
+        const rows=[{color:cfg.color,value:cfg.vFmt(r.v),name:"value"}];
+        if(r.w)rows.push({value:cfg.wFmt(r.w),name:"net weight"});
+        tipShow(tip,mount,ev.clientX-rc.left,ev.clientY-rc.top,r.label,rows);
+      });
+      bar.addEventListener("pointerleave",()=>{bar.removeAttribute("opacity");tipHide(tip);});
+      svg.appendChild(bar);
+      const vl=sv("text",{x:X(r.v)+6,y:cy+4,class:"dl"});vl.textContent=cfg.vFmt(r.v);svg.appendChild(vl);
+    });
+    mount.appendChild(svg);
+  }
+  function roundRightRect(x,y,w,h,r){
+    r=Math.min(r,h/2,w/2);
+    return `M${x} ${y}L${x+w-r} ${y}Q${x+w} ${y} ${x+w} ${y+r}L${x+w} ${y+h-r}Q${x+w} ${y+h} ${x+w-r} ${y+h}L${x} ${y+h}Z`;
+  }
+
+  /* ---------- sparkline ---------- */
+  function spark(svgEl, pts, color, accent){
+    svgEl.textContent="";
+    const W=svgEl.clientWidth||220, H=34, P=3;
+    svgEl.setAttribute("viewBox",`0 0 ${W} ${H}`);
+    let lo=Infinity,hi=-Infinity;
+    pts.forEach(v=>{if(v<lo)lo=v;if(v>hi)hi=v;});
+    if(lo===hi){lo-=1;hi+=1;}
+    const X=i=>P+i/(pts.length-1)*(W-2*P), Y=v=>H-P-(v-lo)/(hi-lo)*(H-2*P);
+    const d=pts.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)).join("");
+    svgEl.appendChild(sv("path",{d,fill:"none",stroke:color,"stroke-width":1.5,"stroke-linejoin":"round"}));
+    const li=pts.length-1;
+    svgEl.appendChild(sv("circle",{cx:X(li),cy:Y(pts[li]),r:3,fill:accent}));
+  }
+
+  /* ---------- KPI tiles (CMM .card) ---------- */
+  function deltaSpan(cur, prev, fmtAbs, vsText){
+    const d=cur-prev, pct=prev?d/prev*100:0;
+    const span=elc("span",null);
+    span.appendChild(elc("span",d>=0?"cm-up":"cm-down",(d>=0?"▲ ":"▼ ")+fmtAbs(Math.abs(d))+" ("+(d>=0?"+":"−")+Math.abs(pct).toFixed(1)+"%)"));
+    span.appendChild(elc("span","cm-vs"," vs "+vsText));
+    return span;
+  }
+  /* ---------- material state & helpers ---------- */
+  let matSel="copper", cmdSel=null;
+  const M=()=>DATA.materials[matSel];
+  function stageTotals(st){
+    return st.years.map((y,i)=> st.world ? st.world[i]
+      : Object.values(st.countries).reduce((a,s)=>a+(s[i]||0),0));
+  }
+  function tradeEntry(code){
+    const c=DATA.trade&&DATA.trade.commodities;
+    return (c&&c[code]&&Object.keys(c[code].by_year||{}).length)?c[code]:null;
+  }
+  function partialYears(c){
+    // Recomputed client-side (stored flags may predate the weight-aware rule):
+    // a year is partial when a flow's world total fell >20% AND, where weights
+    // are stored, volume fell >20% too (value alone can be a price move).
+    const ys=Object.keys(c.by_year).map(Number).sort((a,b)=>a-b);
+    const out=[];
+    ys.forEach((y,i)=>{
+      if(!i)return;
+      for(const k of ["exports","imports"]){
+        const cur=c.by_year[y][k], prev=c.by_year[ys[i-1]][k];
+        if(!cur||!prev||cur.total>=0.8*prev.total) continue;
+        if(cur.totalW&&prev.totalW&&cur.totalW>=0.8*prev.totalW) continue;
+        out.push(y); break;
+      }
+    });
+    return out;
+  }
+  function completeYears(c){
+    const bad=partialYears(c);
+    return Object.keys(c.by_year).map(Number)
+      .filter(y=>!bad.includes(y)).sort((a,b)=>a-b);
+  }
+  function firstTradeCode(){
+    return (M().trade_codes||[]).find(cd=>tradeEntry(cd))||null;
+  }
+  function impliedSeries(code){
+    const c=tradeEntry(code); if(!c)return [];
+    const out=[];
+    completeYears(c).forEach(y=>{
+      const e=(c.by_year[y]||{}).exports;
+      if(e&&e.totalW>0) out.push([String(y),e.total/e.totalW]);
+    });
+    return out;
+  }
+  function shortLabel(code){
+    const c=DATA.trade&&DATA.trade.commodities&&DATA.trade.commodities[code];
+    const lbl=(c&&c.label)||(M().trade_labels||{})[code]||("HS "+code);
+    return lbl.replace(/\s*\(HS \d+\)\s*$/,"").replace(/\s*\(shared code\)/,"");
+  }
+  function fmtQty(v,unit){
+    const us=unitShort(unit);
+    if(us==="kt"&&Math.abs(v)>=1000) return [(v/1000).toFixed(1)," Mt"];
+    if(us==="kt (dry)"&&Math.abs(v)>=1000) return [(v/1000).toFixed(1)," Mt (dry)"];
+    if(us==="t"&&Math.abs(v)>=1e6) return [(v/1e6).toFixed(1)," Mt"];
+    if(us==="t"&&Math.abs(v)>=1e4) return [Math.round(v/1e3).toLocaleString("en-US")," kt"];
+    if(us==="kg"&&Math.abs(v)>=1e3) return [fmtNum(v/1e3)," t"];
+    return [fmtNum(v)," "+us];
+  }
+  const PX_UNIT={"USD per pound":"/lb","USD per metric ton":"/t","USD per troy ounce":"/oz t"};
+  const pxUnit=u=>PX_UNIT[u]||("· "+u);
+
+  /* ---------- selector & header ---------- */
+  function renderSelector(){
+    const sel=$("cm-mat"); sel.textContent="";
+    (DATA.categories||[]).forEach(cat=>{
+      const grp=document.createElement("optgroup"); grp.label=cat;
+      Object.entries(DATA.materials).filter(([,m])=>m.category===cat)
+        .sort((a,b)=>a[1].name.localeCompare(b[1].name))
+        .forEach(([slug,m])=>{
+          const o=document.createElement("option");
+          o.value=slug; o.textContent=m.name+(m.symbol&&m.symbol!==m.name?" ("+m.symbol+")":"");
+          grp.appendChild(o);
+        });
+      if(grp.children.length) sel.appendChild(grp);
+    });
+    sel.value=matSel;
+    sel.addEventListener("change",()=>{matSel=sel.value;cmdSel=null;renderAll();});
+  }
+  function renderHead(){
+    const m=M();
+    $("cm-title").textContent="Commodity Markets — "+m.name;
+    $("cm-sub").textContent=m.uses||"";
+    $("cm-sourcing").textContent="Sourcing: "+m.sourcing+(m.sourcing_note?" — "+m.sourcing_note:"");
+  }
+
+  /* ---------- KPI tiles ---------- */
+  function renderKpis(){
+    const host=$("cm-kpis"); host.textContent="";
+    const m=M();
+    if(m.prices_daily){
+      const pd=m.prices_daily.series;
+      const t=elc("div","card cm-hero");
+      t.appendChild(elc("div","label",m.prices_daily.label+" · "+dFull(pd[pd.length-1][0])));
+      const v=elc("div","value"); v.textContent=fmtPx(pd[pd.length-1][1]);
+      v.appendChild(elc("span","unit",pxUnit(m.prices_daily.unit))); t.appendChild(v);
+      const dl=elc("div","change"); dl.appendChild(deltaSpan(pd[pd.length-1][1],pd[pd.length-2][1],x=>fmtPx(x),"prior close")); t.appendChild(dl);
+      const sp=sv("svg",{class:"cm-spark",role:"img","aria-label":"one-year price sparkline"});
+      t.appendChild(sp); host.appendChild(t);
+      requestAnimationFrame(()=>spark(sp,pd.slice(-252).map(p=>p[1]),T.other,T.accent));
+    }
+    if(m.prices_monthly){
+      const pm=m.prices_monthly.series;
+      const t=elc("div","card"+(m.prices_daily?"":" cm-hero"));
+      t.appendChild(elc("div","label",m.prices_monthly.label+" · "+dMonth(pm[pm.length-1][0])));
+      const v=elc("div","value"); v.textContent=fmtPx(pm[pm.length-1][1]);
+      v.appendChild(elc("span","unit",pxUnit(m.prices_monthly.unit))); t.appendChild(v);
+      const dl=elc("div","change"); dl.appendChild(deltaSpan(pm[pm.length-1][1],pm[pm.length-2][1],x=>fmtPx(x),"prior month")); t.appendChild(dl);
+      host.appendChild(t);
+    }
+    if(!m.prices_daily&&!m.prices_monthly){
+      const code=firstTradeCode(), imp=code?impliedSeries(code):[];
+      if(imp.length){
+        const t=elc("div","card cm-hero");
+        t.appendChild(elc("div","label","Implied trade price (exports) · "+imp[imp.length-1][0]));
+        const v=elc("div","value"); v.textContent=fmtPx(imp[imp.length-1][1]);
+        v.appendChild(elc("span","unit","/kg")); t.appendChild(v);
+        if(imp.length>1){const dl=elc("div","change");
+          dl.appendChild(deltaSpan(imp[imp.length-1][1],imp[imp.length-2][1],x=>fmtPx(x),imp[imp.length-2][0]));
+          t.appendChild(dl);}
+        host.appendChild(t);
+      }
+    }
+    const P=m.production;
+    if(P){
+      Object.keys(P.stages).slice(0,2).forEach(k=>{
+        const st=P.stages[k], totals=stageTotals(st), yrs=st.years;
+        let li=totals.length-1; while(li>0&&!totals[li])li--;
+        if(!totals[li])return;
+        const t=elc("div","card");
+        t.appendChild(elc("div","label",st.label+" · "+yrs[li]+(P.estimated_year===yrs[li]?" (est.)":"")));
+        const q=fmtQty(totals[li],st.unit);
+        const v=elc("div","value"); v.textContent=q[0];
+        v.appendChild(elc("span","unit",q[1])); t.appendChild(v);
+        if(li>0&&totals[li-1]){const dl=elc("div","change");
+          dl.appendChild(deltaSpan(totals[li],totals[li-1],x=>fmtQty(x,st.unit).join(""),String(yrs[li-1])));t.appendChild(dl);}
+        host.appendChild(t);
+      });
+    }
+    const code=firstTradeCode();
+    if(code){
+      const c=tradeEntry(code);
+      const yrs=Object.keys(c.by_year).map(Number)
+        .filter(y=>(c.by_year[y]||{}).exports).sort((a,b)=>a-b);
+      if(yrs.length){
+        const y1=yrs[yrs.length-1], y0=yrs[yrs.length-2];
+        const part=partialYears(c).includes(y1)?" (partial)":"";
+        const t=elc("div","card");
+        t.appendChild(elc("div","label","World exports, "+shortLabel(code)+" · "+y1+part));
+        const v=elc("div","value"); v.textContent=fmtVal(c.by_year[y1].exports.total); t.appendChild(v);
+        if(y0!=null){const dl=elc("div","change");
+          dl.appendChild(deltaSpan(c.by_year[y1].exports.total,c.by_year[y0].exports.total,x=>fmtVal(x),String(y0)));
+          t.appendChild(dl);}
+        host.appendChild(t);
+      }
+    }
+  }
+
+  /* ---------- prices ---------- */
+  const RANGES=[["1Y",1],["2Y",2],["5Y",5],["Max",99]];
+  let rangeSel="5Y";
+  function renderRangeSeg(){
+    const seg=$("cm-range"); seg.textContent="";
+    RANGES.forEach(([k])=>{
+      const b=elc("span","pill"+(k===rangeSel?" active":""),k);
+      b.addEventListener("click",()=>{rangeSel=k;renderRangeSeg();renderPrices();});
+      seg.appendChild(b);
+    });
+  }
+  function cutSeries(series){
+    const yrs=RANGES.find(r=>r[0]===rangeSel)[1];
+    if(yrs>=99)return series;
+    const last=dParse(series[series.length-1][0]);
+    const cut=new Date(last); cut.setUTCFullYear(cut.getUTCFullYear()-yrs);
+    const c=cut.toISOString().slice(0,10);
+    return series.filter(p=>p[0]>=c);
+  }
+  function chartBox(grid,id,title,note,withLegend){
+    const box=elc("div","chart-box");
+    box.appendChild(elc("h3",null,title));
+    box.appendChild(elc("div","cm-cnote",note));
+    if(withLegend){const lg=elc("div","cm-legend"); lg.id="cm-lg-"+id; box.appendChild(lg);}
+    const ch=elc("div","cm-chart"); ch.id="cm-ch-"+id; box.appendChild(ch);
+    const det=document.createElement("details"); det.className="cm-tbl"; det.id="cm-tbl-"+id;
+    const sum=document.createElement("summary"); sum.textContent="View as table"; det.appendChild(sum);
+    det.appendChild(elc("div","tw")); box.appendChild(det);
+    grid.appendChild(box);
+  }
+  function renderPrices(){
+    const m=M(), grid=$("cm-prices-grid"); grid.textContent="";
+    const hasMkt=!!(m.prices_daily||m.prices_monthly);
+    $("cm-range-row").style.display=hasMkt?"":"none";
+    const notes=[];
+    if(m.prices_daily){
+      notes.push(m.prices_daily.source);
+      chartBox(grid,"daily",m.prices_daily.label,"Daily close, "+m.prices_daily.unit+" · "+m.prices_daily.source);
+      const pd=cutSeries(m.prices_daily.series);
+      lineChart("cm-ch-daily",{series:[{name:"Close",color:T.accent,pts:pd}],height:300,area:true,
+        yFmt:fmtPx, yAxisFmt:fmtPx, xTick:dLabel, xHeader:dFull, endLabel:true,
+        aria:"Daily "+m.prices_daily.label+", "+m.prices_daily.unit});
+      const monthly=[]; let seen=null;
+      const full=m.prices_daily.series;
+      for(let i=full.length-1;i>=0;i--){
+        const ym=full[i][0].slice(0,7);
+        if(ym!==seen){monthly.unshift([dMonth(full[i][0]),fmtPx(full[i][1])]);seen=ym;}
+      }
+      tableTwin("cm-tbl-daily",["Month (last close)",m.prices_daily.unit],monthly.slice(-24));
+    }
+    if(m.prices_monthly){
+      notes.push(m.prices_monthly.source);
+      chartBox(grid,"monthly",m.prices_monthly.label,"Monthly average, "+m.prices_monthly.unit+" · "+m.prices_monthly.source);
+      const pm=cutSeries(m.prices_monthly.series);
+      lineChart("cm-ch-monthly",{series:[{name:"Benchmark",color:T.s[0],pts:pm}],height:300,area:true,
+        yFmt:fmtPx, yAxisFmt:fmtPx, xTick:dLabel, xHeader:dMonth, endLabel:true,
+        aria:"Monthly "+m.prices_monthly.label+", "+m.prices_monthly.unit});
+      tableTwin("cm-tbl-monthly",["Month",m.prices_monthly.unit],
+        m.prices_monthly.series.slice(-24).map(p=>[dMonth(p[0]),fmtPx(p[1])]));
+    }
+    const code=firstTradeCode(), imp=code?impliedSeries(code):[];
+    if(imp.length>1){
+      chartBox(grid,"implied","Implied trade price — "+shortLabel(code),
+        "World export value ÷ net weight, USD per kg · UN Comtrade");
+      lineChart("cm-ch-implied",{series:[{name:"Implied",color:T.s[3],pts:imp}],height:300,area:true,
+        yFmt:fmtPx, yAxisFmt:fmtPx, xTick:String, xHeader:String, endLabel:true,
+        aria:"Implied trade price from world exports, USD per kilogram"});
+      tableTwin("cm-tbl-implied",["Year","USD/kg"],imp.map(p=>[p[0],fmtPx(p[1])]));
+    }
+    $("cm-prices-note").textContent = hasMkt
+      ? "Market price series: "+notes.join(" · ")+". The range control scopes the market charts."
+      : (imp.length>1
+        ? "No exchange-quoted price for this material — the implied trade price (world export value ÷ weight, UN Comtrade) is shown instead."
+        : "No exchange-quoted price for this material; the implied trade price will appear once Comtrade trade data is fetched.");
+    if(!grid.children.length){
+      grid.appendChild(elc("div","empty","No price data available yet for this material."));
+    }
+  }
+
+  /* ---------- production ---------- */
+  function renderProduction(){
+    const m=M(), grid=$("cm-prod-grid"); grid.textContent="";
+    const P=m.production;
+    let note = P ? "Annual output by country, "+P.source+". The latest year is a USGS estimate; figures are revised each January–February release." : "";
+    if(m.prod_note) note = (m.prod_note+" "+note).trim();
+    $("cm-prod-note").textContent=note;
+    if(!P){
+      grid.appendChild(elc("div","empty","No per-country production data for this material."));
+      return;
+    }
+    Object.entries(P.stages).forEach(([key,st])=>{
+      chartBox(grid,"st-"+key,st.label+" by country",st.unit+" · USGS",true);
+      const yrs=st.years;
+      const names=Object.keys(st.countries).filter(c=>c!=="Other countries");
+      const latestVal=c=>{const s=st.countries[c];for(let i=s.length-1;i>=0;i--)if(s[i]!=null)return s[i];return 0;};
+      names.sort((a,b)=>latestVal(b)-latestVal(a));
+      const top=names.slice(0,6);
+      const series=top.map((c,k)=>({name:c,color:T.s[k],vals:yrs.map((_,i)=>st.countries[c][i]||0)}));
+      const totals=stageTotals(st);
+      const restVals=yrs.map((_,i)=>{
+        const t=totals[i]||0, s=series.reduce((a,x)=>a+x.vals[i],0);
+        return Math.max(0,t-s);
+      });
+      if(restVals.some(v=>v>0)) series.push({name:"Rest of world",color:T.other,vals:restVals});
+      const chartTotals=yrs.map((_,i)=>totals[i]||series.reduce((a,x)=>a+x.vals[i],0));
+      legend("cm-lg-st-"+key,series,"rect");
+      stackedColumns("cm-ch-st-"+key,{years:yrs.map(String),series,totals:chartTotals,height:330,
+        estYear:P.estimated_year,numFmt:fmtNum,unit:unitShort(st.unit),
+        capFmt:v=>fmtQty(v,st.unit).join(""),
+        totalName:st.world?"world total":"total (reported)",
+        aria:"Stacked columns of "+st.label+" by country"});
+      const rows=[...names,"Other countries"].filter(c=>st.countries[c])
+        .map(c=>[c,...st.countries[c].map(v=>v==null?"—":fmtNum(v))]);
+      if(st.world) rows.push(["World total",...st.world.map(v=>v==null?"—":fmtNum(v))]);
+      tableTwin("cm-tbl-st-"+key,["Country ("+unitShort(st.unit)+")",
+        ...yrs.map(y=>String(y)+(y===P.estimated_year?"e":""))],rows);
+    });
+  }
+
+  /* ---------- trade ---------- */
+  function renderCmdSeg(){
+    const seg=$("cm-cmd"); seg.textContent="";
+    (M().trade_codes||[]).forEach(code=>{
+      const has=!!tradeEntry(code);
+      const b=elc("span","pill"+(code===cmdSel?" active":""),shortLabel(code)+(has?"":" (pending)"));
+      if(has) b.addEventListener("click",()=>{cmdSel=code;renderCmdSeg();renderTrade();});
+      else b.style.opacity=".45";
+      seg.appendChild(b);
+    });
+  }
+  function renderTrade(){
+    const body=$("cm-trade-body"), empty=$("cm-trade-empty");
+    const c=cmdSel?DATA.trade.commodities[cmdSel]:null;
+    const years=c?Object.keys(c.by_year).map(Number).sort((a,b)=>a-b):[];
+    if(!c||!years.length){
+      body.style.display="none"; empty.style.display="";
+      empty.textContent=c?"No trade data yet for this commodity.":
+        "Trade data for "+M().name+" has not been fetched yet — the UN Comtrade backfill is incremental and slow; this fills in over the next refresh runs.";
+      $("cm-trade-note").textContent="";
+      return;
+    }
+    body.style.display=""; empty.style.display="none";
+    const partials=partialYears(c);
+    const latest=years[years.length-1];
+    const refYears=years.filter(y=>y>=latest-3);   // latest + up to 3 reference years
+    const tag=y=>String(y)+(partials.includes(y)?"*":"");
+    const partialNote=refYears.some(y=>partials.includes(y))?
+      " Years marked * have incomplete reporting — totals rise as countries file.":"";
+    $("cm-trade-note").textContent=
+      "Trade reported to UN Comtrade, in US dollars. Totals cover reporting countries only — "+
+      "a big producer that has not filed yet is absent until it reports."+partialNote;
+    $("cm-h-exp").textContent="Top exporters · "+tag(latest);
+    $("cm-h-imp").textContent="Top importers · "+tag(latest);
+    $("cm-h-trend").textContent="Export value over time — top five exporters";
+    const note=c.label+" · UN Comtrade";
+    $("cm-n-exp").textContent=note;
+    $("cm-n-imp").textContent=note;
+    $("cm-n-trend").textContent=note+" · "+tag(refYears[0])+"–"+tag(latest);
+    const exp=((c.by_year[latest]||{}).exports||{top:[]}).top.slice(0,10);
+    const imp=((c.by_year[latest]||{}).imports||{top:[]}).top.slice(0,10);
+    hBars("cm-ch-exp",{rows:exp.map(r=>({label:r.c,v:r.v,w:r.w})),color:T.s[0],
+      vFmt:fmtVal,vAxisFmt:fmtValAxis,wFmt:fmtWgt,
+      aria:"Top exporting countries, latest complete year"});
+    hBars("cm-ch-imp",{rows:imp.map(r=>({label:r.c,v:r.v,w:r.w})),color:T.s[1],
+      vFmt:fmtVal,vAxisFmt:fmtValAxis,wFmt:fmtWgt,
+      aria:"Top importing countries, latest complete year"});
+    tableTwin("cm-tbl-exp",["Country","Exports (USD)","Net weight"],
+      exp.map(r=>[r.c,fmtVal(r.v),fmtWgt(r.w)]));
+    tableTwin("cm-tbl-imp",["Country","Imports (USD)","Net weight"],
+      imp.map(r=>[r.c,fmtVal(r.v),fmtWgt(r.w)]));
+    const top5=exp.slice(0,5).map(r=>r.c);
+    const val=(y,cty)=>{
+      const rows=(c.by_year[y]&&c.by_year[y].exports)?c.by_year[y].exports.top:[];
+      const hit=rows.find(r=>r.c===cty); return hit?hit.v:0;
+    };
+    const tSeries=top5.map((cty,k)=>({name:cty,color:T.s[k],
+      pts:refYears.map(y=>[tag(y),val(y,cty)])}));
+    legend("cm-lg-trend",tSeries,"line");
+    lineChart("cm-ch-trend",{series:tSeries,height:300,
+      yFmt:fmtVal,yAxisFmt:fmtValAxis,xTick:String,xHeader:String,
+      aria:"Export value over time for the top five exporters"});
+    tableTwin("cm-tbl-trend",["Country",...refYears.map(tag)],
+      tSeries.map(s=>[s.name,...s.pts.map(p=>fmtVal(p[1]))]));
+  }
+
+  /* ---------- boot & re-render ---------- */
+  function renderAll(){
+    if(!DATA || !DATA.materials) return;
+    T=tok();
+    if(!cmdSel) cmdSel=firstTradeCode();
+    renderHead(); renderKpis(); renderRangeSeg(); renderPrices();
+    renderProduction(); renderCmdSeg(); renderTrade();
+  }
+  async function boot(){
+    if(booted) return; booted=true;
+    try{ DATA=await fetch('/api/commodities').then(r=>r.json()); }
+    catch(e){ booted=false; return; }
+    if(!DATA || !DATA.materials){
+      $("cm-kpis").innerHTML='<div class="empty">Commodity data not available yet — run backend/runners/fetch_commodities.py.</div>';
+      return;
+    }
+    $("cm-updated").textContent=DATA.generated_utc||"—";
+    renderSelector();
+    renderAll();
+  }
+
+  const cmTab=document.querySelector('.tab[data-panel="commodities"]');
+  if(cmTab) cmTab.addEventListener("click", boot);
+  function isVisible(){const p=$("panel-commodities");return p&&p.classList.contains("active");}
+  let rt=null;
+  function scheduleRender(){clearTimeout(rt);rt=setTimeout(()=>{if(booted&&isVisible())renderAll();},140);}
+  window.addEventListener("resize",scheduleRender);
+  new MutationObserver(scheduleRender).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+})();
 </script>
 </body>
 </html>

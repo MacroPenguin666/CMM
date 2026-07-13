@@ -185,7 +185,24 @@
       "Bash(xattr /Users/sd/Documents/pycharm_archive/central-data-repo/central_repo.db)",
       "Bash(brctl download *)",
       "Bash(brctl status *)",
-      "Bash(pkill -f \"bl_csmar_panel.parquet\")"
+      "Bash(pkill -f \"bl_csmar_panel.parquet\")",
+      "Bash(pip3 --version)",
+      "Bash(xcode-select -p)",
+      "Read(//Users/main/**)",
+      "Bash(python3 -m backend.run --port 5077)",
+      "Bash(echo \"started pid $!\")",
+      "Bash(node -e \"console.log\\('node ok'\\)\")",
+      "Bash(sed -i '' 's#^from playwright#import os\\\\nSP=os.environ[\"SP\"]\\\\nfrom playwright#' /tmp/claude-501/-Users-main-PycharmProjects-CMM/11160afe-1c9a-4b0d-b737-5b4209b005bd/scratchpad/check.py)",
+      "Bash(SP=/tmp/claude-501/-Users-main-PycharmProjects-CMM/11160afe-1c9a-4b0d-b737-5b4209b005bd/scratchpad /tmp/claude-501/-Users-main-PycharmProjects-CMM/11160afe-1c9a-4b0d-b737-5b4209b005bd/scratchpad/venv/bin/python /tmp/claude-501/-Users-main-PycharmProjects-CMM/11160afe-1c9a-4b0d-b737-5b4209b005bd/scratchpad/check.py)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(pkill -f \"backend.run --port 5077\")",
+      "Bash(pkill -f \"backend.run --port 5099\")",
+      "Bash(pkill -f \"backend.cli policies\")",
+      "Bash(pkill -f \"backend.cli batch\")",
+      "Bash(mdfind -name cmm.db)",
+      "Bash(ln data/cmm.db data/cmm.db.stub.bak)",
+      "Skill(run)",
+      "Bash(break)"
     ]
   }
 }

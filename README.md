@@ -10,17 +10,29 @@ A local web dashboard that collects, standardises, and displays data about Chine
 pip install -e .
 cmm-serve                      # → http://localhost:5001
 cmm-serve --port 8080
+cmm-serve --no-refresh         # serve only, skip background fetching
 ```
 
-**Fetch data (separate from the server):**
+`cmm-serve` is the only command you need: it serves everything straight from
+`data/cmm.db` immediately, and a built-in scheduler checks in the background
+every 15 min whether data is stale and re-fetches it (news 4 h, policies 12 h,
+batch 24 h, commodities 7 d — one fetch subprocess at a time, logged to
+`data/logs/auto_refresh.log`, status at `/api/refresh/status`).
+
+**Fetch data manually (optional, e.g. while the server is down):**
 ```bash
 cmm-fetch news          # RSS + ministry scrapers (runs every 4 h via launchd)
+cmm-fetch policies      # ministry policy docs incl. full text → policy_docs (every 12 h)
 cmm-fetch realtime      # flights + ships (continuous daemon)
 cmm-fetch batch         # all non-realtime sources (runs daily at 03:00 via launchd)
 cmm-fetch macro         # GMD, IMF WEO/Fiscal, NBS, Bruegel
 cmm-fetch comtrade      # UN Comtrade bilateral trade
 cmm-fetch trade-stats   # WITS tariffs, WTO, USITC HTS, ILO, OECD
 cmm-fetch ccp-elites    # import CCP elite leadership xlsx
+
+python -m backend.runners.fetch_commodities              # all-materials commodity tracker
+python -m backend.runners.fetch_commodities --no-trade   # fast pass (skip Comtrade backfill)
+python -m backend.runners.fetch_commodities --trade-only # resume/top-up trade only
 ```
 
 ---
@@ -48,6 +60,7 @@ All code connects via `from backend.storage import get_conn`. Core tables:
 | `bilateral_series` | Bilateral flows (Comtrade, WITS, OECD, WTO) |
 | `market_prices` | OHLCV (Yahoo Finance, AKShare) |
 | `news_items` | RSS + ministry scraper items |
+| `policy_docs` | Ministry policy announcements with **full document text**, 文号, and `instrument_type` (通知/公告/令/意见/法/…) (34 sources, ~19 gov bodies) |
 | `documents` / `document_events` | MOFCOM laws + NPC bills + bill timeline events |
 | `academic_articles` | CrossRef journals (DOI-deduped) |
 | `dissent_events` | China Dissent Monitor protests/strikes |
@@ -122,6 +135,7 @@ data/              Gitignored — databases, logs, raw files
 | China Dissent Monitor | dissent_events | On-demand | None |
 | Sine CPC Elite Database | ccp_cc/pb/psc_members | On-demand | None |
 | Yahoo Finance / AKShare (OHLCV) | financial_series | Daily | None |
+| Commodity Markets tab — 53 materials (base/precious/REE/battery/semiconductor/gases): USGS MCS data releases (mine/refinery/smelter production by country), UN Comtrade (annual trade per HS code, resumable backfill), Yahoo + IMF-via-FRED (prices) | data/commodities.json (no sqlite) | On-demand | None |
 
 ---
 
@@ -142,7 +156,12 @@ All other sources (ECB, BIS, IMF, Eurostat, WITS, OECD, ILO, Comtrade public) re
 
 ---
 
-## Scheduler (macOS launchd)
+## Scheduler (macOS launchd) — optional
+
+`cmm-serve` already refreshes news/policies/batch/commodities in the background
+while it runs (see Quick start). The launchd daemons are only needed if you want
+fetching while the server is **down**, or the continuous realtime flights/ships
+poller. Duplicate runs are harmless — all fetchers dedupe on insert.
 
 Four daemons in `backend/scheduler/`. Load with:
 ```bash
@@ -154,6 +173,7 @@ launchctl load ~/PycharmProjects/CMM/backend/scheduler/com.chinapolicymonitor.re
 | Plist | Command | Schedule |
 |-------|---------|----------|
 | news | `cmm-fetch news` | Every 4 hours |
+| policies | `cmm-fetch policies` | Every 12 hours |
 | batch | `cmm-fetch batch` | Daily 03:00 + random 0–18 h offset |
 | realtime | `cmm-fetch realtime` | Continuous (KeepAlive) |
 | macro | `cmm-fetch macro` | Daily 03:00 (superseded by batch) |

@@ -313,6 +313,45 @@ TARGETS = [
         "description": "Ministry of Commerce press releases and news",
     },
     {
+        "name": "MEM — Notices & Announcements",
+        "name_cn": "应急管理部-通知公告",
+        "category": "ministry",
+        "doc_type": "通知公告",
+        "url": "https://www.mem.gov.cn/gk/tzgg/",
+        "base": "https://www.mem.gov.cn",
+        "description": "Ministry of Emergency Management notices and announcements",
+    },
+    {
+        "name": "MEM — Government Information",
+        "name_cn": "应急管理部-政府信息公开",
+        "category": "ministry",
+        "doc_type": "政府信息公开",
+        "url": "https://www.mem.gov.cn/gk/zfxxgkpt/fdzdgknr/",
+        "base": "https://www.mem.gov.cn",
+        "description": "Ministry of Emergency Management mandatory disclosure documents",
+    },
+    {
+        "name": "MCT — Government Information",
+        "name_cn": "文化和旅游部-政府信息公开",
+        "category": "ministry",
+        "doc_type": "政府信息公开",
+        "url": "https://zwgk.mct.gov.cn/zfxxgkml/index.html",
+        "base": "https://zwgk.mct.gov.cn",
+        "description": "Ministry of Culture and Tourism public information disclosure",
+    },
+    {
+        "name": "MCT — Policies & Regulations",
+        "name_cn": "文化和旅游部-政策法规",
+        "category": "ministry",
+        "doc_type": "政策法规",
+        "url": "https://zwgk.mct.gov.cn/zfxxgkml/zcfg/",
+        "base": "https://zwgk.mct.gov.cn",
+        "description": "Ministry of Culture and Tourism policies and regulations",
+    },
+    # MOHRSS, MOE, MOT, MOHURD, MNR, MWR, NHC, MCA, MOJ, NHSA, STA (chinatax),
+    # and MOD all block or time out for external traffic (verified 2026-07-07),
+    # like NFRA/GAC/MPS above.
+    {
         "name": "MARA — Agriculture Regulations",
         "name_cn": "农业农村部-政策法规",
         "category": "ministry",
@@ -416,6 +455,9 @@ def _root_domain(host: str) -> str:
 _CREATE_PAGE_RE = re.compile(
     r'createPageHTML\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)'
 )
+# document.write pager (MEM etc.): var currentPage = 0; ... var countPage = 25
+_JS_PAGER_CUR = re.compile(r'var\s+currentPage\s*=\s*(\d+)')
+_JS_PAGER_CNT = re.compile(r'var\s+countPage\s*=\s*(\d+)')
 # Matches .../index_3.html or .../list_3.shtml style URLs
 _INDEX_N_RE = re.compile(r'/(index|list)_(\d+)\.(s?html?)$', re.I)
 
@@ -455,6 +497,19 @@ def _find_next_page_url(tree, current_url: str, base_url: str) -> str | None:
                 return urljoin(current_url, f"{basename}_{next_page}.{ext}")
             return None  # already on the last page
 
+    # 2b. document.write pager: var currentPage = N (0-based) / var countPage = M,
+    #     writing links like index_1.shtml (MEM and other TRS variants)
+    for node in tree.xpath("//script"):
+        text = node.text_content() or ""
+        m_cur = _JS_PAGER_CUR.search(text)
+        m_cnt = _JS_PAGER_CNT.search(text)
+        if m_cur and m_cnt:
+            cur, cnt = int(m_cur.group(1)), int(m_cnt.group(1))
+            if cur + 1 >= cnt:
+                return None  # last page
+            ext = "shtml" if "shtml" in text else "html"
+            return urljoin(current_url, f"index_{cur + 1}.{ext}")
+
     # 3. index_N.html / list_N.html URL increment (.gov.cn convention)
     path = current_url.split("?")[0]
     m = _INDEX_N_RE.search(path)
@@ -475,6 +530,10 @@ def _extract_articles(tree, base_url: str, max_items: int = 200) -> list[dict]:
     """
     Extract article (title, link, published) from a typical gov.cn list page.
 
+    base_url MUST be the URL of the page being parsed (not the site root):
+    gov.cn list pages use page-relative hrefs like ./202606/t20260625_x.html,
+    which resolve wrongly against the domain root.
+
     Tries two strategies:
     1. <ul><li> items with a link and an associated date
     2. Table rows with a link and a date cell
@@ -487,6 +546,9 @@ def _extract_articles(tree, base_url: str, max_items: int = 200) -> list[dict]:
 
     def _add(title: str, href: str, date: str) -> None:
         title = title.strip()
+        # Strip a date glued to the title's end (list items without separators)
+        title = re.sub(r'[\s(（]*\d{4}\s*[-/年]\s*\d{1,2}\s*[-/月]\s*(\d{1,2})?\s*日?[)）]?\s*$',
+                       '', title).strip()
         if not title or len(title) < _MIN_TITLE_LEN:
             return
         if title in _NAV_SKIP or any(nav in title for nav in _NAV_SKIP):
@@ -558,7 +620,7 @@ def scrape_target(target: dict, timeout: int = 20) -> dict:
         resp.raise_for_status()
         # lxml handles GBK/UTF-8 automatically via the encoding declared in the page
         tree = lhtml.fromstring(resp.content)
-        articles = _extract_articles(tree, base)
+        articles = _extract_articles(tree, resp.url or url)
         return {
             "source": name,
             "source_cn": target.get("name_cn", ""),
@@ -614,7 +676,7 @@ def scrape_target_paginated(
                 break
             resp.raise_for_status()
             tree = lhtml.fromstring(resp.content)
-            articles = _extract_articles(tree, base, max_items=200)
+            articles = _extract_articles(tree, resp.url or current_url, max_items=200)
             pages_fetched = page_num
 
             if not articles:

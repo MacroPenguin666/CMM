@@ -304,6 +304,231 @@ def store_ministry_result_t(conn: sqlite3.Connection, table: str, result: dict) 
     return inserted
 
 
+# ---------------------------------------------------------------------------
+# policy_docs — unified full-text policy announcement table (AI-analysis core)
+# ---------------------------------------------------------------------------
+
+POLICY_DOCS_SCHEMA = """
+CREATE TABLE IF NOT EXISTS policy_docs (
+    id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+    ministry           TEXT NOT NULL,
+    source             TEXT NOT NULL,
+    source_cn          TEXT,
+    category           TEXT,
+    doc_type           TEXT,
+    title              TEXT NOT NULL,
+    url                TEXT NOT NULL UNIQUE,
+    doc_number         TEXT,
+    published          TEXT,
+    summary            TEXT,
+    full_text          TEXT,
+    text_len           INTEGER,
+    instrument_type    TEXT,
+    fetch_status       TEXT NOT NULL DEFAULT 'pending',
+    http_status        INTEGER,
+    error              TEXT,
+    discovered_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    content_fetched_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_policy_docs_ministry
+    ON policy_docs (ministry, published DESC);
+CREATE INDEX IF NOT EXISTS idx_policy_docs_status ON policy_docs (fetch_status);
+CREATE INDEX IF NOT EXISTS idx_policy_docs_source ON policy_docs (source);
+"""
+
+
+def domain_slug(url: str) -> str:
+    """https://www.ndrc.gov.cn/... → 'ndrc' | https://zwgk.mct.gov.cn/... → 'mct'
+    | https://www.gov.cn/... → 'gov' (State Council)"""
+    from urllib.parse import urlparse
+    parts = urlparse(url).netloc.lower().split(".")
+    if len(parts) >= 3 and parts[-1] == "cn" and parts[-2] == "gov":
+        return "gov" if parts[-3] == "www" else parts[-3]
+    return parts[-2] if len(parts) >= 2 else (parts[0] if parts else "unknown")
+
+
+def _ensure_column(conn: sqlite3.Connection, table: str, col: str, decl: str) -> None:
+    """Add a column to an existing table if it's missing (idempotent migration)."""
+    cols = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+    if col not in cols:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {decl}")
+        conn.commit()
+
+
+def get_policy_docs_db() -> sqlite3.Connection:
+    conn = get_conn()
+    conn.executescript(POLICY_DOCS_SCHEMA)
+    # instrument_type is a later addition — add the column (existing DBs) before
+    # indexing it, so the index build never races an absent column.
+    _ensure_column(conn, "policy_docs", "instrument_type", "TEXT")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_policy_docs_instrument "
+                 "ON policy_docs (instrument_type)")
+    conn.commit()
+    return conn
+
+
+# Chinese policy instrument vocabulary. Titles put the operative instrument LAST
+# ('关于印发《XX办法》的通知' IS a 通知 transmitting an 办法), so classification picks
+# the token whose match ENDS furthest right, with the longest token winning ties
+# (so 办法 beats the 法 nested inside it, 命令 beats a bare 令, etc.).
+_INSTRUMENT_TOKENS = {
+    "通知": "通知", "通告": "通告", "公告": "公告", "公报": "公报",
+    "意见": "意见", "办法": "办法", "规定": "规定", "规则": "规则",
+    "规划": "规划", "纲要": "纲要", "方案": "方案", "决定": "决定",
+    "决议": "决议", "批复": "批复", "条例": "条例", "细则": "细则",
+    "标准": "标准", "目录": "目录", "命令": "令", "令": "令",
+    "复函": "函", "函": "函", "公示": "公示", "报告": "报告", "法": "法",
+    "答记者问": "答问", "记者会": "答问", "答问": "答问",
+}
+
+# A trailing parenthetical is almost always the 文号 or an annotation, not the
+# instrument — strip it so it can't shadow the real head noun
+# (e.g. '…的意见(发改法规规〔2022〕1117号)' → '…的意见').
+_TRAILING_PAREN = re.compile(r'[\(（【\[][^)）】\]]*[\)）】\]]\s*$')
+_TRAILING_PUNCT = '》」』】）)"”\'’ 　'
+
+
+def classify_instrument(title: str, doc_number: str = "") -> str | None:
+    """Infer the policy instrument type (通知/公告/令/意见/法/答问/…) from a title.
+
+    Chinese titles put the operative instrument LAST, so the token whose match
+    ends furthest right wins (longest token breaks ties → 办法 beats the 法 in it).
+    Bare 法 (law) counts only when it TERMINATES the title, otherwise it fires on
+    法治/法规/执法 mid-title. Returns the canonical token, or None for news items.
+    """
+    if not title:
+        return None
+    t = title.strip()
+    prev = None
+    while prev != t:                       # peel nested/repeated trailing parens
+        prev = t
+        t = _TRAILING_PAREN.sub("", t).strip()
+    ends_with_law = t.rstrip(_TRAILING_PUNCT).endswith("法")
+
+    best_key: tuple[int, int] | None = None
+    best_val: str | None = None
+    for token, canonical in _INSTRUMENT_TOKENS.items():
+        if token == "法" and not ends_with_law:
+            continue
+        idx = t.rfind(token)
+        if idx == -1:
+            continue
+        key = (idx + len(token), len(token))  # (end position, token length)
+        if best_key is None or key > best_key:
+            best_key, best_val = key, canonical
+    return best_val
+
+
+def backfill_instrument_types(conn: sqlite3.Connection) -> int:
+    """(Re)classify instrument_type for every policy_docs row. Idempotent."""
+    rows = conn.execute("SELECT id, title FROM policy_docs").fetchall()
+    for row in rows:
+        conn.execute(
+            "UPDATE policy_docs SET instrument_type = ? WHERE id = ?",
+            (classify_instrument(row["title"] or ""), row["id"]),
+        )
+    conn.commit()
+    return len(rows)
+
+
+def get_policy_known_links(conn: sqlite3.Connection, source: str | None = None) -> set:
+    if source:
+        cur = conn.execute("SELECT url FROM policy_docs WHERE source = ?", (source,))
+    else:
+        cur = conn.execute("SELECT url FROM policy_docs")
+    return {row[0] for row in cur.fetchall()}
+
+
+def get_policy_doc_count(conn: sqlite3.Connection, source: str | None = None) -> int:
+    if source:
+        return conn.execute(
+            "SELECT COUNT(*) FROM policy_docs WHERE source = ?", (source,)
+        ).fetchone()[0]
+    return conn.execute("SELECT COUNT(*) FROM policy_docs").fetchone()[0]
+
+
+def insert_policy_metadata(conn: sqlite3.Connection, result: dict) -> int:
+    """Insert discovery-stage rows (fetch_status='pending'). Returns newly inserted count."""
+    ministry = domain_slug(result.get("feed_url", ""))
+    inserted = 0
+    for entry in result.get("entries", []):
+        link = entry.get("link")
+        if not link:
+            continue
+        title = entry.get("title", "")
+        cur = conn.execute(
+            "INSERT OR IGNORE INTO policy_docs "
+            "(ministry, source, source_cn, category, doc_type, title, url, "
+            " published, summary, instrument_type) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?)",
+            (
+                ministry,
+                result["source"],
+                result.get("source_cn", ""),
+                result.get("category", ""),
+                result.get("doc_type"),
+                title,
+                link,
+                entry.get("published", ""),
+                entry.get("summary", ""),
+                classify_instrument(title),
+            ),
+        )
+        inserted += cur.rowcount
+    conn.commit()
+    return inserted
+
+
+def get_pending_policy_docs(conn: sqlite3.Connection, limit: int | None = None,
+                            ministry: str | None = None,
+                            retry_errors: bool = False) -> list[sqlite3.Row]:
+    statuses = "('pending','error')" if retry_errors else "('pending')"
+    q = (f"SELECT id, ministry, source, title, url, published FROM policy_docs "
+         f"WHERE fetch_status IN {statuses}")
+    params: list = []
+    if ministry:
+        q += " AND ministry = ?"
+        params.append(ministry)
+    q += " ORDER BY published DESC"
+    if limit:
+        q += " LIMIT ?"
+        params.append(limit)
+    return conn.execute(q, params).fetchall()
+
+
+def update_policy_content(conn: sqlite3.Connection, doc_id: int, *, status: str,
+                          full_text: str = "", doc_number: str = "",
+                          published: str = "", http_status: int | None = None,
+                          error: str = "") -> None:
+    sets = ["fetch_status = ?", "content_fetched_at = datetime('now')",
+            "http_status = ?", "error = ?"]
+    params: list = [status, http_status, error or None]
+    if full_text:
+        sets += ["full_text = ?", "text_len = ?"]
+        params += [full_text, len(full_text)]
+    if doc_number:
+        sets.append("doc_number = ?")
+        params.append(doc_number)
+    conn.execute(
+        f"UPDATE policy_docs SET {', '.join(sets)} WHERE id = ?",
+        params + [doc_id],
+    )
+    if published:
+        conn.execute(
+            "UPDATE policy_docs SET published = ? WHERE id = ? "
+            "AND (published IS NULL OR published = '')",
+            (published, doc_id),
+        )
+
+
+def get_policy_fetch_stats(conn: sqlite3.Connection) -> list[sqlite3.Row]:
+    return conn.execute(
+        "SELECT ministry, fetch_status, COUNT(*) AS n, "
+        "       COALESCE(SUM(text_len), 0) AS chars "
+        "FROM policy_docs GROUP BY ministry, fetch_status ORDER BY ministry"
+    ).fetchall()
+
+
 def get_ministry_db(source_name: str) -> sqlite3.Connection:
     """Open cmm.db for the given ministry source (legacy alias for get_ministries_db)."""
     conn = get_conn()

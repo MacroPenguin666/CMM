@@ -131,6 +131,33 @@ CREATE TABLE IF NOT EXISTS news_items (
 CREATE INDEX IF NOT EXISTS idx_news_source_date
     ON news_items (source, published_at DESC);
 
+-- Ministry policy announcements with full document text (AI-analysis core table)
+-- Sources: MINISTRY_SCRAPER (discovery) + POLICY_CONTENT (full-text swarm)
+CREATE TABLE IF NOT EXISTS policy_docs (
+    id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+    ministry           TEXT NOT NULL,          -- domain slug: ndrc, mofcom, pbc, ...
+    source             TEXT NOT NULL,          -- section, e.g. "NDRC — Notices"
+    source_cn          TEXT,
+    category           TEXT,                   -- central_government / ministry / regulator
+    doc_type           TEXT,                   -- 通知 / 公告 / 部令 / ...
+    title              TEXT NOT NULL,
+    url                TEXT NOT NULL UNIQUE,
+    doc_number         TEXT,                   -- 文号, e.g. 发改运行〔2026〕123号
+    published          TEXT,                   -- YYYY-MM-DD
+    summary            TEXT,
+    full_text          TEXT,
+    text_len           INTEGER,
+    fetch_status       TEXT NOT NULL DEFAULT 'pending',  -- pending/ok/empty/binary/error
+    http_status        INTEGER,
+    error              TEXT,
+    discovered_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    content_fetched_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_policy_docs_ministry
+    ON policy_docs (ministry, published DESC);
+CREATE INDEX IF NOT EXISTS idx_policy_docs_status ON policy_docs (fetch_status);
+CREATE INDEX IF NOT EXISTS idx_policy_docs_source ON policy_docs (source);
+
 -- Formal legal documents: laws, regulations, bills, orders
 -- Sources: MOFCOM, NPC
 CREATE TABLE IF NOT EXISTS documents (
@@ -293,3 +320,12 @@ CREATE TABLE IF NOT EXISTS fetch_log (
     fetched_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_fetch_log_source ON fetch_log (source, fetched_at DESC);
+
+-- Auto-refresh scheduler runs (backend/auto_refresh.py, started by cmm-serve)
+CREATE TABLE IF NOT EXISTS auto_refresh_runs (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    group_name  TEXT NOT NULL,
+    started_at  REAL NOT NULL,   -- unix seconds
+    finished_at REAL,
+    ok          INTEGER
+);
