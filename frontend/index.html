@@ -10,6 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <style>
   :root {
+
     color-scheme: dark;
     --bg: #0a0c10; --surface: #13161d; --surface2: #1c2029;
     --border: #262a36; --text: #e1e4eb; --text2: #727889; --text3: #464c5e;
@@ -363,14 +364,17 @@
 
 <div class="tabs">
   <div class="tab active" data-panel="overview">Overview</div>
+  <div class="tab" data-panel="fyp">15th Five-Year Plan</div>
   <div class="tab" data-panel="news">News Feed</div>
   <div class="tab" data-panel="financial">Financial</div>
   <div class="tab" data-panel="sources">All Sources</div>
   <div class="tab" data-panel="history">Historical Context</div>
   <div class="tab" data-panel="regulations">Regulations</div>
   <div class="tab" data-panel="trade">Trade</div>
+  <div class="tab" data-panel="competitiveness">Competitiveness</div>
   <div class="tab" data-panel="commodities">Commodity Markets</div>
   <div class="tab" data-panel="polity">Political Structure</div>
+  <a class="tab" href="/chartbook" style="text-decoration:none">Chartbook ↗</a>
 </div>
 
 <div class="wrap">
@@ -394,50 +398,6 @@
       <div class="sidebar-section">
         <h3>System Status</h3>
         <div id="ov-status"><div class="loading">Loading...</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 15th Five-Year Plan -->
-  <div class="fyp-section">
-    <div class="fyp-header">
-      <h2>15th Five-Year Plan</h2>
-      <span class="fyp-badge">2026–2030</span>
-      <span style="font-size:11px;color:var(--text3);">Approved by NPC · 12 March 2026</span>
-      <a class="fyp-link" href="https://english.www.gov.cn/2026special/2026npcandcpcc/6979af4fc6d00ca5f9a08cd6" target="_blank" rel="noopener">Official document ↗</a>
-    </div>
-    <div class="fyp-grid">
-      <div class="fyp-card col-blue">
-        <div class="fyp-card-title">Technology Self-Reliance</div>
-        <div class="fyp-card-body">Breakthroughs in semiconductors, AI and robotics, quantum computing, 6G, and advanced materials. Spans the full R&D chain from basic research to commercialisation.</div>
-      </div>
-      <div class="fyp-card col-blue">
-        <div class="fyp-card-title">Modern Industrial System</div>
-        <div class="fyp-card-body">First stated objective: foster emerging industries (aerospace, biomanufacturing, hydrogen, new materials) while upgrading legacy sectors (chemicals, mining, machinery).</div>
-      </div>
-      <div class="fyp-card col-amber">
-        <div class="fyp-card-title">Domestic Demand & Consumption</div>
-        <div class="fyp-card-body">Top macroeconomic priority: shift growth drivers toward household consumption and reduce structural reliance on investment and export surpluses.</div>
-      </div>
-      <div class="fyp-card col-green">
-        <div class="fyp-card-title">Green Transformation</div>
-        <div class="fyp-card-body">Replaces energy-intensity controls with a dual-control framework on carbon intensity and total emissions. Supports hydrogen, clean energy, zero-carbon industrial parks, and a low-carbon transition fund.</div>
-      </div>
-      <div class="fyp-card col-blue">
-        <div class="fyp-card-title">Innovation-Driven Growth</div>
-        <div class="fyp-card-body">109 major engineering projects anchoring the plan, including clean-energy tech, embodied AI, and commercial spaceflight. Coordinates state, enterprise, and university R&D funding.</div>
-      </div>
-      <div class="fyp-card col-amber">
-        <div class="fyp-card-title">Common Prosperity & Social Welfare</div>
-        <div class="fyp-card-body">Rural vitalization, narrowing the urban–rural income gap, expanding elderly care and healthcare capacity in response to accelerating demographic ageing.</div>
-      </div>
-      <div class="fyp-card col-purple">
-        <div class="fyp-card-title">Dual Circulation</div>
-        <div class="fyp-card-body">Deepen the domestic market (内循环) as primary driver while maintaining international trade and investment linkages. Reduce chokepoint vulnerabilities in supply chains.</div>
-      </div>
-      <div class="fyp-card col-red">
-        <div class="fyp-card-title">National Security & Supply Chain Resilience</div>
-        <div class="fyp-card-body">Expand defense-civil fusion, ensure food and energy security, and insulate critical industrial inputs from external sanctions or disruption.</div>
       </div>
     </div>
   </div>
@@ -742,6 +702,76 @@
 
 </div>
 
+<!-- ====== COMPETITIVENESS (Eurostat COMEXT monthly EU import shares) ====== -->
+<div class="panel" id="panel-competitiveness">
+
+  <!-- Controls bar -->
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">HS chapter</span>
+      <select id="comp-hs2"
+        style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;font-size:12px;outline:none;max-width:320px;">
+        <option value="all">All chapters (total)</option>
+      </select>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">Gain window</span>
+      <select id="comp-window"
+        style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;font-size:12px;outline:none;">
+        <option value="12" selected>12 months</option>
+        <option value="24">24 months</option>
+        <option value="36">36 months</option>
+        <option value="60">60 months</option>
+      </select>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">Lower chart from</span>
+      <input id="comp-startyear" type="number" min="2014" max="2026" step="1" title="Start year for the shares chart (end = latest available month)"
+        style="width:80px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:12px;outline:none;">
+    </div>
+
+    <span id="comp-loading" style="font-size:11px;color:var(--text3);display:none;">Loading…</span>
+    <span id="comp-nodata" style="font-size:12px;color:var(--accent2);display:none;">
+      No data — run <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;">cmm-fetch eurostat-trade</code> (or backfill) to populate.
+    </span>
+    <span style="font-size:10px;color:var(--text3);margin-left:auto;">Source: Eurostat COMEXT (DS-045409) · EU27 imports · value EUR</span>
+  </div>
+
+  <!-- China gain across all HS chapters -->
+  <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px;">
+    <div style="padding:10px 14px;border-bottom:1px solid var(--border);">
+      <span id="comp-gainmatrix-title" style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">
+        China's share gain in EU imports by HS chapter
+      </span>
+    </div>
+    <!-- explicit-height wrapper so Chart.js (responsive) actually grows -->
+    <div style="padding:8px 14px;"><div id="comp-gainmatrix-wrap" style="position:relative;height:2400px;"><canvas id="comp-gainmatrix-chart" style="max-height:none;"></canvas></div></div>
+  </div>
+
+  <!-- Per-chapter share over time + latest summary -->
+  <div style="display:grid;grid-template-columns:660px 1fr;gap:16px;align-items:start;">
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:10px 14px;border-bottom:1px solid var(--border);">
+        <span id="comp-shares-title" style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">
+          Source shares over time
+        </span>
+      </div>
+      <!-- Click a country chip to hide/show it -->
+      <div id="comp-toggles" style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border-bottom:1px solid var(--border);"></div>
+      <div style="padding:12px;"><div style="position:relative;height:560px;"><canvas id="comp-shares-chart" style="max-height:none;"></canvas></div></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:10px 14px;border-bottom:1px solid var(--border);">
+        <span style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">Latest shares & gain</span>
+      </div>
+      <div id="comp-summary" style="overflow-y:auto;max-height:620px;padding:6px 0;font-size:12px;"></div>
+    </div>
+  </div>
+
+</div>
+
 <!-- ====== POLITICAL STRUCTURE ====== -->
 <div class="panel" id="panel-polity">
 
@@ -880,6 +910,29 @@
   </div>
 </div>
 
+<!-- ====== 15th FIVE-YEAR PLAN ====== -->
+<div class="panel" id="panel-fyp">
+  <div style="max-width:1180px;margin:0 auto;">
+    <div class="fyp-header" style="margin-bottom:6px;">
+      <h2 style="font-size:15px;">15th Five-Year Plan — Priority Areas</h2>
+      <span class="fyp-badge">2026–2030</span>
+      <span style="font-size:11px;color:var(--text3);">Approved by NPC · 12 March 2026</span>
+      <a class="fyp-link" href="https://english.www.gov.cn/2026special/2026npcandcpcc/6979af4fc6d00ca5f9a08cd6" target="_blank" rel="noopener">Official document ↗</a>
+    </div>
+    <p style="color:var(--text2);font-size:12px;margin:0 0 16px;max-width:760px;">
+      Each of the eight stated priorities of the 15th Five-Year Plan gets its own view below. The
+      <b>Data &amp; Trackability</b> panel on each tab assesses how well CMM's current data holdings let us
+      measure and model that priority — i.e. which one we can build a real quantitative tracker for.
+    </p>
+
+    <!-- Sub-tab selector (rendered by JS) -->
+    <div id="fyp-subtabs" style="display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--border);flex-wrap:wrap;"></div>
+
+    <!-- Priority panels (rendered by JS) -->
+    <div id="fyp-panels"></div>
+  </div>
+</div>
+
 </div><!-- wrap -->
 
 <script>
@@ -939,6 +992,753 @@ document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
   t.classList.add('active');
   document.getElementById('panel-'+t.dataset.panel).classList.add('active');
 }));
+
+// ========== 15th FIVE-YEAR PLAN ==========
+// Each priority carries a data-driven trackability assessment grounded in CMM's actual
+// data holdings (see the API routes / DB tables already wired into this dashboard).
+const FYP_PRIORITIES = [
+  {
+    id: 'tech', short: 'Tech Self-Reliance', title: 'Technology Self-Reliance', col: 'col-blue',
+    recommended: true,
+    desc: 'Breakthroughs in semiconductors, AI and robotics, quantum computing, 6G, and advanced materials. Spans the full R&D chain from basic research to commercialisation.',
+    kpi: 'High-tech import-dependence ratio — the share of China\'s consumption of semiconductors (HS 8541/8542), chip-making equipment (HS 8486) and other critical inputs that is still sourced abroad, tracked year-over-year as an import-substitution curve.',
+    sources: [
+      {name: 'UN Comtrade+ China chip-line trade by partner, HS-4 (fyp_chip_trade, daily batch)', have: true},
+      {name: 'Eurostat COMEXT EU↔China monthly chip lines 8542/8541/8486 (fyp_chip_eu_monthly)', have: true},
+      {name: 'Official R&D / patent / digital-economy aggregates (NBS, plan baselines, World Bank)', have: true},
+      {name: 'Export-competitiveness / market-share panel (/api/competitiveness)', have: true},
+      {name: 'Domestic patent / R&D micro-data (CNIPA grants, firm-level)', have: false},
+    ],
+    rating: 'High',
+    model: 'A self-sufficiency index per critical HS line = 1 − (imports / apparent consumption), plus a Herfindahl index of supplier concentration to flag chokepoints. Both are computable today from the bilateral HS-level trade we already hold; the competitiveness panel adds the export-gain side of the same story.',
+  },
+  {
+    id: 'industry', short: 'Industrial System', title: 'Modern Industrial System', col: 'col-blue',
+    desc: 'First stated objective: foster emerging industries (aerospace, biomanufacturing, hydrogen, new materials) while upgrading legacy sectors (chemicals, mining, machinery).',
+    kpi: 'Shift in China\'s export composition toward high-complexity products, and revealed comparative advantage in emerging-industry HS chapters.',
+    sources: [
+      {name: 'Comtrade export structure by HS chapter', have: true},
+      {name: 'Competitiveness market-share gain matrix', have: true},
+      {name: 'Firm-level / sectoral industrial-output data', have: false},
+    ],
+    rating: 'Medium',
+    model: 'Export-side proxy only: RCA and complexity shifts by HS chapter are trackable, but true domestic output of emerging industries needs sectoral production data we do not yet hold.',
+  },
+  {
+    id: 'demand', short: 'Domestic Demand', title: 'Domestic Demand & Consumption', col: 'col-amber',
+    desc: 'Top macroeconomic priority: shift growth drivers toward household consumption and reduce structural reliance on investment and export surpluses.',
+    kpi: 'Household consumption as a share of GDP, and the investment/consumption split over time.',
+    sources: [
+      {name: 'Global Macro Database — 75 annual macro variables', have: true},
+      {name: 'AKShare Chinese macro / retail indicators', have: true},
+      {name: 'High-frequency household-survey micro-data', have: false},
+    ],
+    rating: 'High',
+    model: 'A clean single-line KPI (consumption/GDP) with a long historical series already in the macro tab — easy to track, but a thin, well-understood story rather than a rich model.',
+  },
+  {
+    id: 'green', short: 'Green Transition', title: 'Green Transformation', col: 'col-green',
+    desc: 'Replaces energy-intensity controls with a dual-control framework on carbon intensity and total emissions. Supports hydrogen, clean energy, zero-carbon industrial parks, and a low-carbon transition fund.',
+    kpi: 'Carbon intensity of GDP and clean-energy share of the power mix.',
+    sources: [
+      {name: 'Macro GDP series (denominator only)', have: true},
+      {name: 'Emissions / energy-generation dataset', have: false},
+      {name: 'Provincial dual-control compliance data', have: false},
+    ],
+    rating: 'Low',
+    model: 'We have the GDP denominator but no emissions or energy-mix numerator — the core metric cannot be computed without a new data source.',
+  },
+  {
+    id: 'innovation', short: 'Innovation', title: 'Innovation-Driven Growth', col: 'col-blue',
+    desc: '109 major engineering projects anchoring the plan, including clean-energy tech, embodied AI, and commercial spaceflight. Coordinates state, enterprise, and university R&D funding.',
+    kpi: 'R&D spending as a share of GDP, patent grants, and research-output intensity.',
+    sources: [
+      {name: 'Academic publications feed (papers only)', have: true},
+      {name: 'R&D expenditure / GDP series', have: false},
+      {name: 'Patent-grant micro-data (CNIPA / WIPO)', have: false},
+    ],
+    rating: 'Low',
+    model: 'The academic feed is a weak proxy for research activity; the headline R&D-intensity and patent metrics need datasets we have not ingested.',
+  },
+  {
+    id: 'prosperity', short: 'Common Prosperity', title: 'Common Prosperity & Social Welfare', col: 'col-amber',
+    desc: 'Rural vitalization, narrowing the urban–rural income gap, expanding elderly care and healthcare capacity in response to accelerating demographic ageing.',
+    kpi: 'Urban–rural income ratio, Gini coefficient, and old-age dependency ratio.',
+    sources: [
+      {name: 'Macro demographic / income variables (partial coverage)', have: true},
+      {name: 'Household income-distribution micro-data', have: false},
+      {name: 'Provincial welfare / healthcare-capacity data', have: false},
+    ],
+    rating: 'Medium',
+    model: 'Demographic ageing is trackable from macro series; the income-gap and welfare dimensions are only partially covered.',
+  },
+  {
+    id: 'circulation', short: 'Dual Circulation', title: 'Dual Circulation', col: 'col-purple',
+    desc: 'Deepen the domestic market (内循环) as primary driver while maintaining international trade and investment linkages. Reduce chokepoint vulnerabilities in supply chains.',
+    kpi: 'Export-dependence ratio (exports / GDP) and the net-trade contribution to growth, alongside import-source diversification.',
+    sources: [
+      {name: 'Comtrade + WITS + Eurostat bilateral trade', have: true},
+      {name: 'Macro GDP & trade-balance series', have: true},
+      {name: 'Domestic interprovincial trade flows', have: false},
+    ],
+    rating: 'High',
+    model: 'Strong on the external-circulation side (our trade data is deep) and the GDP denominator; the internal-circulation leg lacks interprovincial flow data, so the model is half-complete.',
+  },
+  {
+    id: 'security', short: 'National Security', title: 'National Security & Supply Chain Resilience', col: 'col-red',
+    desc: 'Expand defense-civil fusion, ensure food and energy security, and insulate critical industrial inputs from external sanctions or disruption.',
+    kpi: 'Import-source concentration (Herfindahl index) for critical goods, and exposure to single-supplier chokepoints.',
+    sources: [
+      {name: 'Bilateral HS-level import flows (Comtrade / WITS / Eurostat)', have: true},
+      {name: 'Sanctions / export-control event data', have: false},
+      {name: 'Strategic-reserve / stockpile data', have: false},
+    ],
+    rating: 'High',
+    model: 'Import-concentration HHI for critical HS lines is directly computable and overlaps heavily with the Tech Self-Reliance tracker — the same bilateral data powers both.',
+  },
+];
+
+const FYP_RATING_COLOR = {High: 'var(--green)', Medium: 'var(--accent2)', Low: 'var(--accent)'};
+
+function fypRenderSubtabs() {
+  const bar = document.getElementById('fyp-subtabs');
+  bar.innerHTML = FYP_PRIORITIES.map((p, i) =>
+    '<div class="fyp-sub" data-fyp="' + p.id + '" style="padding:8px 16px;cursor:pointer;font-size:12.5px;font-weight:600;'
+    + 'color:var(--' + (i === 0 ? 'text' : 'text2') + ');border-bottom:2px solid ' + (i === 0 ? 'var(--accent)' : 'transparent') + ';margin-bottom:-1px;white-space:nowrap;">'
+    + (p.recommended ? '<span style="color:var(--accent);">★</span> ' : '') + esc(p.short)
+    + '</div>'
+  ).join('');
+}
+
+function fypRenderPanels() {
+  const wrap = document.getElementById('fyp-panels');
+  wrap.innerHTML = FYP_PRIORITIES.map((p, i) => {
+    const sources = p.sources.map(s =>
+      '<li style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;font-size:12px;color:var(--text2);">'
+      + '<span style="color:' + (s.have ? 'var(--green)' : 'var(--accent)') + ';font-weight:700;flex-shrink:0;">' + (s.have ? '✓' : '✗') + '</span>'
+      + '<span>' + esc(s.name) + '</span></li>'
+    ).join('');
+    const recBanner = p.recommended
+      ? '<div style="background:rgba(0,170,110,0.08);border:1px solid var(--green);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--text);">'
+        + '<b style="color:var(--green);">★ Recommended modeling focus.</b> Of the eight priorities, this is the one CMM can best track and model today — '
+        + 'verified against the plan text, it is the plan\'s <b>#2 strategic task</b> (after the modern industrial system, itself tech-heavy) and <b>#2 of its seven 2030 objectives</b>, '
+        + 'and it sits on our deepest dataset (HS-level trade), which powers the live tracker below.'
+        + '</div>'
+      : '';
+    const cockpit = p.id === 'tech'
+      ? '<div id="fyp-cockpit"><div class="card" style="padding:28px;text-align:center;color:var(--text3);font-size:12px;margin-bottom:16px;">Loading live tracker…</div></div>'
+      : '';
+    const assess = '<div class="card" style="padding:16px 18px;">'
+      +   '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'
+      +     '<h3 style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;margin:0;">Data &amp; Trackability</h3>'
+      +     '<span style="font-size:10px;font-weight:700;color:#fff;background:' + FYP_RATING_COLOR[p.rating] + ';padding:2px 9px;border-radius:10px;">' + p.rating + '</span>'
+      +   '</div>'
+      +   '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">'
+      +     '<div>'
+      +       '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Key indicator</div>'
+      +       '<div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:14px;">' + esc(p.kpi) + '</div>'
+      +       '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">How we\'d model it</div>'
+      +       '<div style="font-size:12px;color:var(--text2);line-height:1.5;">' + esc(p.model) + '</div>'
+      +     '</div>'
+      +     '<div>'
+      +       '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Data sources available</div>'
+      +       '<ul style="list-style:none;padding:0;margin:0;">' + sources + '</ul>'
+      +     '</div>'
+      +   '</div>'
+      + '</div>';
+    const assessBlock = p.id === 'tech'
+      ? '<details style="margin-top:16px;"><summary style="cursor:pointer;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;">Data &amp; Trackability assessment</summary><div style="margin-top:10px;">' + assess + '</div></details>'
+      : assess;
+    return '<div class="fyp-priority" id="fyp-panel-' + p.id + '" style="display:' + (i === 0 ? 'block' : 'none') + ';">'
+      + recBanner
+      + '<div class="fyp-card ' + p.col + '" style="margin-bottom:16px;">'
+      +   '<div class="fyp-card-title" style="font-size:14px;margin-bottom:6px;">' + esc(p.title) + '</div>'
+      +   '<div class="fyp-card-body" style="font-size:12.5px;">' + esc(p.desc) + '</div>'
+      + '</div>'
+      + cockpit
+      + assessBlock
+      + '</div>';
+  }).join('');
+}
+
+function fypInit() {
+  fypRenderSubtabs();
+  fypRenderPanels();
+  fypLoadTech();
+  document.querySelectorAll('.fyp-sub').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.fyp-sub').forEach(t => { t.style.color = 'var(--text2)'; t.style.borderBottomColor = 'transparent'; });
+      tab.style.color = 'var(--text)'; tab.style.borderBottomColor = 'var(--accent)';
+      FYP_PRIORITIES.forEach(p => {
+        document.getElementById('fyp-panel-' + p.id).style.display = p.id === tab.dataset.fyp ? 'block' : 'none';
+      });
+    });
+  });
+}
+document.querySelector('[data-panel="fyp"]').addEventListener('click', fypInit, {once: true});
+
+// ---------- Tech Self-Reliance live cockpit — radial domain view ----------
+const FYP_AXIS = {ticks: {color: '#8a93a3', font: {size: 9}}, grid: {color: 'rgba(120,140,170,0.12)'}};
+const FYP_DOMAIN_META = {
+  semi:        {color: '#4a9eff', glyph: '芯'},
+  ai_robotics: {color: '#e8a838', glyph: '智'},
+  quantum:     {color: '#9b6dff', glyph: '量'},
+  sixg:        {color: '#3eb370', glyph: '6G'},
+  materials:   {color: '#d4483b', glyph: '材'},
+};
+const FYP_DEPTH_BADGE = {
+  rich:    ['trade + research data', 'var(--green)'],
+  partial: ['proxy trade line + research', '#e8a838'],
+  proxy:   ['research output only', '#9b6dff'],
+};
+const FYP_ORDER = ['semi', 'ai_robotics', 'quantum', 'sixg', 'materials'];
+let FYP_DATA = null, FYP_SELECTED = null, FYP_CHARTS = [];
+
+function fypChartBlock(id, title, sub, h) {
+  return '<div style="margin-bottom:14px;">'
+    + '<div style="font-size:11.5px;font-weight:700;color:var(--text);">' + esc(title) + '</div>'
+    + (sub ? '<div style="font-size:10px;color:var(--text3);margin:2px 0 6px;">' + esc(sub) + '</div>' : '')
+    + '<div style="position:relative;height:' + (h || 185) + 'px;"><canvas id="' + id + '" style="max-height:none;"></canvas></div>'
+    + '</div>';
+}
+
+function fypTargetCard(t) {
+  const latest = t.latest;
+  let progressPct = 0, statusHtml = '', latestLabel = '—';
+  if (t.target_kind === 'min_level') {
+    const cur = latest ? latest.value : t.baseline;
+    progressPct = Math.max(0, Math.min(100, 100 * (cur - t.baseline) / (t.target - t.baseline)));
+    latestLabel = latest ? latest.value + ' (' + latest.period + ')' : '—';
+    statusHtml = progressPct >= 100 ? '<span style="color:var(--green);font-weight:700;">target met</span>'
+      : Math.round(progressPct) + '% of the ' + t.baseline + ' → ' + t.target + ' gap closed';
+  } else {  // min_avg: R&D growth — judged against the ≥7%/yr threshold
+    const post = (t.history || []).filter(h => h.period > t.baseline_period);
+    if (post.length) {
+      const avg = post.reduce((s, h) => s + h.value, 0) / post.length;
+      progressPct = Math.max(0, Math.min(100, 100 * avg / t.target));
+      latestLabel = post[post.length - 1].value + '% (' + post[post.length - 1].period + ')';
+      statusHtml = 'plan-period avg ' + avg.toFixed(1) + '%/yr — '
+        + (avg >= t.target ? '<span style="color:var(--green);font-weight:700;">on track</span>'
+                           : '<span style="color:var(--accent);font-weight:700;">below target pace</span>');
+    } else {
+      latestLabel = t.baseline + '% (' + t.baseline_period + ', pre-plan)';
+      statusHtml = 'no in-plan reading yet — first NBS data due Feb 2027';
+      progressPct = 0;
+    }
+  }
+  const src = latest || {source: '15th FYP outline', source_url: t.source_url};
+  return '<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:6px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">'
+    +   '<div style="font-size:12px;font-weight:700;color:var(--text);">' + esc(t.name_en) + '</div>'
+    +   '<span style="font-size:9px;color:var(--text3);white-space:nowrap;">' + esc(t.binding) + '</span>'
+    + '</div>'
+    + '<div style="font-size:10.5px;color:var(--text3);">' + esc(t.name_cn) + '</div>'
+    + '<div style="display:flex;align-items:baseline;gap:10px;margin-top:2px;">'
+    +   '<span style="font-size:21px;font-weight:800;color:var(--text);">'
+    +     (t.target_kind === 'min_avg' ? '&ge;' + t.target + '<span style="font-size:11px;font-weight:600;color:var(--text3);">%/yr</span>' : '&ge;' + t.target)
+    +   '</span>'
+    +   '<span style="font-size:11px;color:var(--text2);">2030 target · ' + esc(t.unit) + '</span>'
+    + '</div>'
+    + '<div style="background:var(--surface2);border-radius:6px;height:8px;overflow:hidden;">'
+    +   '<div style="width:' + progressPct.toFixed(0) + '%;height:100%;background:var(--green);border-radius:6px;"></div>'
+    + '</div>'
+    + '<div style="font-size:11px;color:var(--text2);">' + statusHtml + '</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-top:auto;">'
+    +   'baseline ' + t.baseline + ' (' + t.baseline_period + ') · latest: ' + esc(String(latestLabel))
+    +   ' · <a href="' + esc(src.source_url || '#') + '" target="_blank" rel="noopener" style="color:var(--text3);">' + esc(src.source || '') + '</a>'
+    + '</div>'
+    + '</div>';
+}
+
+function fypPartnerList(label, info, word) {
+  if (!info || !info.partners || !info.partners.length)
+    return '<div style="font-size:11px;color:var(--text3);">' + esc(label) + ': no data yet</div>';
+  const max = info.partners[0].share || 1;
+  return '<div>'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">' + esc(label) + ' — top ' + esc(word) + ', ' + info.year + '</div>'
+    + info.partners.map(p =>
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;font-size:10.5px;">'
+        + '<span style="width:92px;flex-shrink:0;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(p.name || p.iso) + '</span>'
+        + '<div style="flex:1;background:var(--surface2);border-radius:4px;height:10px;"><div style="width:' + (100 * p.share / max).toFixed(0) + '%;height:100%;background:var(--blue);border-radius:4px;opacity:0.8;"></div></div>'
+        + '<span style="width:40px;text-align:right;color:var(--text);font-weight:600;">' + p.share + '%</span>'
+        + '</div>').join('')
+    + '</div>';
+}
+
+function fypSection(t) {
+  return '<div style="font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin:14px 0 8px;">' + t + '</div>';
+}
+
+async function fypLoadTech() {
+  const wrap = document.getElementById('fyp-cockpit');
+  if (!wrap) return;
+  let d;
+  try {
+    d = await (await fetch('/api/fyp/tech')).json();
+    if (d.error) throw new Error(d.error);
+  } catch (e) {
+    wrap.innerHTML = '<div class="card" style="padding:20px;color:var(--accent);font-size:12px;margin-bottom:16px;">Tracker data unavailable: ' + esc(e.message) + ' — run <code>cmm-fetch fyp-tech</code></div>';
+    return;
+  }
+  FYP_DATA = d;
+
+  // Plan clock: 2026-01-01 → 2030-12-31
+  const elapsed = Math.max(0, Math.min(100,
+    100 * (Date.now() - Date.UTC(2026, 0, 1)) / (Date.UTC(2031, 0, 1) - Date.UTC(2026, 0, 1))));
+
+  // Radial stage: hub (official targets) + 5 priority-technology nodes
+  const spokes = [], nodes = [];
+  FYP_ORDER.forEach((k, i) => {
+    const dom = (d.domains || {})[k];
+    if (!dom) return;
+    const a = (i * 72 - 90) * Math.PI / 180;
+    const x = 50 + 35 * Math.cos(a), y = 50 + 37 * Math.sin(a);
+    const m = FYP_DOMAIN_META[k];
+    const badge = FYP_DEPTH_BADGE[dom.data_depth] || FYP_DEPTH_BADGE.proxy;
+    spokes.push('<line x1="50%" y1="50%" x2="' + x.toFixed(2) + '%" y2="' + y.toFixed(2) + '%" stroke="' + m.color + '" stroke-opacity="0.35" stroke-width="1.5" stroke-dasharray="5 4"/>');
+    nodes.push(
+      '<div class="fyp-node" data-domain="' + k + '" style="position:absolute;left:' + x.toFixed(2) + '%;top:' + y.toFixed(2) + '%;transform:translate(-50%,-50%);width:170px;cursor:pointer;text-align:center;transition:opacity .45s;z-index:2;">'
+      + '<div style="width:62px;height:62px;margin:0 auto 7px;border-radius:50%;border:2px solid ' + m.color + ';background:' + m.color + '1f;color:' + m.color + ';display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">' + m.glyph + '</div>'
+      + '<div style="font-size:12px;font-weight:700;color:var(--text);line-height:1.25;">' + esc(dom.name_en) + '</div>'
+      + '<div style="font-size:10px;color:var(--text3);margin:1px 0 4px;">' + esc(dom.name_cn) + '</div>'
+      + '<span style="font-size:8.5px;padding:2px 7px;border-radius:8px;background:var(--surface2);color:' + badge[1] + ';font-weight:700;">' + badge[0] + '</span>'
+      + '</div>');
+  });
+  const hubNode =
+    '<div class="fyp-node" data-domain="hub" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:190px;cursor:pointer;text-align:center;transition:opacity .45s;z-index:2;">'
+    + '<div style="width:106px;height:106px;margin:0 auto 8px;border-radius:50%;border:2px solid var(--accent2);background:var(--surface2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">'
+    +   '<span style="font-size:17px;font-weight:800;color:var(--text);">2030</span>'
+    +   '<span style="font-size:9px;color:var(--text3);">科技自立自强</span>'
+    + '</div>'
+    + '<div style="font-size:12px;font-weight:700;color:var(--text);">Tech self-reliance</div>'
+    + '<div style="font-size:9.5px;color:var(--text3);">official targets &amp; R&amp;D chain — click</div>'
+    + '</div>';
+
+  wrap.innerHTML =
+    '<div class="card" style="padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;">'
+    + '<div style="font-size:11.5px;color:var(--text2);"><b style="color:var(--text);">Plan position:</b> #2 of 12 strategic tasks · #2 of 7 objectives for 2030 · first FYP with tech self-reliance as a top-level goal</div>'
+    + '<div style="flex:1;min-width:180px;display:flex;align-items:center;gap:8px;">'
+    +   '<div style="flex:1;background:var(--surface2);border-radius:5px;height:7px;"><div style="width:' + elapsed.toFixed(1) + '%;height:100%;background:var(--accent2);border-radius:5px;"></div></div>'
+    +   '<span style="font-size:10px;color:var(--text3);white-space:nowrap;">' + elapsed.toFixed(0) + '% of 2026–2030 elapsed</span>'
+    + '</div>'
+    + '</div>'
+
+    + '<div class="card" id="fyp-stage" style="position:relative;height:600px;overflow:hidden;padding:0;margin-bottom:6px;">'
+    +   '<div id="fyp-stage-inner" style="position:absolute;inset:0;transform-origin:0 0;transition:transform .5s cubic-bezier(.4,0,.2,1);">'
+    +     '<svg id="fyp-spokes" style="position:absolute;inset:0;width:100%;height:100%;transition:opacity .45s;z-index:1;">' + spokes.join('') + '</svg>'
+    +     hubNode + nodes.join('')
+    +   '</div>'
+    +   '<div id="fyp-stage-hint" style="position:absolute;left:14px;bottom:10px;font-size:10px;color:var(--text3);z-index:3;">Click a priority to zoom in · the hub holds the plan\'s official numerical targets</div>'
+    +   '<button id="fyp-close" style="display:none;position:absolute;top:10px;right:calc(46% + 12px);z-index:6;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:4px 10px;font-size:10.5px;cursor:pointer;">&larr; all priorities (Esc)</button>'
+    +   '<div id="fyp-sidebar" style="position:absolute;top:0;right:0;bottom:0;width:46%;background:var(--surface);border-left:1px solid var(--border);box-shadow:-12px 0 30px rgba(0,0,0,0.25);transform:translateX(105%);transition:transform .5s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:16px 18px;z-index:5;"></div>'
+    + '</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-bottom:14px;">The five named priority technologies of 专栏3-01, spanning the full R&amp;D chain: basic research (publications) &rarr; applied development (patents) &rarr; commercialisation (production &amp; trade). Hub = the plan\'s only numerical S&amp;T targets.</div>'
+
+    + '<div style="font-size:10px;color:var(--text3);margin-bottom:16px;">Self-updating: daily batch refreshes Comtrade tech lines (revisions + new years), COMEXT monthly flows, OpenAlex publication counts and World Bank series; official annual indicators (NBS / CNIPA / CAICT) update on publication. Last fetch: '
+    + esc((d.fetched_at || '—').slice(0, 10)) + ' · Sources: <a href="https://www.ndrc.gov.cn/fggz/fzzlgh/gjfzgh/202603/U020260317369114704096.pdf" target="_blank" rel="noopener" style="color:var(--text3);">15th FYP outline (NDRC)</a> · UN Comtrade+ · Eurostat COMEXT · OpenAlex · NBS</div>';
+
+  wrap.querySelectorAll('.fyp-node').forEach(n =>
+    n.addEventListener('click', e => { e.stopPropagation(); fypFocus(n.dataset.domain); }));
+  document.getElementById('fyp-close').addEventListener('click', e => { e.stopPropagation(); fypUnfocus(); });
+  document.getElementById('fyp-stage').addEventListener('click', e => {
+    if (FYP_SELECTED && !document.getElementById('fyp-sidebar').contains(e.target)) fypUnfocus();
+  });
+  if (!window._fypEscBound) {
+    window._fypEscBound = true;
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && FYP_SELECTED) fypUnfocus(); });
+  }
+}
+
+function fypFocus(key) {
+  const stage = document.getElementById('fyp-stage'), inner = document.getElementById('fyp-stage-inner');
+  const node = inner.querySelector('[data-domain="' + key + '"]');
+  if (!node || !FYP_DATA) return;
+  FYP_SELECTED = key;
+  const r = stage.getBoundingClientRect();
+  const nx = parseFloat(node.style.left) / 100 * r.width;
+  const ny = parseFloat(node.style.top) / 100 * r.height;
+  const scale = key === 'hub' ? 1.5 : 1.85;
+  inner.style.transform = 'translate(' + (r.width * 0.26 - nx * scale).toFixed(1) + 'px,' + (r.height * 0.5 - ny * scale).toFixed(1) + 'px) scale(' + scale + ')';
+  inner.querySelectorAll('.fyp-node').forEach(n => {
+    const sel = n.dataset.domain === key;
+    n.style.opacity = sel ? '1' : '0.1';
+    n.style.pointerEvents = sel ? 'auto' : 'none';
+  });
+  document.getElementById('fyp-spokes').style.opacity = '0.12';
+  document.getElementById('fyp-stage-hint').style.display = 'none';
+  document.getElementById('fyp-close').style.display = 'block';
+  FYP_CHARTS.forEach(c => c.destroy()); FYP_CHARTS = [];
+  const sb = document.getElementById('fyp-sidebar');
+  sb.innerHTML = key === 'hub' ? fypHubPanel() : fypDomainPanel(key);
+  sb.scrollTop = 0;
+  sb.style.transform = 'translateX(0)';
+  if (key !== 'hub') requestAnimationFrame(() => fypDomainCharts(key));
+}
+
+function fypUnfocus() {
+  FYP_SELECTED = null;
+  const inner = document.getElementById('fyp-stage-inner');
+  if (!inner) return;
+  inner.style.transform = '';
+  inner.querySelectorAll('.fyp-node').forEach(n => { n.style.opacity = '1'; n.style.pointerEvents = 'auto'; });
+  document.getElementById('fyp-spokes').style.opacity = '1';
+  document.getElementById('fyp-stage-hint').style.display = 'block';
+  document.getElementById('fyp-close').style.display = 'none';
+  document.getElementById('fyp-sidebar').style.transform = 'translateX(105%)';
+  FYP_CHARTS.forEach(c => c.destroy()); FYP_CHARTS = [];
+}
+
+function fypHubPanel() {
+  const d = FYP_DATA;
+  const ind = d.indicators || {};
+  const indLatest = k => { const s = ind[k]; return s && s.length ? s[s.length - 1] : null; };
+  const statChip = (label, k, fmt) => {
+    const v = indLatest(k);
+    return v ? '<span style="display:inline-flex;flex-direction:column;gap:1px;padding:6px 12px;background:var(--surface2);border-radius:8px;">'
+      + '<span style="font-size:9.5px;color:var(--text3);">' + esc(label) + ' (' + v.period + ')</span>'
+      + '<span style="font-size:13px;font-weight:700;color:var(--text);">' + fmt(v.value) + '</span></span>' : '';
+  };
+  const chain = [
+    ['Basic research', 'publications · basic-research share of R&amp;D'],
+    ['Applied development', 'high-value patents per 10k population'],
+    ['Commercialisation', 'core digital economy share · IC output &amp; trade'],
+  ];
+  return '<div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:2px;">Official plan targets</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-bottom:12px;">主要指标 — the plan\'s only numerical S&amp;T goals · all 预期性 (indicative)</div>'
+    + '<div style="display:flex;flex-direction:column;gap:10px;">' + (d.targets || []).map(fypTargetCard).join('') + '</div>'
+    + '<div style="font-size:10.5px;color:var(--text3);margin-top:10px;">The plan sets <b>no</b> chip self-sufficiency ratio, no R&amp;D/GDP intensity target and no compute target — technology goals are qualitative ("decisive breakthroughs"). The five spoke domains are tracked with CMM proxy metrics for exactly that gap.</div>'
+    + fypSection('The R&amp;D chain the plan spans')
+    + '<div style="display:flex;gap:6px;align-items:stretch;margin-bottom:4px;">'
+    + chain.map((c, i) =>
+        (i ? '<div style="align-self:center;color:var(--text3);">&rarr;</div>' : '')
+        + '<div style="flex:1;background:var(--surface2);border-radius:8px;padding:8px 10px;">'
+        + '<div style="font-size:10.5px;font-weight:700;color:var(--text);">' + c[0] + '</div>'
+        + '<div style="font-size:9.5px;color:var(--text3);line-height:1.4;">' + c[1] + '</div></div>').join('')
+    + '</div>'
+    + fypSection('Latest official readings')
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+    + statChip('R&D spending', 'rd_spending_bn_cny', v => '¥' + (v / 1000).toFixed(2) + 'tn')
+    + statChip('R&D intensity', 'rd_intensity', v => v.toFixed(2) + '% of GDP')
+    + statChip('Basic research share', 'basic_research_share', v => v.toFixed(2) + '% of R&D')
+    + statChip('IC output', 'ic_output_bn_units', v => v.toFixed(0) + ' bn units')
+    + statChip('IC imports', 'ic_imports_bn_usd', v => '$' + v.toFixed(0) + ' bn')
+    + statChip('IC exports', 'ic_exports_bn_usd', v => '$' + v.toFixed(0) + ' bn')
+    + '</div>'
+    + '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:10.5px;color:var(--text3);">Qualitative plan goals (no numbers in plan text)</summary>'
+    + '<ul style="margin:8px 0 0;padding-left:18px;font-size:11px;color:var(--text2);line-height:1.6;">'
+    + (FYP_DATA.qualitative || []).map(q => '<li>' + esc(q) + '</li>').join('') + '</ul></details>';
+}
+
+function fypDomainPanel(key) {
+  const dom = FYP_DATA.domains[key], m = FYP_DOMAIN_META[key];
+  const badge = FYP_DEPTH_BADGE[dom.data_depth] || FYP_DEPTH_BADGE.proxy;
+  const P = (code, flow) => ((FYP_DATA.chip.partners || {})[code] || {})[flow];
+  let html =
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">'
+    + '<div style="width:34px;height:34px;border-radius:50%;border:2px solid ' + m.color + ';background:' + m.color + '1f;color:' + m.color + ';display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;">' + m.glyph + '</div>'
+    + '<div><div style="font-size:14px;font-weight:800;color:var(--text);">' + esc(dom.name_en) + '</div>'
+    + '<div style="font-size:10px;color:var(--text3);">' + esc(dom.name_cn) + ' · <span style="color:' + badge[1] + ';font-weight:700;">' + badge[0] + '</span></div></div></div>'
+    + '<div style="font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:4px;">' + esc(dom.goal) + '</div>';
+
+  html += fypSection('Basic research — publication output (OpenAlex)');
+  html += fypChartBlock('fyp-sb-pubs', 'China vs world publications',
+    'Annual works matching "' + dom.search + '" · bars = China count, dashed line = China share of world (%)', 180);
+
+  if (key === 'quantum') {
+    html += '<div style="font-size:10.5px;color:var(--text2);background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:14px;line-height:1.5;">No clean customs line exists for quantum hardware — research output and qualitative milestones are the trackable indicators. The plan names quantum technology first among the "future industries" but attaches no numbers to it.</div>';
+  } else if (key === 'semi') {
+    html += fypSection('Commercialisation — trade (UN Comtrade, annual, world totals)');
+    html += fypChartBlock('fyp-sb-ic', 'China IC trade (HS 8542)', 'Imports vs exports, bn USD · export coverage % (right axis)', 200);
+    html += fypChartBlock('fyp-sb-equip', 'Chip-making equipment vs integrated circuits — China imports', 'World totals, annual, bn USD — equipment (HS 8486) relative to ICs (HS 8542) · right axis = equipment as % of IC imports', 200);
+    html += fypSection('Supply-chain dependence — who China buys from');
+    html += fypChartBlock('fyp-sb-hhi', 'Import-supplier concentration (HHI)', 'Herfindahl index per HS line — higher = fewer suppliers', 175);
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">'
+      + '<div>' + fypPartnerList('ICs (8542)', P('8542', 'M'), 'suppliers') + '</div>'
+      + '<div>' + fypPartnerList('Equipment (8486)', P('8486', 'M'), 'suppliers') + '</div></div>';
+  } else if (key === 'ai_robotics') {
+    const ind = FYP_DATA.indicators || {};
+    const last = k => { const s = ind[k]; return s && s.length ? s[s.length - 1] : null; };
+    const chip = (label, v, suffix) => v
+      ? '<span style="display:inline-flex;flex-direction:column;gap:1px;padding:6px 12px;background:var(--surface2);border-radius:8px;">'
+        + '<span style="font-size:9.5px;color:var(--text3);">' + esc(label) + ' (' + v.period + ')</span>'
+        + '<span style="font-size:13px;font-weight:700;color:var(--text);">' + v.value + suffix + '</span></span>' : '';
+
+    html += fypSection('Frontier models — China vs US (Epoch AI, CC-BY)');
+    html += fypChartBlock('fyp-sb-bench', 'Epoch Capabilities Index over time',
+      'Each dot = a model release since 2023, lines = running best per country — higher ECI = more capable', 210);
+    html += fypChartBlock('fyp-sb-bench-top', 'Best current models (ECI)',
+      'Top 5 per country, best score per model', 185);
+
+    html += fypSection('AI adoption in China — official series');
+    html += fypChartBlock('fyp-sb-adopt', 'What official data exists',
+      'China publishes no full industry-level AI-adoption survey; closest official series: CNNIC gen-AI user adoption · CAICT share of AI applications in manufacturing', 170);
+
+    html += fypSection('Commercialisation — industrial robots');
+    html += fypChartBlock('fyp-sb-trade', 'Robot trade vs domestic adoption',
+      'HS 8479.50 imports/exports, bn USD (left) · IFR annual robot installations in China, \'000 units (right) — adoption dwarfs trade: most robots are now made and used domestically', 200);
+    html += fypChartBlock('fyp-sb-robind', 'Robot installations by customer industry, 2024',
+      'IFR World Robotics 2025, \'000 units installed in China', 165);
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">'
+      + chip('Operational robot stock', last('robot_stock_mn'), 'M units — world record')
+      + chip('Domestic supplier share', last('robot_domestic_share'), '% (47% in 2023)')
+      + chip('Robot density', last('robot_density'), ' per 10k employees')
+      + '</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">'
+      + '<div>' + fypPartnerList('Robot exports (8479.50)', P('847950', 'X'), 'destinations') + '</div>'
+      + '<div>' + fypPartnerList('Robot imports (8479.50)', P('847950', 'M'), 'suppliers') + '</div></div>';
+    html += '<div style="font-size:9.5px;color:var(--text3);margin-bottom:10px;">Sources: Epoch AI Benchmarking Hub (CC-BY) · IFR World Robotics 2025 · CNNIC via gov.cn · CAICT · UN Comtrade+ · OpenAlex</div>';
+  } else if (key === 'sixg') {
+    html += fypSection('Commercialisation — trade (UN Comtrade, annual)');
+    html += fypChartBlock('fyp-sb-trade', 'Network-infrastructure exports',
+      'HS 8517.62 network equipment + 8517.61 base stations, China exports, bn USD — 5G install base is the springboard for 6G', 190);
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">'
+      + '<div>' + fypPartnerList('Network equip. (8517.62)', P('851762', 'X'), 'destinations') + '</div>'
+      + '<div>' + fypPartnerList('Base stations (8517.61)', P('851761', 'X'), 'destinations') + '</div></div>';
+  } else if (key === 'materials') {
+    html += fypSection('Commercialisation — trade (UN Comtrade, annual)');
+    html += fypChartBlock('fyp-sb-trade', 'Critical-materials leverage (exports)',
+      'HS 2846 rare-earth compounds + 8505 permanent magnets, China exports, bn USD — the lines China dominates; volume drops flag export-control rounds', 190);
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">'
+      + '<div>' + fypPartnerList('Rare earths (2846)', P('2846', 'X'), 'destinations') + '</div>'
+      + '<div>' + fypPartnerList('Magnets (8505)', P('8505', 'X'), 'destinations') + '</div></div>';
+  }
+  return html;
+}
+
+function fypPubsChartInit(id, key, color) {
+  const s = (FYP_DATA.publications || {})[key] || [];
+  const el = document.getElementById(id);
+  if (!el || !s.length) return;
+  FYP_CHARTS.push(new Chart(el, {
+    data: {labels: s.map(r => r.year), datasets: [
+      {type: 'bar', label: 'China works', data: s.map(r => r.cn), backgroundColor: color + 'aa', borderRadius: 3},
+      {type: 'line', label: 'China share of world (%)', data: s.map(r => r.share), borderColor: '#e8a838', borderDash: [5, 4], tension: 0.25, pointRadius: 2, yAxisID: 'y2'},
+    ]},
+    options: {responsive: true, maintainAspectRatio: false, interaction: {mode: 'index', intersect: false},
+      plugins: {legend: {labels: {color: '#8a93a3', font: {size: 10}, boxWidth: 14}}},
+      scales: {x: {...FYP_AXIS, grid: {display: false}}, y: FYP_AXIS,
+        y2: {position: 'right', ticks: {color: '#e8a838', font: {size: 9}}, grid: {display: false}}}},
+  }));
+}
+
+function fypTradeChartInit(id, series) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const world = FYP_DATA.chip.world || [];
+  const years = [...new Set(world.filter(w => series.some(s => s.code === w.hs4)).map(w => w.year))].sort();
+  const pick = (code, flow) => years.map(y => {
+    const r = world.find(w => w.year === y && w.hs4 === code && w.flow === flow);
+    return r ? r.value_usd / 1e9 : null;
+  });
+  FYP_CHARTS.push(new Chart(el, {
+    type: 'line',
+    data: {labels: years, datasets: series.map(s => ({
+      label: s.label, data: pick(s.code, s.flow), borderColor: s.color,
+      backgroundColor: s.color + '14', fill: !!s.fill, tension: 0.25, pointRadius: 2,
+    }))},
+    options: {responsive: true, maintainAspectRatio: false, interaction: {mode: 'index', intersect: false},
+      plugins: {legend: {labels: {color: '#8a93a3', font: {size: 10}, boxWidth: 14}}},
+      scales: {x: {...FYP_AXIS, grid: {display: false}},
+        y: {...FYP_AXIS, title: {display: true, text: 'bn USD', color: '#aab2c0', font: {size: 9}}}}},
+  }));
+}
+
+function fypDomainCharts(key) {
+  const d = FYP_DATA, m = FYP_DOMAIN_META[key];
+  fypPubsChartInit('fyp-sb-pubs', key, m.color);
+
+  if (key === 'ai_robotics') {
+    const ind = d.indicators || {};
+    const grab = k => { const o = {}; (ind[k] || []).forEach(r => { o[r.period] = r.value; }); return o; };
+
+    // A — ECI scatter: every CN/US release since 2023 + running-frontier lines
+    const eci = ((d.benchmarks || {}).eci || []).filter(r => r.date >= '2023-01-01');
+    const toX = dt => { const p = dt.split('-').map(Number); return p[0] + ((p[1] || 1) - 1) / 12 + ((p[2] || 1) - 1) / 365; };
+    const pts = c => eci.filter(r => r.country === c).map(r => ({x: toX(r.date), y: r.score, name: r.name}));
+    const frontier = c => {
+      let best = -Infinity;
+      const out = [];
+      eci.filter(r => r.country === c).forEach(r => {
+        if (r.score > best) { best = r.score; out.push({x: toX(r.date), y: best, name: r.name}); }
+      });
+      return out;
+    };
+    const benchEl = document.getElementById('fyp-sb-bench');
+    if (benchEl && eci.length) FYP_CHARTS.push(new Chart(benchEl, {
+      type: 'scatter',
+      data: {datasets: [
+        {label: 'US frontier', data: frontier('US'), borderColor: '#4a9eff', showLine: true, stepped: 'before', pointRadius: 0, borderWidth: 1.8},
+        {label: 'China frontier', data: frontier('CN'), borderColor: '#d4483b', showLine: true, stepped: 'before', pointRadius: 0, borderWidth: 1.8},
+        {label: 'US models', data: pts('US'), backgroundColor: 'rgba(74,158,255,0.35)', pointRadius: 2.5},
+        {label: 'China models', data: pts('CN'), backgroundColor: 'rgba(212,72,59,0.45)', pointRadius: 2.5},
+      ]},
+      options: {responsive: true, maintainAspectRatio: false,
+        plugins: {legend: {labels: {color: '#8a93a3', font: {size: 10}, boxWidth: 14}},
+          tooltip: {callbacks: {label: c => (c.raw.name || '') + ' — ' + c.raw.y.toFixed(1)}}},
+        scales: {x: {...FYP_AXIS, grid: {display: false},
+            ticks: {...FYP_AXIS.ticks, stepSize: 0.5, callback: v => Number.isInteger(v) ? v : ''}},
+          y: {...FYP_AXIS, title: {display: true, text: 'ECI score', color: '#aab2c0', font: {size: 9}}}}},
+    }));
+
+    // B — best current models, top 5 per country
+    const topBy = c => {
+      const best = new Map();
+      eci.filter(r => r.country === c).forEach(r => {
+        const base = r.name.replace(/\s*\([^)]*\)\s*$/, '');  // fold (high)/(xhigh)/(Preview) variants
+        if (!best.has(base) || best.get(base).score < r.score) best.set(base, {...r, name: base});
+      });
+      return [...best.values()].sort((a, b) => b.score - a.score).slice(0, 5);
+    };
+    const top = [...topBy('US'), ...topBy('CN')].sort((a, b) => b.score - a.score);
+    const topEl = document.getElementById('fyp-sb-bench-top');
+    if (topEl && top.length) FYP_CHARTS.push(new Chart(topEl, {
+      type: 'bar',
+      data: {labels: top.map(r => r.name), datasets: [{
+        data: top.map(r => r.score),
+        backgroundColor: top.map(r => r.country === 'CN' ? 'rgba(212,72,59,0.75)' : 'rgba(74,158,255,0.75)'),
+        borderRadius: 3,
+      }]},
+      options: {indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: {legend: {display: false},
+          tooltip: {callbacks: {label: c => (top[c.dataIndex].org || '') + ' — ECI ' + c.raw.toFixed(1)}}},
+        scales: {x: {...FYP_AXIS, min: Math.floor(Math.min(...top.map(r => r.score)) - 3)},
+          y: {...FYP_AXIS, grid: {display: false}, ticks: {...FYP_AXIS.ticks, font: {size: 9}, autoSkip: false}}}},
+    }));
+
+    // C — official AI-adoption series
+    const genai = grab('genai_adoption_pct'), mfg = grab('ai_mfg_share_pct');
+    const adoptYears = [...new Set([...Object.keys(genai), ...Object.keys(mfg)])].sort();
+    const adoptEl = document.getElementById('fyp-sb-adopt');
+    if (adoptEl && adoptYears.length) FYP_CHARTS.push(new Chart(adoptEl, {
+      type: 'bar',
+      data: {labels: adoptYears, datasets: [
+        {label: 'Gen-AI user adoption, % of population (CNNIC)', data: adoptYears.map(y => genai[y] ?? null), backgroundColor: 'rgba(232,168,56,0.8)', borderRadius: 3},
+        {label: 'AI applications in manufacturing, % share (CAICT)', data: adoptYears.map(y => mfg[y] ?? null), backgroundColor: 'rgba(74,158,255,0.8)', borderRadius: 3},
+      ]},
+      options: {responsive: true, maintainAspectRatio: false,
+        plugins: {legend: {labels: {color: '#8a93a3', font: {size: 10}, boxWidth: 14}}},
+        scales: {x: {...FYP_AXIS, grid: {display: false}},
+          y: {...FYP_AXIS, title: {display: true, text: '%', color: '#aab2c0', font: {size: 9}}}}},
+    }));
+
+    // D — robot trade (bn USD) + IFR installations ('000 units, right axis)
+    const world = d.chip.world || [];
+    const years = [...new Set(world.filter(w => w.hs4 === '847950').map(w => w.year))].sort();
+    const pick = flow => years.map(y => {
+      const r = world.find(w => w.year === y && w.hs4 === '847950' && w.flow === flow);
+      return r ? r.value_usd / 1e9 : null;
+    });
+    const installs = grab('robot_installations_k');
+    const tradeEl = document.getElementById('fyp-sb-trade');
+    if (tradeEl) FYP_CHARTS.push(new Chart(tradeEl, {
+      type: 'line',
+      data: {labels: years, datasets: [
+        {label: 'Robot imports (bn USD)', data: pick('M'), borderColor: '#d4483b', backgroundColor: 'rgba(212,72,59,0.08)', fill: true, tension: 0.25, pointRadius: 2},
+        {label: 'Robot exports (bn USD)', data: pick('X'), borderColor: '#3eb370', backgroundColor: 'rgba(62,179,112,0.08)', fill: true, tension: 0.25, pointRadius: 2},
+        {label: 'Installations in China (\'000 units, IFR)', data: years.map(y => installs[String(y)] ?? null), borderColor: '#e8a838', borderDash: [5, 4], tension: 0.25, pointRadius: 2, yAxisID: 'y2'},
+      ]},
+      options: {responsive: true, maintainAspectRatio: false, interaction: {mode: 'index', intersect: false},
+        plugins: {legend: {labels: {color: '#8a93a3', font: {size: 10}, boxWidth: 14}}},
+        scales: {x: {...FYP_AXIS, grid: {display: false}}, y: {...FYP_AXIS, title: {display: true, text: 'bn USD', color: '#aab2c0', font: {size: 9}}},
+          y2: {position: 'right', ticks: {color: '#e8a838', font: {size: 9}}, grid: {display: false},
+               title: {display: true, text: '\'000 units/yr', color: '#e8a838', font: {size: 9}}}}},
+    }));
+
+    // E — robot installations by customer industry (IFR 2024)
+    const byInd = Object.entries(ind).filter(([k]) => k.startsWith('robot_industry:'))
+      .map(([k, s]) => ({name: k.slice('robot_industry:'.length), value: s[s.length - 1].value}))
+      .sort((a, b) => b.value - a.value);
+    const indEl = document.getElementById('fyp-sb-robind');
+    if (indEl && byInd.length) FYP_CHARTS.push(new Chart(indEl, {
+      type: 'bar',
+      data: {labels: byInd.map(r => r.name), datasets: [{
+        data: byInd.map(r => r.value), backgroundColor: 'rgba(232,168,56,0.75)', borderRadius: 3,
+      }]},
+      options: {indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: {legend: {display: false}},
+        scales: {x: {...FYP_AXIS, title: {display: true, text: '\'000 units', color: '#aab2c0', font: {size: 9}}},
+          y: {...FYP_AXIS, grid: {display: false}, ticks: {...FYP_AXIS.ticks, font: {size: 9}, autoSkip: false}}}},
+    }));
+    return;
+  }
+  if (key === 'sixg') {
+    fypTradeChartInit('fyp-sb-trade', [
+      {code: '851762', flow: 'X', label: '8517.62 network equipment X', color: '#3eb370', fill: true},
+      {code: '851761', flow: 'X', label: '8517.61 base stations X', color: '#8fd9a8'},
+    ]);
+    return;
+  }
+  if (key === 'materials') {
+    fypTradeChartInit('fyp-sb-trade', [
+      {code: '8505', flow: 'X', label: '8505 permanent magnets X', color: '#e8a838', fill: true},
+      {code: '2846', flow: 'X', label: '2846 rare-earth compounds X', color: '#d4483b'},
+    ]);
+    return;
+  }
+  if (key !== 'semi') return;
+
+  // semi: IC trade + coverage
+  const world = d.chip.world || [];
+  const years = [...new Set(world.filter(w => w.hs4 === '8542').map(w => w.year))].sort();
+  const pick = (hs4, flow) => years.map(y => {
+    const r = world.find(w => w.year === y && w.hs4 === hs4 && w.flow === flow);
+    return r ? r.value_usd / 1e9 : null;
+  });
+  const icM = pick('8542', 'M'), icX = pick('8542', 'X');
+  const coverage = years.map((y, i) => (icM[i] && icX[i]) ? 100 * icX[i] / icM[i] : null);
+  FYP_CHARTS.push(new Chart(document.getElementById('fyp-sb-ic'), {
+    type: 'line',
+    data: {labels: years, datasets: [
+      {label: 'Imports (bn USD)', data: icM, borderColor: '#d4483b', backgroundColor: 'rgba(212,72,59,0.08)', fill: true, tension: 0.25, pointRadius: 2},
+      {label: 'Exports (bn USD)', data: icX, borderColor: '#3eb370', backgroundColor: 'rgba(62,179,112,0.08)', fill: true, tension: 0.25, pointRadius: 2},
+      {label: 'Export coverage (%)', data: coverage, borderColor: '#e8a838', borderDash: [5, 4], tension: 0.25, pointRadius: 2, yAxisID: 'y2'},
+    ]},
+    options: {responsive: true, maintainAspectRatio: false, interaction: {mode: 'index', intersect: false},
+      plugins: {legend: {labels: {color: '#8a93a3', font: {size: 10}, boxWidth: 14}}},
+      scales: {x: {...FYP_AXIS, grid: {display: false}}, y: FYP_AXIS,
+        y2: {position: 'right', ticks: {color: '#e8a838', font: {size: 9}}, grid: {display: false},
+             title: {display: true, text: 'X/M %', color: '#e8a838', font: {size: 9}}}}},
+  }));
+
+  // semi: HHI per chip HS line
+  const SEMI_CODES = {'8542': '#4a9eff', '8541': '#7fc4ff', '8486': '#d4483b'};
+  const hhi = (d.chip.hhi || []).filter(r => SEMI_CODES[r.hs4]);
+  const hhiYears = [...new Set(hhi.map(r => r.year))].sort();
+  FYP_CHARTS.push(new Chart(document.getElementById('fyp-sb-hhi'), {
+    type: 'line',
+    data: {labels: hhiYears, datasets: Object.keys(SEMI_CODES).map(code => ({
+      label: code + ' ' + (d.chip.hs4_labels[code] || ''), tension: 0.25, pointRadius: 2,
+      borderColor: SEMI_CODES[code],
+      data: hhiYears.map(y => { const r = hhi.find(h => h.year === y && h.hs4 === code); return r ? r.hhi : null; }),
+    }))},
+    options: {responsive: true, maintainAspectRatio: false, interaction: {mode: 'index', intersect: false},
+      plugins: {legend: {labels: {color: '#8a93a3', font: {size: 10}, boxWidth: 14}}},
+      scales: {x: {...FYP_AXIS, grid: {display: false}},
+        y: {...FYP_AXIS, title: {display: true, text: 'HHI (0–10000)', color: '#aab2c0', font: {size: 9}}}}},
+  }));
+
+  // semi: China WORLD imports — chip-making equipment (8486) relative to ICs (8542)
+  const eqYears = [...new Set(world.filter(w => (w.hs4 === '8486' || w.hs4 === '8542') && w.flow === 'M').map(w => w.year))].sort();
+  const eqPick = hs4 => eqYears.map(y => {
+    const r = world.find(w => w.year === y && w.hs4 === hs4 && w.flow === 'M');
+    return r ? r.value_usd / 1e9 : null;
+  });
+  const equip = eqPick('8486'), icImp = eqPick('8542');
+  const eqRatio = eqYears.map((y, i) => (equip[i] && icImp[i]) ? 100 * equip[i] / icImp[i] : null);
+  FYP_CHARTS.push(new Chart(document.getElementById('fyp-sb-equip'), {
+    type: 'line',
+    data: {labels: eqYears, datasets: [
+      {label: 'Chip-making equipment — HS 8486 (bn USD)', data: equip, borderColor: '#d4483b', backgroundColor: 'rgba(212,72,59,0.10)', fill: true, tension: 0.25, pointRadius: 2},
+      {label: 'Integrated circuits — HS 8542 (bn USD)', data: icImp, borderColor: '#4a9eff', backgroundColor: 'rgba(74,158,255,0.10)', fill: true, tension: 0.25, pointRadius: 2},
+      {label: 'Equipment as % of IC imports', data: eqRatio, borderColor: '#e8a838', borderDash: [5, 4], tension: 0.25, pointRadius: 2, yAxisID: 'y2'},
+    ]},
+    options: {responsive: true, maintainAspectRatio: false, interaction: {mode: 'index', intersect: false},
+      plugins: {legend: {labels: {color: '#8a93a3', font: {size: 10}, boxWidth: 14}}},
+      scales: {x: {...FYP_AXIS, grid: {display: false}}, y: {...FYP_AXIS, title: {display: true, text: 'bn USD', color: '#aab2c0', font: {size: 9}}},
+        y2: {position: 'right', ticks: {color: '#e8a838', font: {size: 9}}, grid: {display: false},
+             title: {display: true, text: 'equip / IC %', color: '#e8a838', font: {size: 9}}}}},
+  }));
+}
 
 // ========== OVERVIEW — LEAFLET MAP ==========
 let chinaMap = null;
@@ -2672,6 +3472,262 @@ document.getElementById('trade-hs2').addEventListener('change', () => {
 });
 
 document.querySelector('[data-panel="trade"]').addEventListener('click', () => { loadTradeTab(); }, {once: true});
+
+// ========== COMPETITIVENESS (Eurostat COMEXT import shares) ==========
+const COMP = {
+  loaded: false,
+  gainChart: null,
+  sharesChart: null,
+  hidden: new Set(),     // group names hidden from the lower chart
+  sharesData: null,
+  hs2Label: '',
+  colors: {
+    'China':          '#d4483b',
+    'Germany':        '#4a9eff',
+    'USA':            '#e8a838',
+    'Vietnam':        '#7b61ff',
+    'Other Asia':     '#3bb3a1',
+    'Other Europe':   '#6b8cae',
+    'South America':  '#d98cc4',
+    'Africa':         '#c9a227',
+    'Australia & NZ': '#8a8f98',
+    'Rest of World':  '#555c66',
+  },
+};
+
+async function loadCompetitivenessTab() {
+  const resp = await fetch('/api/competitiveness/products').then(r => r.json()).catch(() => ({}));
+  const products = resp.products || [];
+  if (products.length <= 1) {   // only the synthetic "all" entry → no real data
+    document.getElementById('comp-nodata').style.display = 'inline';
+    COMP.loaded = true;
+    return;
+  }
+  const sel = document.getElementById('comp-hs2');
+  sel.innerHTML = '';
+  products.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.hs2;
+    opt.textContent = p.label;
+    if (p.hs2 === '85') opt.selected = true;   // electronics — China's flagship
+    sel.appendChild(opt);
+  });
+  COMP.loaded = true;
+  compRefresh();
+}
+
+async function compRefresh() {
+  if (!COMP.loaded) return;
+  const hs2    = document.getElementById('comp-hs2').value;
+  const window = parseInt(document.getElementById('comp-window').value);
+  const hs2Label = document.getElementById('comp-hs2').selectedOptions[0]?.textContent || hs2;
+
+  document.getElementById('comp-loading').style.display = 'inline';
+  document.getElementById('comp-nodata').style.display  = 'none';
+
+  try {
+    const [shares, gain, matrix] = await Promise.all([
+      fetch(`/api/competitiveness/shares?product=${hs2}`).then(r => r.json()),
+      fetch(`/api/competitiveness/gain?product=${hs2}&window=${window}`).then(r => r.json()),
+      fetch(`/api/competitiveness/gain_matrix?group=China&window=${window}`).then(r => r.json()),
+    ]);
+    // Initialise the start-year input the first time we know the data range.
+    const periods = shares.periods || [];
+    if (periods.length) {
+      const ly = Number(periods[periods.length - 1].slice(0, 4));
+      const inp = document.getElementById('comp-startyear');
+      inp.min = Number(periods[0].slice(0, 4));
+      inp.max = ly;
+      if (!inp.value) inp.value = Math.max(Number(inp.min), ly - 1);
+    }
+    COMP.sharesData = shares;
+    COMP.hs2Label = hs2Label;
+
+    compRenderGainMatrix(matrix, window);
+    compRenderShares(shares, hs2Label);
+    compRenderSummary(gain);
+  } catch (e) {
+    console.error('competitiveness refresh error', e);
+  } finally {
+    document.getElementById('comp-loading').style.display = 'none';
+  }
+}
+
+function compFmtPP(pp) {
+  if (pp == null) return 'n/a';
+  return (pp >= 0 ? '+' : '') + pp.toFixed(2) + ' pp';
+}
+
+function compRenderGainMatrix(matrix, window) {
+  const rows = (matrix.products || []).filter(p => p.gain_pp != null);
+  document.getElementById('comp-gainmatrix-title').textContent =
+    `China's share gain in EU imports by HS chapter · ${window}-month change`
+    + (matrix.base && matrix.latest ? ` (${matrix.base} → ${matrix.latest})` : '');
+
+  const labels = rows.map(p => `${p.hs2} ${p.label}`);
+  const data   = rows.map(p => p.gain_pp);
+  const colors = data.map(v => v >= 0 ? '#d4483b' : '#3bb3a1');
+
+  const canvas = document.getElementById('comp-gainmatrix-chart');
+  // Size the WRAPPER (Chart.js is responsive and ignores the canvas height attr).
+  document.getElementById('comp-gainmatrix-wrap').style.height = Math.max(400, rows.length * 26) + 'px';
+  if (COMP.gainChart) COMP.gainChart.destroy();
+  COMP.gainChart = new Chart(canvas, {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'China share gain (pp)', data, backgroundColor: colors,
+                                 barPercentage: 0.85, categoryPercentage: 0.85 }] },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => {
+          const p = rows[c.dataIndex];
+          return `${compFmtPP(p.gain_pp)}  (${p.share_base?.toFixed(1)}% → ${p.share_now?.toFixed(1)}%)`;
+        } } },
+      },
+      scales: {
+        x: { title: { display: true, text: 'Percentage-point change in China share', color: '#aab2c0', font: { size: 12 } },
+             grid: { color: 'rgba(120,140,170,0.12)' }, ticks: { color: '#8a93a3', font: { size: 11 } } },
+        y: { ticks: { color: '#cdd4df', font: { size: 12 }, autoSkip: false } },
+      },
+    },
+  });
+}
+
+function compMonthIndex(p) { const [y, m] = p.split('-').map(Number); return y * 12 + (m - 1); }
+function compIdxToPeriod(mi) { const y = Math.floor(mi / 12), m = mi % 12 + 1; return `${y}-${String(m).padStart(2, '0')}`; }
+
+function compRenderShares(shares, hs2Label) {
+  const periods = shares.periods || [];
+  const groups  = shares.groups || {};
+  const titleEl = document.getElementById('comp-shares-title');
+  if (!periods.length) { titleEl.textContent = `Source shares over time · ${hs2Label}`; return; }
+
+  const latest    = periods[periods.length - 1];
+  const latestIdx = compMonthIndex(latest);
+  const latMonth  = Number(latest.slice(5, 7));   // hold the calendar month fixed
+  const latYear   = Number(latest.slice(0, 4));
+
+  // Window start = same calendar month as latest, in the chosen start year.
+  let startYear = parseInt(document.getElementById('comp-startyear').value);
+  const dataStartYear = Number(periods[0].slice(0, 4));
+  if (!startYear || startYear < dataStartYear) startYear = Math.max(dataStartYear, latYear - 1);
+  if (startYear > latYear) startYear = latYear;
+  const startIdx = startYear * 12 + (latMonth - 1);
+  const span     = Math.max(1, latestIdx - startIdx);     // months spanned by the window
+  // Previous comparison period = the same-length window immediately before the start.
+  const prevLo = startIdx - span, prevHi = startIdx - 1;
+
+  // Indices that fall inside the display window.
+  const win = periods.map((p, i) => ({ p, i, mi: compMonthIndex(p) }))
+                     .filter(o => o.mi >= startIdx && o.mi <= latestIdx);
+  const winLabels = win.map(o => o.p);
+
+  const order = ['China','Germany','USA','Vietnam','Other Asia','Other Europe',
+                 'South America','Africa','Australia & NZ','Rest of World'];
+  const present = order.filter(g => groups[g]);
+  compRenderToggles(present);   // clickable country chips above the chart
+
+  const datasets = [];
+  present.filter(g => !COMP.hidden.has(g)).forEach(g => {
+    const color   = COMP.colors[g] || '#888';
+    const winData = win.map(o => groups[g].share[o.i]);
+    // Average share over the previous period (flat reference line).
+    const prevVals = periods.map((p, i) => ({ mi: compMonthIndex(p), i }))
+      .filter(o => o.mi >= prevLo && o.mi <= prevHi)
+      .map(o => groups[g].share[o.i]).filter(v => v != null);
+    const avg = prevVals.length ? prevVals.reduce((a, b) => a + b, 0) / prevVals.length : null;
+
+    datasets.push({
+      label: g, _grp: g, _kind: 'line',
+      data: winData, borderColor: color, backgroundColor: 'transparent',
+      borderWidth: g === 'China' ? 3 : 1.5, pointRadius: 0, tension: 0.15,
+    });
+    if (avg != null) datasets.push({
+      label: `${g} (prev avg)`, _grp: g, _kind: 'avg',
+      data: winLabels.map(() => avg), borderColor: color, backgroundColor: 'transparent',
+      borderWidth: 1, borderDash: [6, 4], pointRadius: 0,
+    });
+  });
+
+  titleEl.textContent =
+    `Source shares · ${hs2Label} · ${winLabels[0]}→${latest}  (dashed = avg of ${compIdxToPeriod(prevLo)}→${compIdxToPeriod(prevHi)})`;
+
+  const canvas = document.getElementById('comp-shares-chart');
+  if (COMP.sharesChart) COMP.sharesChart.destroy();
+  COMP.sharesChart = new Chart(canvas, {
+    type: 'line',
+    data: { labels: winLabels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },   // country chips above replace the legend
+        tooltip: { filter: ti => ti.dataset._kind === 'line' },
+      },
+      scales: {
+        x: { ticks: { color: '#8a93a3', maxTicksLimit: 14, font: { size: 9 } },
+             grid: { display: false } },
+        y: { title: { display: true, text: 'Share of total EU imports (%)', color: '#aab2c0' },
+             grid: { color: 'rgba(120,140,170,0.12)' }, ticks: { color: '#8a93a3' } },
+      },
+    },
+  });
+}
+
+// Clickable country chips — click to hide/show a country in the lower chart.
+function compRenderToggles(groupNames) {
+  const el = document.getElementById('comp-toggles');
+  if (!el) return;
+  el.innerHTML = groupNames.map(g => {
+    const off = COMP.hidden.has(g);
+    const color = COMP.colors[g] || '#888';
+    return `<span class="comp-chip" data-grp="${esc(g)}" style="
+      cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:5px;
+      padding:3px 9px;border-radius:12px;font-size:11px;
+      border:1px solid var(--border);
+      background:${off ? 'transparent' : 'var(--surface2)'};
+      color:${off ? 'var(--text3)' : 'var(--text)'};
+      text-decoration:${off ? 'line-through' : 'none'};opacity:${off ? 0.55 : 1};">
+      <span style="width:9px;height:9px;border-radius:50%;background:${color};
+        ${off ? 'opacity:0.4;' : ''}"></span>${esc(g)}</span>`;
+  }).join('');
+  el.querySelectorAll('.comp-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const g = chip.getAttribute('data-grp');
+      if (COMP.hidden.has(g)) COMP.hidden.delete(g); else COMP.hidden.add(g);
+      if (COMP.sharesData) compRenderShares(COMP.sharesData, COMP.hs2Label);
+    });
+  });
+}
+
+function compRenderSummary(gain) {
+  const el = document.getElementById('comp-summary');
+  const groups = (gain.groups || []).slice().sort((a, b) => b.share_now - a.share_now);
+  if (!groups.length) { el.innerHTML = '<div style="padding:20px;color:var(--text3);font-size:12px;">No data</div>'; return; }
+  const sub = (gain.base && gain.latest) ? `<div style="padding:4px 12px;color:var(--text3);font-size:10px;">${gain.base} → ${gain.latest}</div>` : '';
+  el.innerHTML = sub + groups.map(g => {
+    const up = g.gain_pp >= 0;
+    const col = up ? '#d4483b' : '#3bb3a1';
+    const dot = COMP.colors[g.group] || '#888';
+    return `<div style="padding:6px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:12px;color:var(--text);"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${dot};margin-right:6px;"></span>${esc(g.group)}</span>
+      <span style="text-align:right;">
+        <span style="font-size:12px;font-weight:600;color:var(--text2);">${g.share_now.toFixed(1)}%</span>
+        <span style="font-size:11px;color:${col};margin-left:8px;">${up ? '▲' : '▼'} ${compFmtPP(g.gain_pp)}</span>
+      </span>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('comp-hs2').addEventListener('change', compRefresh);
+document.getElementById('comp-window').addEventListener('change', compRefresh);
+// Start year only re-windows the lower chart — no refetch needed.
+document.getElementById('comp-startyear').addEventListener('change', () => {
+  if (COMP.sharesData) compRenderShares(COMP.sharesData, COMP.hs2Label);
+});
+document.querySelector('[data-panel="competitiveness"]').addEventListener('click', () => { loadCompetitivenessTab(); }, {once: true});
 
 // ========== TARIFFS ==========
 const TARIFF = { year: 2023, indicator: 'MFN-SMPL-AVRG', view: 'china', chart: null };

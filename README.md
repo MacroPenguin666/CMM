@@ -1,4 +1,4 @@
-# CMM — China Policy Monitor
+Several data sources are loaded but not all of them (claude skips some)
 
 A local web dashboard that collects, standardises, and displays data about Chinese government policy, financial indicators, trade, regulatory activity, and CCP leadership.
 

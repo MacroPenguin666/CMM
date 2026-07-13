@@ -18,3 +18,7 @@ data/*.db-wal
 data/logs/
 data/raw/
 data/*_cache.json
+
+# Raw ingestion landing zone — generated parquet (large) + run state, kept local
+data-ingestion-pipeline/02_inputs/**/*.parquet
+data-ingestion-pipeline/02_inputs/**/_manifest.json

@@ -1232,6 +1232,58 @@ def api_eurostat_indicators():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/fyp/tech")
+def api_fyp_tech():
+    """
+    15th-FYP Tech Self-Reliance cockpit payload: official plan targets with
+    latest actuals, chip-trade series (world totals, supplier HHI, top
+    partners), EU27<->CN monthly chip trade, and China's share of EU HS-85
+    imports. All data self-updates via the daily batch (`fyp_tech` source).
+    """
+    try:
+        from backend.fetchers.fyp_tech import (
+            CHIP_HS4, PLAN_QUALITATIVE, PLAN_TARGETS, TECH_DOMAINS, TECH_HS,
+            benchmark_series, eu_hs85_share, eu_monthly_series, get_db,
+            hhi_series, indicator_series, publication_series, top_partners,
+            world_series,
+        )
+        conn = get_db()
+        indicators = indicator_series(conn)
+
+        targets = []
+        for t in PLAN_TARGETS:
+            series = indicators.get(t["indicator"], [])
+            latest = series[-1] if series else None
+            targets.append({**t, "latest": latest, "history": series})
+
+        payload = {
+            "targets": targets,
+            "qualitative": PLAN_QUALITATIVE,
+            "indicators": indicators,
+            "domains": TECH_DOMAINS,
+            "publications": publication_series(conn),
+            "benchmarks": benchmark_series(conn),
+            "chip": {
+                "hs4_labels": TECH_HS,
+                "world": world_series(conn),
+                "hhi": hhi_series(conn, flow="M"),
+                "partners": {code: {"M": top_partners(conn, code, flow="M"),
+                                    "X": top_partners(conn, code, flow="X")}
+                             for code in TECH_HS},
+            },
+            "eu": {
+                "monthly": eu_monthly_series(conn),
+                "hs85_share": eu_hs85_share(conn),
+            },
+            "fetched_at": conn.execute(
+                "SELECT MAX(fetched_at) FROM fyp_chip_trade").fetchone()[0],
+        }
+        conn.close()
+        return jsonify(payload)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/eurostat/sme-scorecard")
 def api_eurostat_sme_scorecard():
     """
@@ -1262,6 +1314,74 @@ def api_eurostat_policy_scorecard():
         return jsonify(scorecard)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# ---------------------------------------------------------------------------
+# Competitiveness — Eurostat COMEXT monthly EU import shares by HS chapter
+# ---------------------------------------------------------------------------
+
+@app.route("/api/competitiveness/products")
+def api_competitiveness_products():
+    """HS2 chapters available in eurostat_imports, with labels (for dropdown)."""
+    try:
+        from backend.fetchers.eurostat_trade import list_products
+        from backend.storage import get_conn
+        conn = get_conn()
+        data = list_products(conn)
+        conn.close()
+        return jsonify({"products": data})
+    except Exception as e:
+        return jsonify({"products": [], "error": str(e)})
+
+
+@app.route("/api/competitiveness/shares")
+def api_competitiveness_shares():
+    """Per-group monthly value + share of total EU imports.
+    ?product=85 (or 'all')  &since=2014-01"""
+    try:
+        from backend.fetchers.eurostat_trade import compute_shares
+        from backend.storage import get_conn
+        product = request.args.get("product", "all")
+        since = request.args.get("since") or None
+        conn = get_conn()
+        data = compute_shares(conn, product=product, since=since)
+        conn.close()
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/competitiveness/gain")
+def api_competitiveness_gain():
+    """Per-group share gain (pp) over a window. ?product=85&window=12"""
+    try:
+        from backend.fetchers.eurostat_trade import compute_gain
+        from backend.storage import get_conn
+        product = request.args.get("product", "all")
+        window = request.args.get("window", 12, type=int)
+        conn = get_conn()
+        data = compute_gain(conn, product=product, window=window)
+        conn.close()
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/competitiveness/gain_matrix")
+def api_competitiveness_gain_matrix():
+    """One group's share gain (pp) across all HS2 chapters, ranked.
+    ?group=China&window=12"""
+    try:
+        from backend.fetchers.eurostat_trade import compute_gain_matrix
+        from backend.storage import get_conn
+        group = request.args.get("group", "China")
+        window = request.args.get("window", 12, type=int)
+        conn = get_conn()
+        data = compute_gain_matrix(conn, group=group, window=window)
+        conn.close()
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 # ---------------------------------------------------------------------------
 # CCP Elites Database
@@ -1636,12 +1756,161 @@ def api_tariffs_on_china():
 
 
 # ---------------------------------------------------------------------------
+# Chartbook — Bridgewater-replica charts rebuilt on live public data.
+# Raw series live in chartbook_data (cmm.db); transforms are applied here at
+# read-time so the stored data stays raw. See backend/fetchers/chartbook_registry.
+# ---------------------------------------------------------------------------
+from backend.fetchers.chartbook_registry import (  # noqa: E402
+    CHARTS as _CB_CHARTS, SECTIONS as _CB_SECTIONS, STATIC as _CB_STATIC,
+    FRED_SERIES as _CB_FRED, FREQ_PERIODS as _CB_FREQ,
+)
+
+_CB_BY_ID = {c["id"]: c for c in _CB_CHARTS}
+
+
+def _cb_raw(conn, sid):
+    rows = conn.execute(
+        "SELECT date, value FROM chartbook_data WHERE series_id=? ORDER BY date", (sid,)
+    ).fetchall()
+    return [(r[0], r[1]) for r in rows]
+
+
+def _cb_series_freq(sid):
+    return _CB_FRED[sid][0] if sid in _CB_FRED else "A"
+
+
+def _cb_transform(rows, transform="level", scale=1.0, base=None, freq="M"):
+    """rows: ascending [(date, value|None)] -> transformed [(date, value|None)]."""
+    vals = [v for _, v in rows]
+    out = []
+    if transform == "yoy":
+        p = _CB_FREQ.get(freq, 12)
+        for i, (d, v) in enumerate(rows):
+            prev = vals[i - p] if i >= p else None
+            out.append((d, (v / prev - 1) * 100 if (v is not None and prev not in (None, 0)) else None))
+    elif transform == "mom_chg":
+        for i, (d, v) in enumerate(rows):
+            prev = vals[i - 1] if i >= 1 else None
+            out.append((d, (v - prev) * scale if (v is not None and prev is not None) else None))
+    elif transform == "index":
+        base_val = None
+        for d, v in rows:
+            if v is not None and (base is None or d >= base):
+                base_val = v
+                break
+        for d, v in rows:
+            out.append((d, (v / base_val - 1) * 100 if (v is not None and base_val) else None))
+    else:  # level
+        out = [(d, v * scale if v is not None else None) for d, v in rows]
+    return out
+
+
+def _cb_assemble(chart, series_specs):
+    """series_specs: [(label, [(date,val)], axis)] -> aligned Chart.js payload."""
+    start = chart.get("start")
+    dateset = set()
+    for _, pairs, _ in series_specs:
+        for d, v in pairs:
+            if v is not None and (not start or d >= start):
+                dateset.add(d)
+    labels = sorted(dateset)
+    idx = {d: i for i, d in enumerate(labels)}
+    datasets, latest = [], []
+    for label, pairs, axis in series_specs:
+        arr = [None] * len(labels)
+        last_d = last_v = None
+        for d, v in pairs:
+            if v is not None and d in idx:
+                arr[idx[d]] = round(v, 3)
+                last_d, last_v = d, v
+        ds = {"label": label, "data": arr}
+        if axis:
+            ds["yAxisID"] = axis
+        datasets.append(ds)
+        if last_v is not None:
+            latest.append({"label": label, "value": round(last_v, 2), "date": last_d})
+    return {"labels": labels, "datasets": datasets, "latest": latest}
+
+
+def _cb_merge_ratio(conn, num_sid, den_sid):
+    num, den = dict(_cb_raw(conn, num_sid)), dict(_cb_raw(conn, den_sid))
+    return [(d, num[d] / den[d] * 100) for d in sorted(num)
+            if d in den and num[d] is not None and den[d] not in (None, 0)]
+
+
+def _cb_build(conn, chart):
+    compute = chart.get("compute")
+    if compute == "static":
+        s = _CB_STATIC[chart["id"]]
+        return {"labels": s["labels"],
+                "datasets": [{"label": chart.get("unit", ""), "data": s["values"]}],
+                "latest": []}
+    if compute == "bar_latest":
+        labels, data = [], []
+        for it in chart["series"]:
+            t = _cb_transform(_cb_raw(conn, it["sid"]), it.get("transform", "level"),
+                              it.get("scale", 1.0), chart.get("base"), _cb_series_freq(it["sid"]))
+            last_v = next((v for d, v in reversed(t) if v is not None), None)
+            labels.append(it["label"])
+            data.append(round(last_v, 2) if last_v is not None else None)
+        return {"labels": labels, "datasets": [{"label": chart.get("unit", ""), "data": data}], "latest": []}
+    if compute == "ratio":
+        merged = _cb_merge_ratio(conn, chart["series"][0]["sid"], chart["series"][1]["sid"])
+        return _cb_assemble(chart, [(chart["series"][0]["label"], merged, None)])
+    if compute == "shares":
+        specs = [(p["label"], _cb_merge_ratio(conn, p["num"], p["den"]), None) for p in chart["pairs"]]
+        return _cb_assemble(chart, specs)
+    # default: each series transformed independently
+    specs = []
+    for it in chart["series"]:
+        t = _cb_transform(_cb_raw(conn, it["sid"]), it.get("transform", "level"),
+                          it.get("scale", 1.0), chart.get("base"), _cb_series_freq(it["sid"]))
+        specs.append((it["label"], t, it.get("axis")))
+    return _cb_assemble(chart, specs)
+
+
+def _cb_meta(c):
+    return {k: c.get(k) for k in ("id", "section", "title", "subtitle", "source",
+                                  "note", "type", "unit")}
+
+
+@app.route("/api/chartbook/index")
+def api_chartbook_index():
+    sections = []
+    for key, title, subtitle in _CB_SECTIONS:
+        charts = [_cb_meta(c) for c in _CB_CHARTS if c["section"] == key]
+        sections.append({"key": key, "title": title, "subtitle": subtitle, "charts": charts})
+    return jsonify({"sections": sections})
+
+
+@app.route("/api/chartbook/chart/<chart_id>")
+def api_chartbook_chart(chart_id):
+    chart = _CB_BY_ID.get(chart_id)
+    if not chart:
+        return jsonify({"error": "unknown chart"}), 404
+    try:
+        from backend.storage import get_conn
+        conn = get_conn()
+        payload = _cb_build(conn, chart)
+        payload.update(_cb_meta(chart))
+        return jsonify(payload)
+    except Exception as e:
+        return jsonify({"error": str(e), **_cb_meta(chart)}), 500
+
+
+# ---------------------------------------------------------------------------
 # Dashboard HTML — served from dashboard.html file
 # ---------------------------------------------------------------------------
 
 _DASHBOARD = Path(__file__).parent.parent / "frontend" / "index.html"
+_CHARTBOOK = Path(__file__).parent.parent / "frontend" / "chartbook.html"
 
 
 @app.route("/")
 def index():
     return _DASHBOARD.read_text()
+
+
+@app.route("/chartbook")
+def chartbook():
+    return _CHARTBOOK.read_text()

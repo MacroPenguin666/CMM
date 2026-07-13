@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Chartbook — Mercantilism & the AI Capex Boom</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --panel2:#1c232d; --border:#2b333d;
+    --text:#e6edf3; --muted:#8b97a6; --accent:#4aa3ff; --accent2:#ffb454;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       font-size:14px;line-height:1.45}
+  header{padding:22px 28px 14px;border-bottom:1px solid var(--border);
+         position:sticky;top:0;background:linear-gradient(180deg,#0e1116 80%,rgba(14,17,22,.92));z-index:20}
+  h1{margin:0;font-size:22px;letter-spacing:.2px}
+  .sub{color:var(--muted);margin-top:4px;font-size:13px;max-width:900px}
+  .sub a{color:var(--accent);text-decoration:none}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+  .tab{padding:7px 14px;border:1px solid var(--border);border-radius:7px;cursor:pointer;
+       color:var(--muted);background:var(--panel);user-select:none;font-weight:500}
+  .tab:hover{color:var(--text);border-color:#3a4452}
+  .tab.active{color:#fff;background:var(--accent);border-color:var(--accent)}
+  .nav-right{float:right;font-size:13px}
+  .nav-right a{color:var(--muted);text-decoration:none;border:1px solid var(--border);
+               padding:6px 12px;border-radius:7px}
+  .nav-right a:hover{color:var(--text)}
+  main{padding:20px 28px 60px;max-width:1500px;margin:0 auto}
+  .section-head{margin:6px 0 16px}
+  .section-head h2{margin:0;font-size:18px}
+  .section-head p{margin:3px 0 0;color:var(--muted);font-size:13px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:18px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;
+        padding:16px 16px 12px;display:flex;flex-direction:column}
+  .card h3{margin:0 0 2px;font-size:15px}
+  .card .csub{color:var(--muted);font-size:12px;margin-bottom:10px}
+  .chart-wrap{position:relative;width:100%;height:300px}
+  .chart-wrap canvas{max-height:none!important}
+  .meta{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;
+        margin-top:10px;padding-top:9px;border-top:1px solid var(--border)}
+  .src{color:var(--muted);font-size:11px;line-height:1.35}
+  .latest{font-size:11px;color:var(--muted);text-align:right;white-space:nowrap;min-width:130px}
+  .latest b{color:var(--accent2)}
+  .note{color:#9fb0c2;font-size:11.5px;font-style:italic;margin-top:7px}
+  .yrange{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);
+          margin-bottom:9px;flex-wrap:wrap}
+  .yrange select{background:var(--panel2);color:var(--text);border:1px solid var(--border);
+          border-radius:5px;padding:2px 5px;font-size:11px;cursor:pointer}
+  .yrange .presets{display:flex;gap:4px;margin-left:auto}
+  .yrange button{background:var(--panel2);color:var(--muted);border:1px solid var(--border);
+          border-radius:5px;padding:2px 8px;font-size:10.5px;cursor:pointer}
+  .yrange button:hover{color:var(--text);border-color:#3a4452}
+  .yrange button.on{color:#fff;background:var(--accent);border-color:var(--accent)}
+  .loading,.err{color:var(--muted);padding:30px;text-align:center}
+  .err{color:#ff7b72}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="nav-right"><a href="/">← Main dashboard</a></div>
+  <h1>Chartbook</h1>
+  <div class="sub">
+    Bridgewater's <a href="https://www.bridgewater.com/research-and-insights/were-all-mercantilists-now" target="_blank">“We're All Mercantilists Now”</a>
+    and “The Macro Implications of the AI Capex Boom”, rebuilt on the most recent
+    <b>publicly available</b> data (FRED, World Bank), plus US inflation inputs and the
+    labour market by sector. Updates whenever <code>cmm-fetch chartbook</code> runs.
+  </div>
+  <div class="tabs" id="tabs"></div>
+</header>
+<main id="main"><div class="loading">Loading chartbook…</div></main>
+
+<script>
+const PALETTE = ["#4aa3ff","#ffb454","#3fb950","#f778ba","#a371f7","#56d4dd",
+                 "#e3b341","#ff7b72","#7ee787","#79c0ff","#d2a8ff","#ffa657"];
+const charts = {};          // chart_id -> Chart instance
+const DATA = {};            // chart_id -> full payload {labels, datasets, latest}
+let INDEX = null;
+
+function labelYear(d){       // first 4 digits of a date-like label, else null
+  const m = /^(\d{4})/.exec(d||"");
+  return m ? parseInt(m[1],10) : null;
+}
+
+function fmtDate(d){
+  if(!d) return "";
+  if(/^\d{4}$/.test(d)) return d;                 // World Bank year
+  const [y,m]=d.split("-");                        // FRED YYYY-MM-DD
+  const mon=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return (mon[parseInt(m,10)-1]||"")+" "+y;
+}
+function thinLabel(d){
+  if(/^\d{4}$/.test(d)) return d;
+  const [y,m]=d.split("-");
+  return m==="01" ? y : "";                        // year ticks only
+}
+
+async function boot(){
+  try{
+    INDEX = await (await fetch("/api/chartbook/index")).json();
+  }catch(e){ document.getElementById("main").innerHTML =
+    '<div class="err">Could not load chartbook index: '+e+'</div>'; return; }
+
+  const tabs=document.getElementById("tabs");
+  INDEX.sections.forEach((s,i)=>{
+    const t=document.createElement("div");
+    t.className="tab"+(i===0?" active":""); t.textContent=s.title; t.dataset.key=s.key;
+    t.onclick=()=>showSection(s.key);
+    tabs.appendChild(t);
+  });
+  showSection(INDEX.sections[0].key);
+}
+
+function showSection(key){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.key===key));
+  const sec = INDEX.sections.find(s=>s.key===key);
+  const main=document.getElementById("main");
+  main.innerHTML =
+    '<div class="section-head"><h2>'+sec.title+'</h2><p>'+sec.subtitle+'</p></div>'+
+    '<div class="grid" id="grid"></div>';
+  const grid=document.getElementById("grid");
+  sec.charts.forEach(meta=>{
+    const card=document.createElement("div"); card.className="card";
+    card.innerHTML =
+      '<h3>'+meta.title+'</h3>'+
+      '<div class="csub">'+(meta.subtitle||"")+'</div>'+
+      '<div class="yrange hidden" id="yr_'+meta.id+'"></div>'+
+      '<div class="chart-wrap"><canvas id="cv_'+meta.id+'"></canvas></div>'+
+      (meta.note?'<div class="note">'+meta.note+'</div>':'')+
+      '<div class="meta"><div class="src">Source: '+(meta.source||"")+'</div>'+
+      '<div class="latest" id="lt_'+meta.id+'"></div></div>';
+    grid.appendChild(card);
+    loadChart(meta);
+  });
+}
+
+async function loadChart(meta){
+  let d;
+  try{ d = await (await fetch("/api/chartbook/chart/"+meta.id)).json(); }
+  catch(e){ return; }
+  if(d.error){ document.getElementById("lt_"+meta.id).innerHTML='<span style="color:#ff7b72">err</span>'; return; }
+  DATA[meta.id]=d;
+
+  // latest readout (independent of the selected window)
+  const lt=document.getElementById("lt_"+meta.id);
+  if(d.latest && d.latest.length){
+    lt.innerHTML = d.latest.slice(0,4).map(l=>
+      l.label+': <b>'+l.value+'</b> <span style="opacity:.7">('+fmtDate(l.date)+')</span>'
+    ).join("<br>");
+  }
+
+  // year-window control — only for time-series (date-like labels)
+  const years = d.labels.map(labelYear).filter(y=>y!==null);
+  const yr=document.getElementById("yr_"+meta.id);
+  if(meta.type!=="bar" && years.length>1){
+    const minY=Math.min(...years), maxY=Math.max(...years);
+    const opts=(sel)=>{let s="";for(let y=minY;y<=maxY;y++)s+='<option'+(y===sel?' selected':'')+'>'+y+'</option>';return s;};
+    yr.innerHTML =
+      '<span>From</span><select class="yfrom">'+opts(minY)+'</select>'+
+      '<span>to</span><select class="yto">'+opts(maxY)+'</select>'+
+      '<span class="presets">'+
+        [5,10,20].map(n=>'<button data-span="'+n+'">'+n+'Y</button>').join('')+
+        '<button data-span="max">Max</button>'+
+      '</span>';
+    const fromSel=yr.querySelector(".yfrom"), toSel=yr.querySelector(".yto");
+    fromSel.onchange=toSel.onchange=()=>{markPreset(meta.id);renderChart(meta);};
+    yr.querySelectorAll(".presets button").forEach(b=>b.onclick=()=>{
+      const span=b.dataset.span;
+      toSel.value=maxY;
+      fromSel.value = span==="max" ? minY : Math.max(minY, maxY-parseInt(span,10));
+      markPreset(meta.id); renderChart(meta);
+    });
+    yr.classList.remove("hidden");
+    markPreset(meta.id);
+  }
+  renderChart(meta);
+}
+
+function markPreset(id){
+  const yr=document.getElementById("yr_"+id);
+  if(!yr || yr.classList.contains("hidden")) return;
+  const from=parseInt(yr.querySelector(".yfrom").value,10);
+  const to=parseInt(yr.querySelector(".yto").value,10);
+  const years=DATA[id].labels.map(labelYear).filter(y=>y!==null);
+  const maxY=Math.max(...years), minY=Math.min(...years);
+  yr.querySelectorAll(".presets button").forEach(b=>{
+    const s=b.dataset.span;
+    const on = to===maxY && (s==="max" ? from===minY : from===Math.max(minY,maxY-parseInt(s,10)));
+    b.classList.toggle("on", on);
+  });
+}
+
+function renderChart(meta){
+  const d=DATA[meta.id];
+  const isBar=(meta.type==="bar");
+  const yr=document.getElementById("yr_"+meta.id);
+  const active = yr && !yr.classList.contains("hidden");
+
+  let labels=d.labels, datasetsRaw=d.datasets;
+  if(active){
+    const from=parseInt(yr.querySelector(".yfrom").value,10);
+    const to=parseInt(yr.querySelector(".yto").value,10);
+    const lo=Math.min(from,to), hi=Math.max(from,to);
+    const keep=d.labels.map((lb,i)=>{const y=labelYear(lb);return (y!==null&&y>=lo&&y<=hi)?i:-1;}).filter(i=>i>=0);
+    labels=keep.map(i=>d.labels[i]);
+    datasetsRaw=d.datasets.map(ds=>Object.assign({},ds,{data:keep.map(i=>ds.data[i])}));
+  }
+
+  const dual=datasetsRaw.some(ds=>ds.yAxisID);
+  const datasets=datasetsRaw.map((ds,i)=>{
+    const c=PALETTE[i%PALETTE.length];
+    return Object.assign({
+      label:ds.label, data:ds.data,
+      borderColor:c, backgroundColor: isBar? c+"cc" : c+"22",
+      borderWidth:1.8, pointRadius:0, tension:.25, spanGaps:true, fill:false,
+    }, ds.yAxisID?{yAxisID:ds.yAxisID}:{});
+  });
+
+  const scales = { x:{ ticks:{ color:"#8b97a6", maxRotation:0, autoSkip:false,
+        callback:(v,i)=> isBar? fmtDate(labels[i]) : thinLabel(labels[i]) },
+        grid:{color:"#21272f"} } };
+  if(dual){
+    scales.y ={position:"left", ticks:{color:"#8b97a6"}, grid:{color:"#21272f"}};
+    scales.y1={position:"right",ticks:{color:"#8b97a6"}, grid:{drawOnChartArea:false}};
+  } else {
+    scales.y ={ticks:{color:"#8b97a6"}, grid:{color:"#21272f"}};
+  }
+
+  if(charts[meta.id]) charts[meta.id].destroy();
+  charts[meta.id]=new Chart(document.getElementById("cv_"+meta.id),{
+    type:isBar?"bar":"line",
+    data:{labels:labels.map(fmtDate), datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:false,
+      interaction:{mode:"index",intersect:false},
+      plugins:{
+        legend:{display:datasets.length>1, position:"top",
+          labels:{color:"#c9d4e0",boxWidth:12,font:{size:11}}},
+        tooltip:{callbacks:{title:items=> items.length?items[0].label:""}}
+      },
+      scales
+    }
+  });
+}
+
+boot();
+</script>
+</body>
+</html>

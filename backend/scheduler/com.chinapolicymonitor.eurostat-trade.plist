@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.chinapolicymonitor.eurostat-trade</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/sd/miniforge3/bin/cmm-fetch</string>
+        <string>eurostat-trade</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/sd/PycharmProjects/CMM</string>
+
+    <!--
+        Eurostat COMEXT monthly trade (DS-045409) publishes monthly with a
+        ~3-month lag and revises recent months. Run weekly on Sundays at 04:00;
+        the runner re-fetches a trailing 9-month window, so new releases and
+        revisions are always picked up.
+    -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Weekday</key>
+        <integer>0</integer>
+        <key>Hour</key>
+        <integer>4</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/sd/PycharmProjects/CMM/data/logs/launchd_eurostat_trade_stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/sd/PycharmProjects/CMM/data/logs/launchd_eurostat_trade_stderr.log</string>
+</dict>
+</plist>

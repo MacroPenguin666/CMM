@@ -36,6 +36,7 @@ ALL_SOURCES = [
     "financial", "dissent", "bruegel", "macro", "academic", "customs", "regulations",
     "bis", "ecb", "destatis", "global_macro", "imf_fiscal",
     "eurostat", "ministries", "trade_stats", "yfinance", "comtrade",
+    "fyp_tech", "chartbook",
 ]
 
 
@@ -212,6 +213,16 @@ def _fetch_comtrade():
     run_comtrade()
 
 
+def _fetch_fyp_tech():
+    from backend.runners.fetch_fyp_tech import run as run_fyp_tech
+    run_fyp_tech()
+
+
+def _fetch_chartbook():
+    from backend.runners.fetch_chartbook import run as run_chartbook
+    run_chartbook()
+
+
 FETCHERS = {
     "financial": _fetch_financial,
     "dissent": _fetch_dissent,
@@ -230,6 +241,8 @@ FETCHERS = {
     "trade_stats": _fetch_trade_stats,
     "yfinance": _fetch_yfinance,
     "comtrade": _fetch_comtrade,
+    "fyp_tech": _fetch_fyp_tech,
+    "chartbook": _fetch_chartbook,
 }
 
 

@@ -8,12 +8,15 @@ Usage:
     cmm-fetch macro         # GMD, IMF WEO, IMF Fiscal, NBS, Bruegel
     cmm-fetch batch         # all non-realtime sources
     cmm-fetch comtrade      # UN Comtrade bilateral trade
-    cmm-fetch eurostat      # Eurostat datasets
+    cmm-fetch eurostat      # Eurostat datasets (annual scorecards)
+    cmm-fetch eurostat-trade # Eurostat COMEXT monthly HS imports by partner
     cmm-fetch ministries    # ministry HTML scrapers only
     cmm-fetch policies      # ministry policy docs incl. full text → policy_docs
     cmm-fetch trade-stats   # WITS, WTO, USITC, ILO, OECD
     cmm-fetch yfinance      # Yahoo Finance OHLCV
     cmm-fetch ccp-elites    # import CCP elite leadership xlsx
+    cmm-fetch fyp-tech      # 15th-FYP tech self-reliance tracker data
+    cmm-fetch chartbook     # Bridgewater-replica macro series (FRED + World Bank)
 """
 
 import argparse
@@ -26,8 +29,8 @@ def main():
         "command",
         choices=[
             "news", "realtime", "financial", "macro", "batch",
-            "comtrade", "eurostat", "ministries", "policies", "trade-stats",
-            "yfinance", "ccp-elites",
+            "comtrade", "eurostat", "eurostat-trade", "ministries", "policies",
+            "trade-stats", "yfinance", "ccp-elites", "fyp-tech", "chartbook",
         ],
     )
     args, extra = parser.parse_known_args()
@@ -48,6 +51,8 @@ def main():
         from backend.runners.fetch_comtrade import run
     elif args.command == "eurostat":
         from backend.runners.fetch_eurostat import run
+    elif args.command == "eurostat-trade":
+        from backend.runners.fetch_eurostat_trade import run
     elif args.command == "ministries":
         from backend.runners.fetch_ministries import run
     elif args.command == "policies":
@@ -58,6 +63,10 @@ def main():
         from backend.runners.fetch_yfinance import run
     elif args.command == "ccp-elites":
         from backend.runners.import_ccp_elites import run
+    elif args.command == "fyp-tech":
+        from backend.runners.fetch_fyp_tech import run
+    elif args.command == "chartbook":
+        from backend.runners.fetch_chartbook import run
 
     run()
 

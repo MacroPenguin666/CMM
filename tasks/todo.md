@@ -355,3 +355,10 @@ result dumps, duplicate xlsx of CSVs already ingested.
 ## Decisions needed before P2
 - Scope: curated-only vs include raw reference (`ext_*`)?
 - If iCloud keeps stalling: you pre-download keep-list folders in Finder, or I run a retry loop.
+
+---
+
+## Open items carried over from archived June tree (added 2026-07-13)
+- [ ] Policy Event Calendar
+- [ ] Detailed 15-year tracker
+- [ ] Trade simulations using KITE (requires R + KITE package from Hinz, Mahlkow, Wanner — see backend/models/KITE/)
