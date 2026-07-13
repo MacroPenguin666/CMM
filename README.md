@@ -1,6 +1,39 @@
-Several data sources are loaded but not all of them (claude skips some)
+# CMM — China Macro Monitor
 
 A local web dashboard that collects, standardises, and displays data about Chinese government policy, financial indicators, trade, regulatory activity, and CCP leadership.
+
+---
+
+## Setup from scratch — read this first (humans and AI agents)
+
+Git carries **code only**. The database is distributed separately and the
+dashboard is empty without it, so a fresh clone needs three steps:
+
+```bash
+# 1. Install
+pip install -e .
+
+# 2. Download the database (NOT in git) and place it at data/cmm.db
+#    → https://drive.google.com/drive/folders/1GNdPi-mAN2MpnCyA3qwucQidYRdnZqaq?usp=drive_link
+#    File: cmm.db (~450 MB SQLite). The dashboard STARTS without it but every
+#    panel will be empty — if panels are empty, this step is what's missing.
+
+# 3. Serve
+cmm-serve                      # → http://localhost:5001
+```
+
+Notes for agents working on this repo:
+- **Do not** bootstrap a fresh DB (`python -m backend.bootstrap_db`) as a
+  substitute for step 2 — it creates empty tables and refetching everything
+  takes days and needs API keys. Always download `cmm.db` from the Drive link.
+- `data/` is gitignored (except `data/commodities.json`, which is committed).
+  Logs land in `data/logs/`.
+- After large refetches, upload the updated `cmm.db` back to the same Drive
+  folder so it stays the canonical copy.
+- Not every source in `backend/sources/registry.yaml` has been fetched into
+  the DB yet — some sources are wired up in code but still empty.
+- `.env` API keys are optional (see "API keys" below); everything serves and
+  most fetchers run without any keys.
 
 ---
 
@@ -29,6 +62,9 @@ cmm-fetch macro         # GMD, IMF WEO/Fiscal, NBS, Bruegel
 cmm-fetch comtrade      # UN Comtrade bilateral trade
 cmm-fetch trade-stats   # WITS tariffs, WTO, USITC HTS, ILO, OECD
 cmm-fetch ccp-elites    # import CCP elite leadership xlsx
+cmm-fetch eurostat-trade # Eurostat COMEXT monthly HS imports by partner
+cmm-fetch fyp-tech      # 15th-FYP tech self-reliance tracker data
+cmm-fetch chartbook     # Bridgewater-replica macro series (FRED + World Bank)
 
 python -m backend.runners.fetch_commodities              # all-materials commodity tracker
 python -m backend.runners.fetch_commodities --no-trade   # fast pass (skip Comtrade backfill)
@@ -93,10 +129,11 @@ backend/           All Python code
   customs_scraper/ Browser-automation China Customs scraper
   scheduler/       macOS launchd .plist files
   literature/      Reference papers (DSGE / agent-based macro)
-  model/           Macro-model landscape notes
+  models/          Macro-model landscape notes + KITE trade-model notes
 
 frontend/
   index.html       Dashboard (served by Flask at /)
+  chartbook.html   Macro chartbook (served at /chartbook)
 
 tasks/todo.md      Live task backlog
 data/              Gitignored — databases, logs, raw files
