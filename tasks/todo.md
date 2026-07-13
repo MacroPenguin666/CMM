@@ -362,3 +362,12 @@ result dumps, duplicate xlsx of CSVs already ingested.
 - [ ] Policy Event Calendar
 - [ ] Detailed 15-year tracker
 - [ ] Trade simulations using KITE (requires R + KITE package from Hinz, Mahlkow, Wanner — see backend/models/KITE/)
+
+### Review — archive reconciliation (2026-07-13)
+Merged the stranded June 4–26 work from ~/Documents/pycharm_archive/PycharmProjects/CMM
+into the active repo. Two commits: 21cbb20 (July work safety commit), 8b7ed22 (June
+restore: FYP tab, competitiveness, chartbook, eurostat-trade, KITE notes, research dirs).
+Three-way merged index.html/api.py/cli.py/README (base 9f2ce5b); dashboard stays at
+frontend/index.html. Verified live: all 11 tabs + Chartbook link served, /api/fyp/tech,
+/api/competitiveness/*, /api/chartbook/*, /chartbook all return data; July endpoints
+(/api/commodities, /api/refresh/status) intact; 47 tests pass; inline JS parse-checked.
