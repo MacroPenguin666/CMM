@@ -202,7 +202,19 @@
       "Bash(mdfind -name cmm.db)",
       "Bash(ln data/cmm.db data/cmm.db.stub.bak)",
       "Skill(run)",
-      "Bash(break)"
+      "Bash(break)",
+      "Bash(lsof -iTCP -sTCP:LISTEN -P)",
+      "Bash(cmm-serve *)",
+      "Bash(claude doctor *)",
+      "Bash(textutil -convert txt -output fiscal_paper.txt '/Users/main/Documents/01_Work/ADB/archive/Fiscal Rules China Europe Paper EAWP 251113.docx')",
+      "Bash(mdls -name kMDItemNumberOfPages '/Users/main/Documents/Paper & Journal/China/2025 - Goldman - China Fiscal.pdf')",
+      "Bash(pip3 install *)",
+      "Bash(kill 80294 80291 79832 79829)",
+      "Skill(dataviz)",
+      "Bash(/private/tmp/claude-501/-Users-main-PycharmProjects-CMM/11160afe-1c9a-4b0d-b737-5b4209b005bd/scratchpad/venv/bin/python -c \"import playwright; print\\('playwright ok'\\)\")",
+      "Bash(/private/tmp/claude-501/-Users-main-PycharmProjects-CMM/6f985e9c-8a2f-4619-8296-776881e6d481/scratchpad/pwenv/bin/pip install *)",
+      "Bash(PLAYWRIGHT_BROWSERS_PATH=/private/tmp/claude-501/-Users-main-PycharmProjects-CMM/38950a89-4e23-4db6-92bc-802153a9a348/scratchpad /private/tmp/claude-501/-Users-main-PycharmProjects-CMM/6f985e9c-8a2f-4619-8296-776881e6d481/scratchpad/pwenv/bin/python -c ' *)",
+      "Bash(python3 -c ' *)"
     ]
   }
 }

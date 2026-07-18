@@ -18,6 +18,7 @@ from flask import Flask, jsonify, request
 
 from backend.storage import DATA_DIR, DB_PATH, get_db, get_fetch_stats, get_item_count, get_recent_items
 from backend.fetchers.financial import get_financial_db, get_latest_snapshots, get_series
+from backend.fetchers.macro_dash import build_payload
 from backend.fetchers.bruegel import (
     get_bruegel_db, get_bruegel_snapshots, get_bruegel_series, get_bruegel_indicators,
     get_provincial_data, get_provincial_indicators,
@@ -505,6 +506,17 @@ def api_overview():
         "headlines": headlines,
         "categories": cats,
     })
+
+
+@app.route("/api/overview/macro")
+def api_overview_macro():
+    """Macro-strip widgets: key China macro series with latest values."""
+    conn = get_financial_db()
+    try:
+        widgets = build_payload(conn)
+    finally:
+        conn.close()
+    return jsonify({"widgets": widgets})
 
 
 # ---------------------------------------------------------------------------
@@ -1278,6 +1290,48 @@ def api_fyp_tech():
             "fetched_at": conn.execute(
                 "SELECT MAX(fetched_at) FROM fyp_chip_trade").fetchone()[0],
         }
+        conn.close()
+        return jsonify(payload)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/fyp/demand")
+def api_fyp_demand():
+    """
+    15th-FYP Domestic Demand cockpit payload: the ten 节-level sections of
+    Part V (Ch 15–17) with their plan-text points, related policy documents
+    from policy_docs, and the macro series backing the sidebar charts
+    (household consumption / investment shares of GDP, unemployment,
+    government expenditure).
+    """
+    try:
+        from backend.fetchers.fyp_demand import build_payload
+        from backend.storage import get_conn
+        conn = get_conn()
+        payload = build_payload(conn)
+        conn.close()
+        return jsonify(payload)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/fiscal")
+def api_fiscal():
+    """
+    Fiscal Capacity payload: the computed fiscal-space assessment (flow /
+    repayment / funding gauges + traffic-light verdicts), national monthly
+    MOF series, LGB issuance & debt stock, daily yield curves & spreads,
+    the 31-province cross-section, the LGB maturity wall, and the curated
+    reference facts with citations. Sources: MOF (gks/zwgls/yss), ChinaMoney,
+    PBOC via AKShare; methodology anchored to GS AFD recipe + ADB fiscal
+    rules paper (see fiscal_assess.py docstring).
+    """
+    try:
+        from backend.fetchers.fiscal_assess import build_payload
+        from backend.fetchers.fiscal_china import get_fiscal_db
+        conn = get_fiscal_db()
+        payload = build_payload(conn)
         conn.close()
         return jsonify(payload)
     except Exception as e:

@@ -12,13 +12,16 @@ Usage:
 """
 
 import argparse
+import calendar
 import json
 import logging
+import re
 import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 
 import akshare as ak
+import pandas as pd
 
 from backend.storage import DB_DIR, DB_PATH
 
@@ -216,30 +219,94 @@ def fetch_forex():
     return rows, snapshots
 
 
-def fetch_macro_cpi():
-    """China CPI monthly."""
-    df = ak.macro_china_cpi_monthly()
-    rows = []
-    for _, r in df.tail(36).iterrows():
-        try:
-            rows.append(("CPI_MoM", "macro", str(r.get("日期", "")), float(r.get("今值", 0)), "%"))
-        except (ValueError, TypeError):
-            pass
-    snapshot = []
-    if not df.empty:
-        latest = df.iloc[-1]
-        try:
-            snapshot.append({
-                "indicator": "CPI_MoM",
-                "category": "macro",
-                "latest_value": float(latest.get("今值", 0)),
-                "change": None,
-                "unit": "%",
-                "data_date": str(latest.get("日期", "")),
+def _month_end(cn: str) -> str | None:
+    """'2026年06月份' -> '2026-06-30'."""
+    m = re.match(r"(\d{4})年(\d{1,2})月", str(cn))
+    if not m:
+        return None
+    year, month = int(m.group(1)), int(m.group(2))
+    return f"{year:04d}-{month:02d}-{calendar.monthrange(year, month)[1]:02d}"
+
+
+def _quarter_end(cn: str) -> str | None:
+    """'2026年第1-2季度' -> '2026-06-30' (end of the last quarter in the range)."""
+    m = re.match(r"(\d{4})年第(\d)(?:-(\d))?季度", str(cn))
+    if not m:
+        return None
+    year, quarter = int(m.group(1)), int(m.group(3) or m.group(2))
+    month = quarter * 3
+    return f"{year:04d}-{month:02d}-{calendar.monthrange(year, month)[1]:02d}"
+
+
+def _series_rows(df, period_col, to_date, specs):
+    """NBS-style table -> ascending rows + one latest snapshot per indicator.
+
+    specs: list of (value_col, indicator, category, unit).
+    """
+    points = {ind: {} for _, ind, _, _ in specs}
+    for _, r in df.iterrows():
+        date = to_date(r.get(period_col, ""))
+        if not date:
+            continue
+        for col, ind, _, _ in specs:
+            val = r.get(col)
+            if pd.notna(val):
+                try:
+                    points[ind][date] = float(val)
+                except (ValueError, TypeError):
+                    pass
+    rows, snapshots = [], []
+    for col, ind, category, unit in specs:
+        dated = sorted(points[ind].items())
+        rows.extend((ind, category, d, v, unit) for d, v in dated)
+        if dated:
+            snapshots.append({
+                "indicator": ind, "category": category,
+                "latest_value": dated[-1][1], "change": None,
+                "unit": unit, "data_date": dated[-1][0],
             })
-        except (ValueError, TypeError):
-            pass
-    return rows, snapshot
+    return rows, snapshots
+
+
+def parse_gdp(df):
+    """NBS quarterly GDP table (ak.macro_china_gdp): cumulative yoy per quarter."""
+    return _series_rows(df, "季度", _quarter_end,
+                        [("国内生产总值-同比增长", "GDP_YoY", "macro", "%")])
+
+
+def parse_cpi(df):
+    """NBS monthly CPI table (ak.macro_china_cpi): national yoy."""
+    return _series_rows(df, "月份", _month_end,
+                        [("全国-同比增长", "CPI_YoY", "macro", "%")])
+
+
+def parse_ppi(df):
+    """NBS monthly PPI table (ak.macro_china_ppi): yoy."""
+    return _series_rows(df, "月份", _month_end,
+                        [("当月同比增长", "PPI_YoY", "macro", "%")])
+
+
+def parse_customs_trade(df):
+    """Customs monthly trade table (ak.macro_china_hgjck): exports/imports yoy."""
+    return _series_rows(df, "月份", _month_end, [
+        ("当月出口额-同比增长", "Exports_YoY", "trade", "%"),
+        ("当月进口额-同比增长", "Imports_YoY", "trade", "%"),
+    ])
+
+
+def fetch_macro_gdp():
+    """China quarterly GDP, cumulative yoy (NBS via East Money)."""
+    return parse_gdp(ak.macro_china_gdp())
+
+
+def fetch_macro_cpi():
+    """China CPI monthly yoy (NBS via East Money)."""
+    return parse_cpi(ak.macro_china_cpi())
+
+
+def fetch_macro_ppi():
+    """China PPI monthly yoy (NBS via East Money)."""
+    return parse_ppi(ak.macro_china_ppi())
 
 
 def fetch_macro_pmi():
@@ -269,38 +336,8 @@ def fetch_macro_pmi():
 
 
 def fetch_trade():
-    """China exports and imports YoY."""
-    indicators = [
-        ("macro_china_exports_yoy", "Exports_YoY"),
-        ("macro_china_imports_yoy", "Imports_YoY"),
-        ("macro_china_trade_balance", "Trade_Balance"),
-    ]
-    rows = []
-    snapshots = []
-    for func_name, label in indicators:
-        try:
-            fn = getattr(ak, func_name)
-            df = fn()
-            unit = "%" if "YoY" in label else "USD_100M"
-            for _, r in df.tail(24).iterrows():
-                try:
-                    rows.append((label, "trade", str(r.get("日期", "")), float(r.get("今值", 0)), unit))
-                except (ValueError, TypeError):
-                    pass
-            if not df.empty:
-                latest = df.iloc[-1]
-                snapshots.append({
-                    "indicator": label,
-                    "category": "trade",
-                    "latest_value": float(latest.get("今值", 0)),
-                    "change": None,
-                    "unit": unit,
-                    "data_date": str(latest.get("日期", "")),
-                })
-            log.info(f"  OK  {label}")
-        except Exception as e:
-            log.warning(f"  FAIL {label}: {type(e).__name__}: {str(e)[:80]}")
-    return rows, snapshots
+    """China exports and imports monthly yoy (Customs via East Money)."""
+    return parse_customs_trade(ak.macro_china_hgjck())
 
 
 # ---------------------------------------------------------------------------
@@ -367,7 +404,9 @@ def fetch_all_financial():
         ("Gov Bond Yield", fetch_bond_yield),
         ("Stock Indices", fetch_stock_indices),
         ("Forex", fetch_forex),
+        ("GDP", fetch_macro_gdp),
         ("CPI", fetch_macro_cpi),
+        ("PPI", fetch_macro_ppi),
         ("PMI", fetch_macro_pmi),
         ("Trade", fetch_trade),
     ]

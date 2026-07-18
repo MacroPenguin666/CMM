@@ -6,6 +6,175 @@
 
 ---
 
+## ▶ ACTIVE: Overview macro strip — always-current key macrodata widgets (plan, 2026-07-15)
+
+Goal: top strip of small widgets on the Overview tab — GDP growth (quarterly), CPI/PPI,
+exports/imports, gov deficit, gov debt & repayments, GDP composition, SHIBOR — each with
+an adjustable timeseries and a highlighted latest value, kept current by auto-refresh.
+Design approved by user (placement: Overview top strip; new akshare fetchers + aggregated
+endpoint; global range selector with per-widget override).
+
+**Data map (verified in cmm.db 2026-07-15):** SHIBOR daily current (financial_series);
+CPI/PPI/trade monthly via bruegel_series through 2026-05 (fallback); akshare CPI/trade
+fetchers stalled Sep 2025 (jin10-calendar endpoints died) — replace with NBS/eastmoney
+tables; no quarterly GDP anywhere → new fetcher; MOF fiscal_national_monthly (gpb_rev/
+gpb_exp/debt_interest_exp, cumulative YTD, through 2026-05); annual macro_series
+(gen_govdebt_GDP incl. forecast years, cons/inv/exports/imports _GDP shares);
+fiscal_maturity = LGB principal due per year (全国 aggregate).
+
+### Task 1 — new/fixed akshare fetchers (backend/fetchers/financial.py)
+- [ ] Tests first (tests/test_macro_dash.py): parse fixture DataFrames (monkeypatch `ak`)
+      → rows/snapshots for: `GDP_YoY` (quarterly, ak.macro_china_gdp), `CPI_YoY`
+      (monthly, ak.macro_china_cpi), `PPI_YoY` (monthly, ak.macro_china_ppi),
+      `Exports_YoY`/`Imports_YoY` (monthly, ak.macro_china_hgjck customs table,
+      replacing the dead jin10 fetch_trade)
+- [ ] Implement fetch_gdp_quarterly / fetch_cpi_yoy / fetch_ppi_yoy / new fetch_trade;
+      register in fetch_all_financial() (auto-refresh "batch" group then covers them —
+      no auto_refresh.py change needed); rows use existing (indicator, category, date,
+      value, unit) convention, full history not .tail(36)
+- [ ] Run `cmm-fetch financial` once for real; verify new indicators land in
+      financial_series with current dates
+
+### Task 2 — widget registry + payload (backend/fetchers/macro_dash.py, new)
+- [ ] Tests first: seeded temp sqlite DB → build_payload(conn) returns 8 widgets:
+      gdp_yoy (Q), cpi_ppi (M, 2 lines, bruegel fallback when financial_series empty),
+      trade (M, exports+imports yoy), fiscal_balance (M: YTD cum. gpb_rev−gpb_exp per
+      month across years + latest annual gen_govdef_GDP actual as secondary stat),
+      debt (A: gen_govdebt_GDP actuals only, forecast years excluded + debt_interest_exp
+      YTD secondary), repayments (A: fiscal_maturity 全国 principal due by year),
+      gdp_comp (A: cons_GDP, inv_GDP, net exports = exports_GDP−imports_GDP),
+      shibor (D: all 6 tenors, default 3M)
+- [ ] Payload shape per widget: {key, title, unit, freq, series:[{name, points:[[date,v]]}],
+      latest:{date, value}, secondary?:{label, value, date}} — full history (frontend
+      slices ranges client-side, no refetch)
+- [ ] Implement WIDGETS registry + build_payload
+
+### Task 3 — API endpoint (backend/api.py)
+- [ ] Test: flask test client GET /api/overview/macro → 200, all 8 widget keys present
+- [ ] Implement route (single get_db-style connection, jsonify payload)
+
+### Task 4 — frontend macro strip (frontend/index.html)
+- [ ] Read dataviz skill before chart code
+- [ ] CSS + HTML: `macro-strip` responsive card grid at top of panel-overview (above
+      map+sidebar); remove sidebar "Financial Snapshot" section (replaced by strip)
+- [ ] JS: loadMacroStrip() → one fetch; per card: title, big latest value + date +
+      colored Δ vs previous point, small Chart.js line; global 1Y/3Y/5Y/10Y/Max selector,
+      per-widget override; SHIBOR tenor toggle; register charts for theme-switch update
+- [ ] Verify headless (light+dark, no console errors) + visual check
+
+### Task 5 — verification + close-out
+- [ ] pytest full suite; serve dashboard, confirm strip renders with live data and
+      latest values match DB; README dashboard section touch-up if needed
+- [ ] Review section here; delete plan when done
+
+## FYP Domestic Demand subtab — outline ingest + interactive cockpit — ✅ DONE (2026-07-14)
+
+Goal: (1) store the official 15th FYP outline (十五五规划纲要, gov.cn 2026-03-13) full text
+in `policy_docs` via the existing pipeline, reproducibly (seeded, so bootstrap gets it too);
+(2) update the Domestic Demand subtab so it captures every point Part V (Ch 15–17:
+大力提振消费 / 扩大有效投资 / 全国统一大市场) makes, with a source link. Plan approved.
+
+- [x] `ministry_scraper.py`: `SEED_DOCS` constant (landmark docs not on list pages)
+- [x] `fetch_policies.py`: seed insertion in `discover()` (idempotent via INSERT OR IGNORE)
+- [x] Run `--ministry gov`, verify outline row fetch_status=ok with chapter headings in full_text
+- [x] Gap analysis: enumerate Ch 15–17 节-level points from stored text vs current subtab copy
+- [x] `frontend/index.html`: `demand` entry gets `points` + doc link; generic "What the plan says" card in `fypRenderPanels()`
+- [x] Verify: idempotent re-run, pytest tests/test_policy_pipeline.py, dashboard render check
+
+### Review (2026-07-14)
+Done and verified live. The full 15th FYP outline (60,175 chars, all 18 篇, TOC + body)
+is now in `policy_docs` (**id 7680**, ministry `gov`, source "State Council — Landmark
+Documents", fetch_status ok) via a new `SEED_DOCS` mechanism in `ministry_scraper.py` —
+landmark docs that never appear on scraped list pages, inserted by `discover()` each run
+(INSERT OR IGNORE on unique url; re-run confirmed 0 new). Bootstrap-from-scratch now
+ingests it too, since `bootstrap_db.py` runs the policies runner.
+
+Gap analysis against the stored Part V text (第五篇 建设强大国内市场, Ch 15–17, 3,352 chars):
+the old subtab captured only the consumption/GDP headline. Now the subtab carries a
+"What the plan says" card with all **10 节-level points** (Ch 15: consumption capacity /
+service consumption / goods consumption / consumption environment; Ch 16: government
+investment returns / private investment / investment–consumption loop; Ch 17: base
+institutions / fair competition / market infrastructure), each written from the stored
+Chinese text (not press summaries — e.g. "内卷式竞争" claimed by web coverage is NOT in
+Ch 17 §2 and was left out). Desc now cites the plan's actual framing (战略基点, 投资于物和
+投资于人) and the Ch-3 headline objective 居民消费率明显提高. Source link → gov.cn full
+text; renderer is generic (`p.points`) so other subtabs can be filled in later.
+Verified: 48/48 tests pass; headless Chromium — card renders in light+dark, all 10
+points + link present, other subtabs unchanged, no console errors.
+
+### Review — interactive cockpit (same day, user request)
+The static card was replaced by a **radial cockpit like Tech Self-Reliance**: hub
+(headline 居民消费率 objective) + all 10 sections as clickable chapter-colored nodes
+(Ch15 amber / Ch16 blue / Ch17 purple), zoom + slide-in sidebar per node.
+- `backend/fetchers/fyp_demand.py` (new): SECTIONS registry (10 节 — en/cn names,
+  glyph, plan-text points moved here from the frontend, per-section doc keywords),
+  `related_docs()` over policy_docs, `build_payload()` (macro series capped at 2025
+  to cut GMD projections).
+- `backend/api.py`: `GET /api/fyp/demand` — sections+points, related policy docs,
+  and GMD series (hcons_GDP / inv_GDP / unemp / govexp_GDP).
+- `frontend/index.html`: stage mechanics factored into `fypMakeStage(prefix, opts)`
+  (tech converted, behavior identical; single global Esc handler); demand engine
+  (`fypLoadDemand`, `fypdHubPanel`/`fypdSectionPanel`, Chart.js line charts). Hub
+  sidebar: 2030-objective banner, 41.0%-of-GDP KPI chip, consumption-vs-investment
+  chart (1980–2024), preamble, key documents. Section sidebars: plan points, live
+  series where held (cap→unemp, gov_inv→govexp_GDP, priv_inv→inv_GDP), related
+  policy documents with ministry/date chips. Static "What the plan says" card and
+  its generic renderer removed (superseded); demand's Data & Trackability collapsed
+  into <details> like tech.
+- Tests: `tests/test_fyp_demand.py` (registry sanity, related_docs filtering/order/
+  limit, payload shape) — 52/52 pass.
+Verified live (headless Chromium, port 5001): 15 functional checks pass — hub+10
+nodes, zoom/sidebar/Esc/close, goods sidebar shows 首发经济 points + 6 real doc
+links (NDRC 以旧换新 notices, MOFCOM auto-consumption briefing), hub chart renders,
+**tech subtab regression-checked** after the factory refactor (6 nodes, semi panel,
+4 charts, Esc); light+dark screenshots; no local request failures.
+
+---
+
+## Demand cockpit v2 — per-section policies, goals, status-vs-data — ✅ DONE (2026-07-14)
+
+Each of the 10 demand sections gets: implementing-policy milestones (dated, sourced),
+concrete targets (tech-style cards incl. max_level/trend), and live status series
+(bruegel_series/macro_series — no new fetchers). Plan approved.
+
+- [x] Research pass: verify every seeded number + source URL (policy_docs texts + web) —
+      retail 47.15/48.79/50.12万亿 (23/24/25) → 60万亿 target; services share 42.6 (2020) →
+      46.1 (2024) = 46.1 (2025, flat); private-FAI share 50.1 (2024) → ~49.7 (2025, −6.4% yoy);
+      logistics/GDP 14.4→14.1→13.9 vs 13.5 (2027); negative list 151→117→106; unemployment
+      2026-06 5.0% vs ≤5.5% target; trade-in bonds 1500→3000→2500亿 (+625亿 first 2026 batch);
+      育儿补贴 3600元/90bn; 职业伤害保障试点扩围 2025-07; 离境退税 500→200 + 即买即退 (+367% users);
+      民营经济促进法 2025-05-20 + nuclear stakes to 20%; 实施办法 66 situations; AUCL rev 2025-06;
+      新型政策性金融工具 5000亿 deployed 2025-10-31 (incl 消费基础设施); 专项债自审自发 (国办 2024-12);
+      一单制一箱制 (2023-08; multimodal +15.6%/+16.5% 2024); GDP 2025 +5.0% = income +5.0%
+- [x] `fyp_demand.py`: MILESTONES / TARGETS / STATUS_SERIES / FACTS + reading logic + payload
+- [x] `frontend/index.html`: fypdTargetCard (min/max/trend), sidebar reorg, monthly charts
+- [x] Tests: registry sanity, reading logic, payload shape
+- [x] Verify: pytest, payload curl, headless (goods 60tn card, infra 13.5%, priv_inv trend, tech regression, themes)
+
+### Review — v2 (2026-07-14)
+Every demand section now answers "what's been done and where does it stand":
+- **Backend** (`fyp_demand.py`): 26 curated policy milestones (all dated + officially
+  sourced; one deliberately open — 统一大市场建设条例 pending), 7 targets joined to data
+  with a testable `target_reading()` (min_level/max_level/trend; on/off/mixed/met/n-a
+  with pace notes), 17 static fact chips, and live monthly status series pulled from
+  the auto-refreshed `bruegel_series` (retail/car/box-office/flights/FAI/PPI, trimmed
+  ≥2019, monthly last-obs; tolerant of a missing table on fresh bootstraps).
+- **Readings computed from the data** (server-side, unit-tested): retail 60万亿 →
+  n/a (baseline year; needs ≈3.7%/yr), 居民消费率 → n/a (no post-2024 GMD reading),
+  services share → **mixed** (flat at 46.1%), private-FAI share → **off track**
+  (50.1→49.7, private FAI −6.4% in 2025), negative list → on track (151→106),
+  logistics/GDP → **on track** (14.1→13.9 vs 13.5 by 2027, 33% gap closed at 33%
+  elapsed), unemployment → met (5.0% vs ≤5.5%).
+- **Frontend**: sidebars reorganised to Where-it-stands (target cards with progress
+  bars/trend arrows + reading badges, fact chips, live chart) → What's-been-done
+  (milestone timeline with links) → plan text (collapsed) → related docs; hub gets
+  the retail target card + 58.8% contribution chip. `fypdLineChart` generalised to
+  monthly date series with label-union.
+- **Verified**: 82/82 tests; payload 96 KB; 18 headless checks pass (incl. tech
+  regression + dark theme); on-screen readings cross-checked against DB/source values.
+
+---
+
 ## ▶ ACTIVE: cmm-serve auto-refresh — zero manual steps (plan, 2026-07-10)
 
 Goal: `cmm-serve` serves from `cmm.db` immediately (two-tier structure kept) and fires
@@ -300,6 +469,142 @@ index in `get_policy_docs_db()`. Distribution: 答问 1204, 通知 1033, (news/o
 公告 704, 令 200, 意见 198, 办法 178, … 法 50 (all genuine 中华人民共和国…法). Tests added
 in `tests/test_policy_pipeline.py` (19 pass). Query e.g.
 `SELECT title, published FROM policy_docs WHERE instrument_type='令' ORDER BY published DESC`.
+
+---
+
+# 13. FYP "Fiscal Capacity" subtab — self-updating fiscal-space assessment (spec + plan, 2026-07-14)
+
+Goal: 9th FYP subtab (**Fiscal Capacity**) that renders a *computed, constantly-updating
+assessment* — not tables — of China's fiscal space at the national, provincial and
+(via the cascading lens) municipal level, answering three questions per level:
+**(a)** how much money is available (trailing cash flows + cash on hand + unused quota),
+**(b)** how repayment pressures are developing, **(c)** how funding costs are developing.
+Approach 2 approved by user: full live-fetcher build, maximum public depth.
+
+## Methodology (anchored to two references)
+- **GS "China H2 Fiscal Outlook" (2025-08-06), Exhibit 16 recipe** → Gauge A
+  ("augmented fiscal balance lite", 12mma % of GDP, center/local split):
+  effective on-budget deficit (expenditure − revenue, general budget — NOT the official
+  deficit) + LGSB + CGSB + policy-bank bonds + PSL + trust loans + **net** land-sales
+  financing (documented net-share assumption; gross overstates ~3×) + debt-resolution
+  bonds. LGFV bond net issuance = curated estimate (only WIND-sourced item; ≈0 since
+  2024 per GS). Plus **fiscal-space-remaining tracker**: cumulative bond issuance as %
+  of full-year quota (excl. refinancing-for-swap; vs 2020-24 average pace) + fiscal
+  deposits at PBOC (level + yoy).
+- **ADB Fiscal Rules paper (EAWP 251113) descriptive framework** → Gauges B & C
+  (not in the GS brief; deliberate extension): interest/revenue as the pressure gauge,
+  special-debt share, LGB maturity wall (12/24/36 m, by province, from bond registry),
+  refinancing share of gross issuance; funding costs via daily close curves — CGB 10Y,
+  LGB(AAA) spread over CGB, CP/MTN(AA) credit spread as public chengtou/LGFV proxy —
+  with z-scores vs 3-y history. Provincial dispersion is the point (debt/GDP vs income,
+  12 restricted provinces flagged); municipal tier = cascading lens (province→city
+  transmission: transfer pass-through, LGFV footprint, swap tracker), no fake city data.
+- **Assessment block** at top: per level (center / localities / worst-decile provinces)
+  an auto-generated timestamped verdict sentence + traffic light from fixed documented
+  thresholds over the three gauges. Drill-down panels below (vertical gap since 1994,
+  funding channels, provincial cross-section scatter+heat strip, cascading panel,
+  center's balance sheet vs peers). No GDP-impact multiplier (GS-proprietary; false
+  precision) — show ΔAFD only.
+
+## Sources (all probed live 2026-07-14)
+- ✅ MOF 财政收支 monthly (mof.gov.cn/zhengwuxinxi/caizhengshuju/) — national +
+  central/local general budget, tax detail, gov-fund budget (land). Reachable.
+- ✅ MOF 地方政府债券发行和债务余额 monthly — issuance, stock, general/special,
+  new/refinancing, avg rate & maturity. Reachable (same portal).
+- ✅ MOF final accounts (yss.mof.gov.cn) — annual 31-province revenue/expenditure/
+  transfers. Reachable.
+- ✅ NBS yearbook (www.stats.gov.cn/sj/ndsj/) — provincial GDP/pop denominators.
+  Reachable. (data.stats.gov.cn easyquery API is geo-blocked — do NOT use.)
+- ✅ AKShare validated calls: `macro_china_czsr` (monthly fiscal revenue, data through
+  2026-05), `bond_china_close_return` (curves: 国债 ✓, 地方政府债(AAA) ✓ CYCC84A,
+  中短期票据(AA) ✓; full 75-curve map via `bond_china_close_return_map`),
+  `macro_china_shrzgm` (TSF components), `macro_china_central_bank_balance`
+  (fiscal/government deposits), `macro_china_national_tax_receipts`.
+- ✅ ChinaMoney bond registry JSON (`/ags/ms/cm-u-bond-md/BondMarketInfoListEN`,
+  398k bonds, pageable) — LGB maturity schedule by province; LGFV issuers visible.
+  bondType filter codes need discovery (list view works; detail via bond_info_*_cm).
+- ✅ chinabond.com.cn + yield.chinabond.com.cn reachable (upgrade path: true 中债城投
+  curve API — best-effort).
+- ❌ Blocked (don't re-probe): CELMA, data.stats.gov.cn, cninfo LGB endpoint
+  (JSONDecodeError — needs POST/token work, treat as best-effort).
+- Curated (`fiscal_reference`, honestly flagged in UI): LGFV interest-bearing-debt
+  estimates by province (Shih-Elkobi / IMF Art. IV), 12 restricted provinces, annual
+  bond quotas (NPC budget reports), VAT-split history (75/25→50/50 2016), swap-program
+  params (2024-28 RMB10-12tn), net-land-share assumption, AFD thresholds.
+
+## Storage (cmm.db, schema.sql)
+`fiscal_national_monthly` (budget + fund accounts, central/local), `fiscal_lgb_monthly`
+(issuance/stock/rates), `fiscal_maturity` (LGB principal due by province × year, rebuilt
+from registry pages), `fiscal_curves_daily` (curve, tenor, yield), `fiscal_monetary_monthly`
+(TSF components, fiscal deposits, PSL), `fiscal_province_annual` (rev/exp/transfers/GDP/
+debt/interest), `fiscal_reference` (curated key-value + per-province). Gauges computed at
+read time in `backend/fetchers/fiscal_assess.py` (pure functions over tables → testable).
+
+## Tasks
+- [x] `schema.sql`: 7 fiscal tables + storage helpers
+- [x] `backend/fetchers/fiscal_china.py`: MOF monthly 收支 scraper (article-page parser,
+      zh headers per ministry_scraper conventions; per-source failure isolation)
+- [x] MOF LGB monthly debt-report parser (same module)
+- [x] AKShare sub-fetchers: czsr, 3 curves, shrzgm, central-bank balance (fiscal deposits),
+      tax receipts
+- [x] ChinaMoney registry pager → `fiscal_maturity` (discover LGB bondTypeCode; polite
+      paging; province from issuer name)
+- [x] Annual: MOF final-accounts tables + NBS yearbook provincial fetch
+- [x] `fiscal_reference` seed data (curated, cited inline)
+- [x] `fiscal_assess.py`: AFD-lite, quota tracker, gauges A/B/C, z-scores, thresholds →
+      traffic lights + verdict sentences (fixed rules, no LLM)
+- [x] `fetch_batch.py` group `fiscal` + auto_refresh cadence (daily curves, monthly MOF,
+      annual accounts)
+- [x] `api.py`: `GET /api/fiscal` (assessment + national + provinces + center + meta
+      freshness)
+- [x] Frontend: 9th `FYP_PRIORITIES` entry + assessment block + drill-down panels
+      (dataviz skill; light+dark)
+- [x] Tests: parser fixtures (saved MOF HTML), assessment threshold unit tests,
+      registry-pager mock
+- [x] Live verify: full fetch run, endpoint check, headless browser both themes; README;
+      review section here
+
+### Review (2026-07-15)
+Built and live-verified, TDD throughout (102 tests pass; every parser watched fail
+first against saved fixtures in tests/fixtures/fiscal/). The subtab is the 9th FYP
+tab ("Fiscal Capacity") and renders a computed assessment, not tables: three
+traffic-light verdict cards (flow space / repayment pressure / funding costs) with
+auto-generated sentences, KPI chips, six charts, the 31-province cross-section
+(scatter + table), the cascading/municipal lens card, and a Sources & method
+disclosure with thresholds and citations.
+
+**Live numbers at first build (data through 2026-05):** effective deficit 9.4% of
+GDP (T12M, both accounts), AFD-lite 11.0% (GS's own 12mma was 11.3% mid-2025 —
+sanity ✓), land revenue −28.7% yoy, refinancing share 61% of 2026 issuance (vs 48%
+in 2025) → repayment verdict red, 92.6% of the NPC debt limit used, fiscal deposits
+RMB 6.0tn (+7.9%), CGB 10Y 1.74% / LGB AAA +8bp. Provincial interest burden ranks
+贵州/吉林/甘肃/天津 heaviest — matches the known stress cases; provincial annex sums
+cross-check national totals to <0.1%.
+
+**Sources that turned out better than spec'd:** the LGB monthly reports attach a
+PDF annex (附表) with BY-PROVINCE issuance (new/refi × general/special) and debt
+service (principal + interest, monthly + YTD) — parsed positionally with pdfplumber
+(no ruling lines; 合计 row anchors the column grid). MOF moved the LGB series to the
+new 债务管理司 site (zwgls.mof.gov.cn, 2025-12→current); yss.mof.gov.cn carries
+history. CGB curve history comes in bulk from EastMoney (bond_zh_us_rate, 3y daily).
+
+**Known gaps (documented in the UI):** (1) provincial own rev/exp has NO public
+machine-readable source — NBS yearbook tables are JPGs since ~2021, provincial
+communiqués are geo-blocked; carried as have:false. (2) LGFV stocks + true chengtou
+curve are WIND-only → curated entries in fiscal_reference with citations (AA credit
+curve is the live proxy). (3) ChinaMoney rate-limits hard: the 18k-bond registry
+backfill accretes over runs (resumable; ~3.9k done at review time), credit-curve
+history accretes ~6 windows/run backward to 3y; maturity-wall verdicts stay
+suppressed below 50% registry coverage, z-scores label their history depth.
+(4) LGB annexes: months re-ingest via retry loop after a clustering bug fix
+(rows whose label/numbers straddle a bucket boundary — proximity clustering now,
+with a provincial-sums-vs-national regression test).
+
+Wired into fetch_batch as group `fiscal` (daily via auto-refresh batch), runner
+`python -m backend.runners.fetch_fiscal` (--full / --registry-backfill), endpoint
+`/api/fiscal`. DB concurrency: fiscal connections set busy_timeout=60s and the
+registry commits per insert (a transaction across a network call had write-locked
+cmm.db for minutes).
 
 ---
 

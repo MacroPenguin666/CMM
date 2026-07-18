@@ -362,6 +362,30 @@ TARGETS = [
     },
 ]
 
+# ---------------------------------------------------------------------------
+# Landmark documents that never appear on the scraped list pages above
+# (published once via Xinhua/gov.cn 要闻). Shaped like stage-1 scrape results so
+# insert_policy_metadata() consumes them unchanged; the content swarm then
+# fetches the full text like any pending row.
+# ---------------------------------------------------------------------------
+SEED_DOCS = [
+    {
+        "source": "State Council — Landmark Documents",
+        "source_cn": "国务院-纲领性文件",
+        "category": "central_government",
+        "doc_type": "规划纲要",
+        "feed_url": "https://www.gov.cn/yaowen/",
+        "ok": True,
+        "entries": [
+            {
+                "link": "https://www.gov.cn/yaowen/liebiao/202603/content_7062633.htm",
+                "title": "中华人民共和国国民经济和社会发展第十五个五年规划纲要",
+                "published": "2026-03-13",
+            },
+        ],
+    },
+]
+
 
 # ---------------------------------------------------------------------------
 # Date parsing helpers

@@ -920,9 +920,10 @@
       <a class="fyp-link" href="https://english.www.gov.cn/2026special/2026npcandcpcc/6979af4fc6d00ca5f9a08cd6" target="_blank" rel="noopener">Official document ↗</a>
     </div>
     <p style="color:var(--text2);font-size:12px;margin:0 0 16px;max-width:760px;">
-      Each of the eight stated priorities of the 15th Five-Year Plan gets its own view below. The
-      <b>Data &amp; Trackability</b> panel on each tab assesses how well CMM's current data holdings let us
-      measure and model that priority — i.e. which one we can build a real quantitative tracker for.
+      Each of the eight stated priorities of the 15th Five-Year Plan gets its own view below, plus a
+      cross-cutting <b>Fiscal Capacity</b> tab tracking whether the center and the localities can actually
+      pay for the plan. The <b>Data &amp; Trackability</b> panel on each tab assesses how well CMM's current
+      data holdings let us measure and model that priority — i.e. which one we can build a real quantitative tracker for.
     </p>
 
     <!-- Sub-tab selector (rendered by JS) -->
@@ -1026,15 +1027,16 @@ const FYP_PRIORITIES = [
   },
   {
     id: 'demand', short: 'Domestic Demand', title: 'Domestic Demand & Consumption', col: 'col-amber',
-    desc: 'Top macroeconomic priority: shift growth drivers toward household consumption and reduce structural reliance on investment and export surpluses.',
-    kpi: 'Household consumption as a share of GDP, and the investment/consumption split over time.',
+    desc: 'Part V of the plan (第五篇 建设强大国内市场) calls expanding domestic demand the "strategic basis" (战略基点): couple welfare with consumption promotion, invest in things and in people (投资于物和投资于人紧密结合), let new demand and new supply create each other, and strengthen the internal circulation. Headline 2030 objective (Ch. 3): a marked rise in the household consumption rate (居民消费率明显提高), with domestic demand as the main growth engine.',
+    kpi: 'Household consumption as a share of GDP (the plan\'s headline 居民消费率 objective), and the investment/consumption split over time.',
     sources: [
       {name: 'Global Macro Database — 75 annual macro variables', have: true},
       {name: 'AKShare Chinese macro / retail indicators', have: true},
+      {name: '15th FYP outline full text (policy_docs — gov.cn, 60k chars)', have: true},
       {name: 'High-frequency household-survey micro-data', have: false},
     ],
     rating: 'High',
-    model: 'A clean single-line KPI (consumption/GDP) with a long historical series already in the macro tab — easy to track, but a thin, well-understood story rather than a rich model.',
+    model: 'A clean single-line KPI (consumption/GDP) with a long historical series already in the macro tab — easy to track, but a thin, well-understood story rather than a rich model. The stored plan text adds trackable sub-themes (trade-ins, service consumption, private-investment share) as future indicator candidates.',
   },
   {
     id: 'green', short: 'Green Transition', title: 'Green Transformation', col: 'col-green',
@@ -1096,6 +1098,23 @@ const FYP_PRIORITIES = [
     rating: 'High',
     model: 'Import-concentration HHI for critical HS lines is directly computable and overlaps heavily with the Tech Self-Reliance tracker — the same bilateral data powers both.',
   },
+  {
+    id: 'fiscal', short: 'Fiscal Capacity', title: 'Fiscal Capacity — can the system pay for the plan?', col: 'col-amber',
+    desc: 'Cross-cutting lens, not a stated priority: every priority above is implemented mostly by local governments, who carry ~85% of expenditure on half the revenue (the 1994 分税制 settlement). This tracker computes a live fiscal-space assessment — (a) money available from trailing cash flows, deposits and unused quota, (b) repayment pressure from the maturity wall, refinancing share and interest burden, (c) funding costs from daily yield curves — at national and provincial level, with the municipal tier read through the province→city transmission (cascading) lens.',
+    kpi: 'Augmented fiscal balance (AFD-lite, 12m rolling, % of GDP), LGB refinancing share of gross issuance, and credit spreads over CGB — computed fresh from MOF/ChinaMoney/PBOC feeds on every refresh.',
+    sources: [
+      {name: 'MOF monthly 财政收支 releases — both budget accounts, central/local split, land revenue (fiscal_national_monthly)', have: true},
+      {name: 'MOF 地方政府债券发行和债务余额 monthly reports + by-province PDF annexes (fiscal_lgb_monthly / _province_monthly)', have: true},
+      {name: 'MOF final accounts — transfers & debt limits/balances by province (fiscal_province_annual)', have: true},
+      {name: 'ChinaMoney bond registry — 18k LGBs, maturity wall by province (fiscal_lgb_bonds)', have: true},
+      {name: 'Daily close yield curves: CGB / LGB(AAA) / CP-MTN(AA) chengtou proxy (fiscal_curves_daily)', have: true},
+      {name: 'PBOC balance sheet (fiscal deposits) + TSF trust loans via AKShare (fiscal_monetary_monthly)', have: true},
+      {name: 'Provincial own general-budget revenue/expenditure (NBS yearbook is image-only since 2021; no machine-readable public feed)', have: false},
+      {name: 'LGFV debt stocks & true chengtou curve (WIND-only; carried as curated IMF/GS estimates)', have: false},
+    ],
+    rating: 'High',
+    model: 'GS-style augmented fiscal balance (effective deficit of both budget accounts + net land financing + trust loans; policy-bank/LGFV channels as labelled curated adjustments) plus the ADB fiscal-rules paper\'s pressure gauges (interest burden, refinancing share, provincial dispersion). Verdicts come from fixed documented thresholds — see Sources & method inside the tracker.',
+  },
 ];
 
 const FYP_RATING_COLOR = {High: 'var(--green)', Medium: 'var(--accent2)', Low: 'var(--accent)'};
@@ -1125,8 +1144,10 @@ function fypRenderPanels() {
         + 'and it sits on our deepest dataset (HS-level trade), which powers the live tracker below.'
         + '</div>'
       : '';
-    const cockpit = p.id === 'tech'
-      ? '<div id="fyp-cockpit"><div class="card" style="padding:28px;text-align:center;color:var(--text3);font-size:12px;margin-bottom:16px;">Loading live tracker…</div></div>'
+    const loadingCard = '<div class="card" style="padding:28px;text-align:center;color:var(--text3);font-size:12px;margin-bottom:16px;">Loading live tracker…</div>';
+    const cockpit = p.id === 'tech' ? '<div id="fyp-cockpit">' + loadingCard + '</div>'
+      : p.id === 'demand' ? '<div id="fypd-cockpit">' + loadingCard + '</div>'
+      : p.id === 'fiscal' ? '<div id="fyf-cockpit">' + loadingCard + '</div>'
       : '';
     const assess = '<div class="card" style="padding:16px 18px;">'
       +   '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'
@@ -1146,7 +1167,7 @@ function fypRenderPanels() {
       +     '</div>'
       +   '</div>'
       + '</div>';
-    const assessBlock = p.id === 'tech'
+    const assessBlock = cockpit
       ? '<details style="margin-top:16px;"><summary style="cursor:pointer;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;">Data &amp; Trackability assessment</summary><div style="margin-top:10px;">' + assess + '</div></details>'
       : assess;
     return '<div class="fyp-priority" id="fyp-panel-' + p.id + '" style="display:' + (i === 0 ? 'block' : 'none') + ';">'
@@ -1165,6 +1186,8 @@ function fypInit() {
   fypRenderSubtabs();
   fypRenderPanels();
   fypLoadTech();
+  fypLoadDemand();
+  fyfLoad();
   document.querySelectorAll('.fyp-sub').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.fyp-sub').forEach(t => { t.style.color = 'var(--text2)'; t.style.borderBottomColor = 'transparent'; });
@@ -1192,7 +1215,74 @@ const FYP_DEPTH_BADGE = {
   proxy:   ['research output only', '#9b6dff'],
 };
 const FYP_ORDER = ['semi', 'ai_robotics', 'quantum', 'sixg', 'materials'];
-let FYP_DATA = null, FYP_SELECTED = null, FYP_CHARTS = [];
+let FYP_DATA = null, FYP_CHARTS = [];
+
+// Shared radial-stage mechanics (zoom-to-node + slide-in sidebar), instantiated
+// once per cockpit — tech ('fyp-' ids) and demand ('fypd-' ids) coexist in the
+// DOM, so each stage owns its element prefix and selection state.
+const FYP_STAGES = [];
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') FYP_STAGES.forEach(s => { if (s.selected) s.unfocus(); });
+});
+
+function fypMakeStage(prefix, opts) {
+  const el = id => document.getElementById(prefix + id);
+  const st = {selected: null};
+  st.focus = key => {
+    const stage = el('stage'), inner = el('stage-inner');
+    const node = inner && inner.querySelector('[data-domain="' + key + '"]');
+    if (!node || !opts.ready()) return;
+    st.selected = key;
+    const r = stage.getBoundingClientRect();
+    const nx = parseFloat(node.style.left) / 100 * r.width;
+    const ny = parseFloat(node.style.top) / 100 * r.height;
+    const scale = key === 'hub' ? 1.5 : 1.85;
+    inner.style.transform = 'translate(' + (r.width * 0.26 - nx * scale).toFixed(1) + 'px,' + (r.height * 0.5 - ny * scale).toFixed(1) + 'px) scale(' + scale + ')';
+    inner.querySelectorAll('.fyp-node').forEach(n => {
+      const sel = n.dataset.domain === key;
+      n.style.opacity = sel ? '1' : '0.1';
+      n.style.pointerEvents = sel ? 'auto' : 'none';
+    });
+    el('spokes').style.opacity = '0.12';
+    el('stage-hint').style.display = 'none';
+    el('close').style.display = 'block';
+    opts.destroyCharts();
+    const sb = el('sidebar');
+    sb.innerHTML = opts.panelHtml(key);
+    sb.scrollTop = 0;
+    sb.style.transform = 'translateX(0)';
+    if (opts.afterFocus) requestAnimationFrame(() => opts.afterFocus(key));
+  };
+  st.unfocus = () => {
+    st.selected = null;
+    const inner = el('stage-inner');
+    if (!inner) return;
+    inner.style.transform = '';
+    inner.querySelectorAll('.fyp-node').forEach(n => { n.style.opacity = '1'; n.style.pointerEvents = 'auto'; });
+    el('spokes').style.opacity = '1';
+    el('stage-hint').style.display = 'block';
+    el('close').style.display = 'none';
+    el('sidebar').style.transform = 'translateX(105%)';
+    opts.destroyCharts();
+  };
+  st.bind = wrap => {
+    wrap.querySelectorAll('.fyp-node').forEach(n =>
+      n.addEventListener('click', e => { e.stopPropagation(); st.focus(n.dataset.domain); }));
+    el('close').addEventListener('click', e => { e.stopPropagation(); st.unfocus(); });
+    el('stage').addEventListener('click', e => {
+      if (st.selected && !el('sidebar').contains(e.target)) st.unfocus();
+    });
+    if (!FYP_STAGES.includes(st)) FYP_STAGES.push(st);
+  };
+  return st;
+}
+
+const FYP_TECH_STAGE = fypMakeStage('fyp-', {
+  ready: () => !!FYP_DATA,
+  panelHtml: key => key === 'hub' ? fypHubPanel() : fypDomainPanel(key),
+  afterFocus: key => { if (key !== 'hub') fypDomainCharts(key); },
+  destroyCharts: () => { FYP_CHARTS.forEach(c => c.destroy()); FYP_CHARTS = []; },
+});
 
 function fypChartBlock(id, title, sub, h) {
   return '<div style="margin-bottom:14px;">'
@@ -1337,55 +1427,7 @@ async function fypLoadTech() {
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:16px;">Self-updating: daily batch refreshes Comtrade tech lines (revisions + new years), COMEXT monthly flows, OpenAlex publication counts and World Bank series; official annual indicators (NBS / CNIPA / CAICT) update on publication. Last fetch: '
     + esc((d.fetched_at || '—').slice(0, 10)) + ' · Sources: <a href="https://www.ndrc.gov.cn/fggz/fzzlgh/gjfzgh/202603/U020260317369114704096.pdf" target="_blank" rel="noopener" style="color:var(--text3);">15th FYP outline (NDRC)</a> · UN Comtrade+ · Eurostat COMEXT · OpenAlex · NBS</div>';
 
-  wrap.querySelectorAll('.fyp-node').forEach(n =>
-    n.addEventListener('click', e => { e.stopPropagation(); fypFocus(n.dataset.domain); }));
-  document.getElementById('fyp-close').addEventListener('click', e => { e.stopPropagation(); fypUnfocus(); });
-  document.getElementById('fyp-stage').addEventListener('click', e => {
-    if (FYP_SELECTED && !document.getElementById('fyp-sidebar').contains(e.target)) fypUnfocus();
-  });
-  if (!window._fypEscBound) {
-    window._fypEscBound = true;
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && FYP_SELECTED) fypUnfocus(); });
-  }
-}
-
-function fypFocus(key) {
-  const stage = document.getElementById('fyp-stage'), inner = document.getElementById('fyp-stage-inner');
-  const node = inner.querySelector('[data-domain="' + key + '"]');
-  if (!node || !FYP_DATA) return;
-  FYP_SELECTED = key;
-  const r = stage.getBoundingClientRect();
-  const nx = parseFloat(node.style.left) / 100 * r.width;
-  const ny = parseFloat(node.style.top) / 100 * r.height;
-  const scale = key === 'hub' ? 1.5 : 1.85;
-  inner.style.transform = 'translate(' + (r.width * 0.26 - nx * scale).toFixed(1) + 'px,' + (r.height * 0.5 - ny * scale).toFixed(1) + 'px) scale(' + scale + ')';
-  inner.querySelectorAll('.fyp-node').forEach(n => {
-    const sel = n.dataset.domain === key;
-    n.style.opacity = sel ? '1' : '0.1';
-    n.style.pointerEvents = sel ? 'auto' : 'none';
-  });
-  document.getElementById('fyp-spokes').style.opacity = '0.12';
-  document.getElementById('fyp-stage-hint').style.display = 'none';
-  document.getElementById('fyp-close').style.display = 'block';
-  FYP_CHARTS.forEach(c => c.destroy()); FYP_CHARTS = [];
-  const sb = document.getElementById('fyp-sidebar');
-  sb.innerHTML = key === 'hub' ? fypHubPanel() : fypDomainPanel(key);
-  sb.scrollTop = 0;
-  sb.style.transform = 'translateX(0)';
-  if (key !== 'hub') requestAnimationFrame(() => fypDomainCharts(key));
-}
-
-function fypUnfocus() {
-  FYP_SELECTED = null;
-  const inner = document.getElementById('fyp-stage-inner');
-  if (!inner) return;
-  inner.style.transform = '';
-  inner.querySelectorAll('.fyp-node').forEach(n => { n.style.opacity = '1'; n.style.pointerEvents = 'auto'; });
-  document.getElementById('fyp-spokes').style.opacity = '1';
-  document.getElementById('fyp-stage-hint').style.display = 'block';
-  document.getElementById('fyp-close').style.display = 'none';
-  document.getElementById('fyp-sidebar').style.transform = 'translateX(105%)';
-  FYP_CHARTS.forEach(c => c.destroy()); FYP_CHARTS = [];
+  FYP_TECH_STAGE.bind(wrap);
 }
 
 function fypHubPanel() {
@@ -1738,6 +1780,493 @@ function fypDomainCharts(key) {
         y2: {position: 'right', ticks: {color: '#e8a838', font: {size: 9}}, grid: {display: false},
              title: {display: true, text: 'equip / IC %', color: '#e8a838', font: {size: 9}}}}},
   }));
+}
+
+// ---------- Domestic Demand cockpit — Part V radial section view ----------
+const FYPD_CHAPTER_COLOR = {15: '#e8a838', 16: '#4a9eff', 17: '#9b6dff'};
+let FYPD_DATA = null, FYPD_CHARTS = [];
+
+const FYPD_STAGE = fypMakeStage('fypd-', {
+  ready: () => !!FYPD_DATA,
+  panelHtml: key => key === 'hub' ? fypdHubPanel() : fypdSectionPanel(key),
+  afterFocus: key => fypdCharts(key),
+  destroyCharts: () => { FYPD_CHARTS.forEach(c => c.destroy()); FYPD_CHARTS = []; },
+});
+
+const FYPD_READING = {
+  met: ['target met', 'var(--green)'],
+  on_track: ['on track', 'var(--green)'],
+  mixed: ['mixed', 'var(--accent2)'],
+  off_track: ['off track', 'var(--accent)'],
+  'n/a': ['no reading yet', 'var(--text3)'],
+};
+
+async function fypLoadDemand() {
+  const wrap = document.getElementById('fypd-cockpit');
+  if (!wrap) return;
+  let d;
+  try {
+    d = await (await fetch('/api/fyp/demand')).json();
+    if (d.error) throw new Error(d.error);
+  } catch (e) {
+    wrap.innerHTML = '<div class="card" style="padding:20px;color:var(--accent);font-size:12px;margin-bottom:16px;">Demand cockpit unavailable: ' + esc(e.message) + '</div>';
+    return;
+  }
+  FYPD_DATA = d;
+
+  const spokes = [], nodes = [];
+  d.sections.forEach((s, i) => {
+    const a = (i * 36 - 90) * Math.PI / 180;
+    const x = 50 + 39 * Math.cos(a), y = 50 + 40 * Math.sin(a);
+    const c = FYPD_CHAPTER_COLOR[s.chapter];
+    spokes.push('<line x1="50%" y1="50%" x2="' + x.toFixed(2) + '%" y2="' + y.toFixed(2) + '%" stroke="' + c + '" stroke-opacity="0.35" stroke-width="1.5" stroke-dasharray="5 4"/>');
+    nodes.push(
+      '<div class="fyp-node" data-domain="' + s.id + '" style="position:absolute;left:' + x.toFixed(2) + '%;top:' + y.toFixed(2) + '%;transform:translate(-50%,-50%);width:150px;cursor:pointer;text-align:center;transition:opacity .45s;z-index:2;">'
+      + '<div style="width:44px;height:44px;margin:0 auto 5px;border-radius:50%;border:2px solid ' + c + ';background:' + c + '1f;color:' + c + ';display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;">' + s.glyph + '</div>'
+      + '<div style="font-size:11px;font-weight:700;color:var(--text);line-height:1.2;">' + esc(s.name_en) + '</div>'
+      + '<div style="font-size:9px;color:var(--text3);margin-top:1px;">' + esc(s.name_cn) + '</div>'
+      + '</div>');
+  });
+  const hubNode =
+    '<div class="fyp-node" data-domain="hub" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:190px;cursor:pointer;text-align:center;transition:opacity .45s;z-index:2;">'
+    + '<div style="width:106px;height:106px;margin:0 auto 8px;border-radius:50%;border:2px solid var(--accent2);background:var(--surface2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">'
+    +   '<span style="font-size:15px;font-weight:800;color:var(--text);">居民消费率</span>'
+    +   '<span style="font-size:9px;color:var(--text3);">明显提高 · 2030</span>'
+    + '</div>'
+    + '<div style="font-size:12px;font-weight:700;color:var(--text);">Expanding domestic demand</div>'
+    + '<div style="font-size:9.5px;color:var(--text3);">headline objective &amp; consumption/investment split — click</div>'
+    + '</div>';
+  const legend = Object.entries(d.chapters).map(([n, ch]) =>
+    '<span style="display:inline-flex;align-items:center;gap:6px;font-size:10.5px;color:var(--text2);">'
+    + '<span style="width:9px;height:9px;border-radius:50%;background:' + FYPD_CHAPTER_COLOR[n] + ';"></span>'
+    + 'Ch ' + n + ' — ' + esc(ch.name_en) + ' <span style="color:var(--text3);">' + esc(ch.name_cn) + '</span></span>').join('');
+
+  wrap.innerHTML =
+    '<div class="card" style="padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;">'
+    + '<div style="font-size:11.5px;color:var(--text2);"><b style="color:var(--text);">Part V of the plan</b> (第五篇 建设强大国内市场) — the ten sections of chapters 15–17, each clickable</div>'
+    + '<div style="display:flex;gap:16px;flex-wrap:wrap;">' + legend + '</div>'
+    + '</div>'
+    + '<div class="card" id="fypd-stage" style="position:relative;height:600px;overflow:hidden;padding:0;margin-bottom:6px;">'
+    +   '<div id="fypd-stage-inner" style="position:absolute;inset:0;transform-origin:0 0;transition:transform .5s cubic-bezier(.4,0,.2,1);">'
+    +     '<svg id="fypd-spokes" style="position:absolute;inset:0;width:100%;height:100%;transition:opacity .45s;z-index:1;">' + spokes.join('') + '</svg>'
+    +     hubNode + nodes.join('')
+    +   '</div>'
+    +   '<div id="fypd-stage-hint" style="position:absolute;left:14px;bottom:10px;font-size:10px;color:var(--text3);z-index:3;">Click a section to zoom in · the hub holds the headline consumption objective</div>'
+    +   '<button id="fypd-close" style="display:none;position:absolute;top:10px;right:calc(46% + 12px);z-index:6;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:4px 10px;font-size:10.5px;cursor:pointer;">&larr; all sections (Esc)</button>'
+    +   '<div id="fypd-sidebar" style="position:absolute;top:0;right:0;bottom:0;width:46%;background:var(--surface);border-left:1px solid var(--border);box-shadow:-12px 0 30px rgba(0,0,0,0.25);transform:translateX(105%);transition:transform .5s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:16px 18px;z-index:5;"></div>'
+    + '</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-bottom:16px;">Every point follows the stored plan text section by section (第五篇, chapters 15–17'
+    + (d.doc_published ? ', published ' + esc(d.doc_published) : '') + '). '
+    + 'Sources: <a href="' + esc(d.doc_url) + '" target="_blank" rel="noopener" style="color:var(--text3);">15th FYP outline full text (gov.cn, stored in policy_docs)</a>'
+    + ' · related documents from the ministry policy pipeline (5,800+ full texts) · macro series from the Global Macro Database.</div>';
+
+  FYPD_STAGE.bind(wrap);
+}
+
+function fypdPoints(points) {
+  return '<ul style="list-style:none;padding:0;margin:0 0 4px;">'
+    + points.map(pt =>
+        '<li style="margin:0 0 8px;padding-left:11px;border-left:2px solid var(--border);font-size:11.5px;color:var(--text2);line-height:1.55;">' + esc(pt) + '</li>').join('')
+    + '</ul>';
+}
+
+function fypdDocList(docs) {
+  if (!docs || !docs.length)
+    return '<div style="font-size:11px;color:var(--text3);">No matching documents in policy_docs yet.</div>';
+  return docs.map(dd =>
+    '<a href="' + esc(dd.url) + '" target="_blank" rel="noopener" style="display:block;padding:7px 10px;background:var(--surface2);border-radius:8px;margin-bottom:6px;text-decoration:none;">'
+    + '<div style="font-size:11px;color:var(--text);line-height:1.45;">' + esc(dd.title) + '</div>'
+    + '<div style="font-size:9.5px;color:var(--text3);margin-top:2px;">' + esc((dd.ministry || '').toUpperCase())
+    + (dd.instrument_type ? ' · ' + esc(dd.instrument_type) : '')
+    + (dd.published ? ' · ' + esc(String(dd.published).slice(0, 10)) : '') + '</div>'
+    + '</a>').join('');
+}
+
+function fypdTargetCard(t) {
+  const r = t.reading || {status: 'n/a', note: ''};
+  const badge = FYPD_READING[r.status] || FYPD_READING['n/a'];
+  const latest = t.latest;
+  let goalHtml, barHtml = '';
+  if (t.target_kind === 'trend') {
+    goalHtml = '<span style="font-size:19px;font-weight:800;color:var(--text);">' + (t.goal_dir === 'up' ? '&nearr;' : '&searr;') + '</span>'
+      + '<span style="font-size:11px;color:var(--text2);">' + esc(t.unit) + ' — directional goal, no number in the text</span>';
+  } else {
+    const sign = t.target_kind === 'max_level' ? '&le;' : '&ge;';
+    goalHtml = '<span style="font-size:19px;font-weight:800;color:var(--text);">' + sign + t.target + '</span>'
+      + '<span style="font-size:11px;color:var(--text2);">' + esc(String(t.target_period)) + ' target · ' + esc(t.unit) + '</span>';
+    let pct = 0;
+    if (latest) {
+      pct = t.target_kind === 'max_level'
+        ? 100 * (t.baseline - latest.value) / (t.baseline - t.target)
+        : 100 * (latest.value - t.baseline) / (t.target - t.baseline);
+      pct = Math.max(0, Math.min(100, pct));
+    }
+    barHtml = '<div style="background:var(--surface2);border-radius:6px;height:8px;overflow:hidden;">'
+      + '<div style="width:' + pct.toFixed(0) + '%;height:100%;background:' + badge[1] + ';border-radius:6px;"></div></div>';
+  }
+  return '<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">'
+    +   '<div style="font-size:12px;font-weight:700;color:var(--text);">' + esc(t.name_en) + '</div>'
+    +   '<span style="font-size:9px;font-weight:700;color:#fff;background:' + badge[1] + ';padding:2px 8px;border-radius:9px;white-space:nowrap;">' + badge[0] + '</span>'
+    + '</div>'
+    + '<div style="font-size:10px;color:var(--text3);">' + esc(t.name_cn) + ' · ' + esc(t.binding) + '</div>'
+    + '<div style="display:flex;align-items:baseline;gap:10px;">' + goalHtml + '</div>'
+    + barHtml
+    + '<div style="font-size:10.5px;color:var(--text2);line-height:1.45;">' + esc(r.note) + '</div>'
+    + '<div style="font-size:9.5px;color:var(--text3);">baseline ' + t.baseline + ' (' + esc(String(t.baseline_period)) + ')'
+    + (latest ? ' · latest ' + (+latest.value.toFixed(2)) + ' (' + esc(String(latest.period)) + ')' : '')
+    + ' · <a href="' + esc(t.source_url) + '" target="_blank" rel="noopener" style="color:var(--text3);">' + esc(t.history_source || 'source') + '</a></div>'
+    + '</div>';
+}
+
+function fypdFacts(facts) {
+  if (!facts || !facts.length) return '';
+  return '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">'
+    + facts.map(f =>
+        '<span style="display:inline-flex;flex-direction:column;gap:1px;padding:6px 12px;background:var(--surface2);border-radius:8px;max-width:240px;">'
+        + '<span style="font-size:9px;color:var(--text3);">' + esc(f.label) + '</span>'
+        + '<span style="font-size:13px;font-weight:700;color:var(--text);">' + esc(f.value) + '</span>'
+        + (f.sub ? '<span style="font-size:9px;color:var(--text3);line-height:1.35;">' + esc(f.sub) + '</span>' : '')
+        + '</span>').join('')
+    + '</div>';
+}
+
+function fypdMilestones(ms) {
+  if (!ms || !ms.length) return '';
+  return ms.map(m =>
+    '<div style="display:flex;gap:10px;margin-bottom:9px;">'
+    + '<div style="flex-shrink:0;width:54px;font-size:9.5px;font-weight:700;color:var(--text3);padding-top:2px;">'
+    +   (m.date ? esc(m.date) : '<span style="color:var(--accent);">pending</span>') + '</div>'
+    + '<div style="border-left:2px solid var(--border);padding-left:10px;">'
+    +   '<div style="font-size:11.5px;font-weight:700;color:var(--text);line-height:1.35;">'
+    +     (m.url ? '<a href="' + esc(m.url) + '" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none;">' + esc(m.title_en) + ' ↗</a>' : esc(m.title_en))
+    +   '</div>'
+    +   '<div style="font-size:9.5px;color:var(--text3);margin:1px 0 2px;">' + esc(m.title_cn) + '</div>'
+    +   '<div style="font-size:10.5px;color:var(--text2);line-height:1.5;">' + esc(m.note) + '</div>'
+    + '</div></div>').join('');
+}
+
+function fypdPlanText(points) {
+  return '<details style="margin:12px 0 4px;"><summary style="cursor:pointer;font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;">What the plan says</summary>'
+    + '<div style="margin-top:8px;">' + fypdPoints(points || []) + '</div></details>';
+}
+
+function fypdHubPanel() {
+  const d = FYPD_DATA, h = d.hub;
+  return '<div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:2px;">' + esc(h.name_en) + '</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-bottom:12px;">' + esc(h.name_cn) + '</div>'
+    + '<div style="background:rgba(0,170,110,0.08);border:1px solid var(--green);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:11.5px;color:var(--text);line-height:1.5;"><b style="color:var(--green);">2030 objective.</b> ' + esc(h.objective) + '</div>'
+    + fypSection('Where it stands')
+    + (h.targets || []).map(fypdTargetCard).join('')
+    + fypdFacts(h.facts)
+    + fypChartBlock('fypd-sb-kpi', 'Consumption vs investment share of GDP',
+        '居民消费率 (household consumption, amber) vs total investment (blue), % of GDP — the rebalancing the plan wants', 200)
+    + fypSection('What\'s been done')
+    + fypdMilestones(h.milestones)
+    + fypdPlanText(h.preamble)
+    + fypSection('Key documents')
+    + fypdDocList(h.docs)
+    + '<div style="font-size:10px;color:var(--text3);margin-top:10px;"><a href="' + esc(d.doc_url) + '" target="_blank" rel="noopener" style="color:var(--text3);">Full outline text (gov.cn) ↗</a></div>';
+}
+
+function fypdSectionPanel(id) {
+  const d = FYPD_DATA;
+  const s = d.sections.find(x => x.id === id);
+  if (!s) return '';
+  const ch = d.chapters[s.chapter] || {};
+  const c = FYPD_CHAPTER_COLOR[s.chapter];
+  const status = s.status;
+  return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">'
+    + '<div style="width:34px;height:34px;border-radius:50%;border:2px solid ' + c + ';background:' + c + '1f;color:' + c + ';display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;">' + s.glyph + '</div>'
+    + '<div><div style="font-size:14px;font-weight:800;color:var(--text);">' + esc(s.name_en) + '</div>'
+    + '<div style="font-size:10px;color:var(--text3);">' + esc(s.name_cn) + ' · <span style="color:' + c + ';font-weight:700;">Ch ' + s.chapter + ' — ' + esc(ch.name_en || '') + '</span></div></div></div>'
+    + fypSection('Where it stands')
+    + (s.targets || []).map(fypdTargetCard).join('')
+    + fypdFacts(s.facts)
+    + (status ? fypChartBlock('fypd-sb-chart', status.series.map(x => x.label).join('  ·  '), status.caption, 190) : '')
+    + fypSection('What\'s been done')
+    + fypdMilestones(s.milestones)
+    + fypdPlanText(s.points)
+    + fypSection('Related policy documents')
+    + fypdDocList(s.docs);
+}
+
+function fypdLineChart(elId, series, opts) {
+  const el = document.getElementById(elId);
+  if (!el || !series.length || !series[0].data.length) return;
+  const labels = [...new Set(series.flatMap(s => s.data.map(r => String(r.date || r.period || r.year))))].sort();
+  const val = (s, lb) => { const r = s.data.find(x => String(x.date || x.period || x.year) === lb); return r ? r.value : null; };
+  FYPD_CHARTS.push(new Chart(el, {
+    type: 'line',
+    data: {labels: labels, datasets: series.map(s => ({
+      label: s.label, data: labels.map(lb => val(s, lb)), borderColor: s.color,
+      backgroundColor: s.color + '14', fill: !!s.fill, tension: 0.25, pointRadius: 0, borderWidth: 2, spanGaps: true,
+    }))},
+    options: {responsive: true, maintainAspectRatio: false, interaction: {mode: 'index', intersect: false},
+      plugins: {legend: {display: series.length > 1, labels: {color: '#8a93a3', font: {size: 10}, boxWidth: 14}}},
+      scales: {x: {...FYP_AXIS, ticks: {...FYP_AXIS.ticks, maxTicksLimit: 12}, grid: {display: false}},
+        y: {...FYP_AXIS, title: {display: true, text: (opts && opts.yLabel) || '%', color: '#aab2c0', font: {size: 9}}}}},
+  }));
+}
+
+function fypdCharts(key) {
+  const d = FYPD_DATA;
+  if (key === 'hub') {
+    fypdLineChart('fypd-sb-kpi', [
+      {label: 'Household consumption', data: d.series.hcons_GDP || [], color: '#e8a838', fill: true},
+      {label: 'Total investment', data: d.series.inv_GDP || [], color: '#4a9eff'},
+    ], {yLabel: '% of GDP'});
+    return;
+  }
+  const s = d.sections.find(x => x.id === key);
+  if (s && s.status) {
+    fypdLineChart('fypd-sb-chart',
+      s.status.series.map(x => ({label: x.label, data: x.data, color: x.color})),
+      {yLabel: '% YoY'});
+  }
+}
+
+// ---------- Fiscal Capacity cockpit — self-updating fiscal-space assessment ----------
+let FYF_DATA = null, FYF_CHARTS = [];
+const FYF_LIGHT = {green: 'var(--green)', amber: 'var(--accent2)', red: 'var(--accent)', grey: 'var(--text3)'};
+
+function fyfFmtTn(v100m) { return v100m == null ? '—' : (v100m / 10000).toFixed(1) + ' tn'; }
+function fyfPivot(rows, metric) { return rows.filter(r => r.metric === metric); }
+function fyfMonthly(series) {
+  // cumulative-YTD → single-month deltas. A year's first point is only a real
+  // month if it's the Jan-Feb combined release (month 2); a first point deeper
+  // into the year (e.g. a lone full-year 12) would masquerade as one huge month.
+  const out = [], byYear = {};
+  series.forEach(r => { (byYear[r.year] = byYear[r.year] || []).push(r); });
+  Object.keys(byYear).sort().forEach(y => {
+    let prev = 0, first = true;
+    byYear[y].sort((a, b) => a.month - b.month).forEach(r => {
+      const v = (r.value_100m ?? r.value) - prev;
+      if (!first || r.month <= 2) out.push({year: r.year, month: r.month, value: v});
+      prev = r.value_100m ?? r.value;
+      first = false;
+    });
+  });
+  return out;
+}
+function fyfLabel(r) { return r.year + '-' + String(r.month).padStart(2, '0'); }
+
+function fyfChartBlock(id, title, sub, h) {
+  return '<div class="card" style="padding:14px 16px 10px;">'
+    + '<div style="font-size:12px;font-weight:700;color:var(--text);">' + esc(title) + '</div>'
+    + (sub ? '<div style="font-size:10.5px;color:var(--text3);margin:2px 0 8px;">' + esc(sub) + '</div>' : '')
+    + '<div style="position:relative;height:' + (h || 200) + 'px;"><canvas id="' + id + '"></canvas></div></div>';
+}
+
+async function fyfLoad() {
+  const wrap = document.getElementById('fyf-cockpit');
+  if (!wrap) return;
+  let d;
+  try {
+    d = await (await fetch('/api/fiscal')).json();
+    if (d.error) throw new Error(d.error);
+  } catch (e) {
+    wrap.innerHTML = '<div class="card" style="padding:20px;color:var(--accent);font-size:12px;margin-bottom:16px;">Fiscal tracker unavailable: ' + esc(e.message) + '</div>';
+    return;
+  }
+  FYF_DATA = d;
+  FYF_CHARTS.forEach(c => c.destroy()); FYF_CHARTS = [];
+  const A = d.assessment, flow = A.flow || {}, repay = A.repayment || {}, fund = A.funding || {};
+
+  // --- assessment block ---
+  const verdicts = (A.verdicts || []).map(v =>
+    '<div class="card" style="padding:14px 16px;border-left:3px solid ' + FYF_LIGHT[v.light] + ';">'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
+    +   '<span style="width:10px;height:10px;border-radius:50%;background:' + FYF_LIGHT[v.light] + ';flex-shrink:0;"></span>'
+    +   '<span style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;">' + esc(v.label) + '</span>'
+    + '</div>'
+    + '<div style="font-size:12px;color:var(--text2);line-height:1.5;">' + esc(v.text) + '</div>'
+    + '</div>').join('');
+
+  const chips = [];
+  if (flow.afd_lite_pct_gdp != null) chips.push(['AFD-lite (T12M)', flow.afd_lite_pct_gdp.toFixed(1) + '% GDP', 'GS-recipe augmented balance']);
+  if (flow.effective_deficit_pct_gdp != null) chips.push(['Effective deficit', flow.effective_deficit_pct_gdp.toFixed(1) + '% GDP', 'both budget accounts, T12M']);
+  if (repay.refi_share) chips.push(['Refinancing share', (repay.refi_share.share * 100).toFixed(0) + '%', 'of ' + repay.refi_share.year + ' LGB issuance YTD']);
+  if (repay.quota_headroom) chips.push(['NPC debt limit used', repay.quota_headroom.used_pct + '%', 'RMB ' + fyfFmtTn(repay.quota_headroom.outstanding_100m) + ' / ' + fyfFmtTn(repay.quota_headroom.limit_100m)]);
+  if (flow.fiscal_deposits) chips.push(['Fiscal deposits', 'RMB ' + fyfFmtTn(flow.fiscal_deposits.value_100m), (flow.fiscal_deposits.yoy_pct >= 0 ? '+' : '') + flow.fiscal_deposits.yoy_pct + '% yoy, at PBOC']);
+  if (fund.cgb_10y) chips.push(['CGB 10Y', fund.cgb_10y.yield_pct.toFixed(2) + '%', 'LGB AAA +' + (fund.lgb_aaa_10y ? fund.lgb_aaa_10y.spread_bp.toFixed(0) : '—') + 'bp']);
+  const chipHtml = chips.map(c =>
+    '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;">'
+    + '<div style="font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;">' + esc(c[0]) + '</div>'
+    + '<div style="font-size:16px;font-weight:800;color:var(--text);margin:1px 0;">' + esc(c[1]) + '</div>'
+    + '<div style="font-size:9.5px;color:var(--text3);">' + esc(c[2]) + '</div></div>').join('');
+
+  const period = flow.period ? flow.period.year + '-' + String(flow.period.month).padStart(2, '0') : '—';
+  const cov = repay.registry_coverage_pct;
+
+  // --- provinces ---
+  const provs = (d.provinces && d.provinces.rows || []).filter(p => p.gdp_100m);
+  const topStress = provs.filter(p => p.interest_pct_gdp != null)
+    .sort((a, b) => b.interest_pct_gdp - a.interest_pct_gdp).slice(0, 5);
+  const swap = (d.reference.find(r => r.key === 'swap_program') || {});
+  const swapV = swap.value_json ? JSON.parse(swap.value_json) : null;
+  const lgfv = (d.reference.find(r => r.key === 'lgfv_debt_est') || {});
+  const lgfvV = lgfv.value_json ? JSON.parse(lgfv.value_json) : null;
+
+  const provTable = provs.map(p =>
+    '<tr' + (p.restricted ? ' style="background:rgba(212,72,59,0.05);"' : '') + '>'
+    + '<td style="font-weight:600;color:var(--text);white-space:nowrap;">' + esc(p.province) + (p.restricted ? ' <span title="on the 12-province borrowing-restriction list" style="color:var(--accent);">⚠</span>' : '') + '</td>'
+    + ['debt_pct_gdp', 'limit_used_pct', 'transfers_pct_gdp', 'interest_pct_gdp', 'refi_share', 'maturity_3y_pct_gdp']
+        .map(k => '<td style="text-align:right;">' + (p[k] != null ? (k === 'refi_share' ? (p[k] * 100).toFixed(0) + '%' : p[k].toFixed(1)) : '—') + '</td>').join('')
+    + '</tr>').join('');
+
+  const feeds = Object.entries(d.meta).map(([t, m]) =>
+    '<li style="margin-bottom:3px;"><b>' + esc(t) + '</b>: ' + m.rows + ' rows' + (m.fetched_at ? ', updated ' + esc(m.fetched_at.slice(0, 16)) : '') + '</li>').join('');
+  const citations = d.reference.map(r => {
+    const j = JSON.parse(r.value_json);
+    return '<li style="margin-bottom:5px;"><b>' + esc(r.key) + '</b>' + (r.as_of ? ' (as of ' + esc(r.as_of) + ')' : '') + ' — ' + esc(r.citation) + '</li>';
+  }).join('');
+
+  wrap.innerHTML =
+    '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;flex-wrap:wrap;">'
+    + '<h3 style="font-size:13px;font-weight:800;color:var(--text);margin:0;">Fiscal-space assessment</h3>'
+    + '<span style="font-size:10px;color:var(--text3);">data through ' + esc(period) + ' · computed ' + esc((A.generated_at || '').slice(0, 16).replace('T', ' ')) + ' UTC · thresholds fixed &amp; documented below</span>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:12px;">' + verdicts + '</div>'
+    + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">' + chipHtml + '</div>'
+
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;margin-bottom:14px;">'
+    +   fyfChartBlock('fyf-land', 'Land-sale revenue — the collapsed pillar', 'monthly gross 国有土地使用权出让收入, RMB bn; latest yoy ' + ((flow.latest_yoy || {}).land != null ? (flow.latest_yoy.land > 0 ? '+' : '') + flow.latest_yoy.land + '%' : '—'))
+    +   fyfChartBlock('fyf-flows', 'Government cash flows (monthly, both budget accounts)', 'revenue vs expenditure, general + government-fund budgets, RMB bn')
+    +   fyfChartBlock('fyf-issue', 'LGB issuance — new money vs refinancing', 'monthly, RMB bn; refinancing rolls old debt without funding anything new')
+    +   fyfChartBlock('fyf-spread', 'Funding costs — spreads over CGB', 'daily close curves, bp; AA credit is the public chengtou/LGFV proxy (true chengtou curve is WIND-only)')
+    + '</div>'
+
+    + fyfChartBlock('fyf-wall', 'LGB maturity wall — principal falling due by year',
+        'RMB bn, from ' + ((d.meta.fiscal_lgb_bonds || {}).rows || 0) + ' bonds in the ChinaMoney registry'
+        + (cov != null ? ' — registry covers ' + cov + '% of outstanding bonds so far' + (cov < 50 ? ' (backfill in progress, treat as partial)' : '') : ''), 190)
+
+    + '<div style="display:grid;grid-template-columns:minmax(320px,5fr) minmax(280px,4fr);gap:14px;margin:14px 0;">'
+    +   fyfChartBlock('fyf-scatter', 'Provincial dispersion — debt burden vs income', 'x: GDP per capita (10k yuan) · y: LGB debt, % of GDP · red = borrowing-restricted province · bubble size: interest burden', 290)
+    +   '<div class="card" style="padding:14px 16px;">'
+    +     '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;">The cascading (municipal) lens</div>'
+    +     '<div style="font-size:11.5px;color:var(--text2);line-height:1.55;">City and county books are not public in machine-readable form; municipal stress is read through its footprints: provinces pass shared revenue down "inadequately" under their own constraints (ADB paper), so pressure concentrates at lower tiers. Watch the transmission variables: transfer dependence, refinancing share, and the interest burden ranking below.</div>'
+    +     (swapV ? '<div style="font-size:11.5px;color:var(--text2);line-height:1.55;margin-top:8px;"><b style="color:var(--text);">Debt-resolution package (' + esc(swapV.period) + '):</b> RMB ' + fyfFmtTn(swapV.swap_quota_100m) + ' swap quota + ' + fyfFmtTn(swapV.special_bond_100m) + ' via special bonds + ' + fyfFmtTn(swapV.shantytown_100m) + ' shantytown deferral — moving hidden (mostly city-level LGFV) debt onto provincial books at lower rates.</div>' : '')
+    +     (lgfvV ? '<div style="font-size:11.5px;color:var(--text2);line-height:1.55;margin-top:8px;"><b style="color:var(--text);">Hidden debt (curated):</b> LGFV interest-bearing debt ≈ RMB ' + fyfFmtTn(lgfvV.total_100m) + ' (' + esc(lgfv.as_of || '') + ', IMF augmented concept) — no public per-province feed exists.</div>' : '')
+    +     (topStress.length ? '<div style="margin-top:10px;"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Heaviest interest burden (annualised, % of GDP)</div>'
+        + topStress.map(p => '<div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text2);padding:2px 0;"><span>' + esc(p.province) + (p.restricted ? ' <span style="color:var(--accent);">⚠</span>' : '') + '</span><b style="color:var(--text);">' + p.interest_pct_gdp.toFixed(2) + '%</b></div>').join('') + '</div>' : '')
+    +   '</div>'
+    + '</div>'
+
+    + '<div class="card" style="padding:14px 16px;margin-bottom:14px;">'
+    +   '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px;">31-province cross-section</div>'
+    +   '<div style="font-size:10.5px;color:var(--text3);margin-bottom:8px;">annual data: MOF final accounts ' + esc(String(d.provinces.annual_year || '—')) + ' · monthly flows: MOF annex ' + (d.provinces.monthly_period ? esc(d.provinces.monthly_period.year + '-' + String(d.provinces.monthly_period.month).padStart(2, '0')) : '—') + ' · sorted by debt/GDP · ⚠ = borrowing-restricted</div>'
+    +   '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11.5px;color:var(--text2);">'
+    +     '<thead><tr style="color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:0.4px;text-align:right;">'
+    +       '<th style="text-align:left;padding:4px 6px;">Province</th><th>Debt %GDP</th><th>Limit used %</th><th>Transfers %GDP</th><th>Interest %GDP</th><th>Refi share</th><th>3y maturities %GDP</th></tr></thead>'
+    +     '<tbody>' + provTable + '</tbody></table></div>'
+    + '</div>'
+
+    + '<details style="margin-bottom:14px;"><summary style="cursor:pointer;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;">Sources &amp; method</summary>'
+    +   '<div class="card" style="padding:14px 16px;margin-top:10px;font-size:11.5px;color:var(--text2);line-height:1.6;">'
+    +   '<p style="margin:0 0 8px;"><b style="color:var(--text);">Method.</b> Gauge (a) follows the GS augmented-fiscal-deficit recipe: effective deficit = expenditure − revenue across the general public budget and the government-fund budget (12-month rolling), with gross land revenue replaced by its net-financing share and TSF trust loans added as the shadow proxy; channels with no public feed (policy-bank bonds, PSL, LGFV bond net issuance) are carried only as the curated adjustments listed below. Gauge (b) uses the ADB fiscal-rules paper\'s pressure metrics: refinancing share of issuance, interest burden, maturity wall, and quota headroom (the administrative constraint — localities may not run deficits without central authorization). Gauge (c) reads daily ChinaBond/ChinaMoney close curves. Verdict thresholds: refinancing share green &lt;40% / red &gt;60%; land revenue yoy green &gt;0 / red &lt;−15%; effective deficit green &lt;6% / red &gt;10% of GDP; spread z-score green &lt;0.5 / red &gt;1.5.</p>'
+    +   '<p style="margin:0 0 6px;"><b style="color:var(--text);">Live feeds</b></p><ul style="margin:0 0 10px;padding-left:18px;">' + feeds + '</ul>'
+    +   '<p style="margin:0 0 6px;"><b style="color:var(--text);">Curated reference facts</b> (no public machine-readable feed; each carries its citation)</p><ul style="margin:0;padding-left:18px;">' + citations + '</ul>'
+    +   '</div></details>';
+
+  fyfCharts(d);
+}
+
+function fyfCharts(d) {
+  const blue = '#4a9eff', red = '#d4483b', amber = '#e8a838', green = '#3eb370', purple = '#9d7cf4';
+
+  // land monthly (bars)
+  const land = fyfMonthly(fyfPivot(d.national, 'land_sale_rev'));
+  let el = document.getElementById('fyf-land');
+  if (el && land.length) FYF_CHARTS.push(new Chart(el, {
+    type: 'bar',
+    data: {labels: land.map(fyfLabel), datasets: [{label: 'Land-sale revenue (RMB bn)', data: land.map(r => r.value / 10), backgroundColor: amber + 'bb', borderRadius: 3}]},
+    options: {responsive: true, maintainAspectRatio: false,
+      plugins: {legend: {display: false}, tooltip: {mode: 'index', intersect: false}},
+      scales: {x: {...FYP_AXIS, grid: {display: false}}, y: FYP_AXIS}},
+  }));
+
+  // combined monthly flows (rev vs exp)
+  const rev = fyfMonthly(fyfPivot(d.national, 'gpb_rev')), exp = fyfMonthly(fyfPivot(d.national, 'gpb_exp'));
+  const frev = fyfMonthly(fyfPivot(d.national, 'fund_rev')), fexp = fyfMonthly(fyfPivot(d.national, 'fund_exp'));
+  const key = r => r.year + '-' + r.month;
+  const fr = Object.fromEntries(frev.map(r => [key(r), r.value])), fe = Object.fromEntries(fexp.map(r => [key(r), r.value]));
+  el = document.getElementById('fyf-flows');
+  if (el && rev.length) FYF_CHARTS.push(new Chart(el, {
+    type: 'line',
+    data: {labels: rev.map(fyfLabel), datasets: [
+      {label: 'Revenue (both accounts)', data: rev.map(r => (r.value + (fr[key(r)] || 0)) / 10), borderColor: blue, backgroundColor: blue + '14', fill: true, tension: 0.25, pointRadius: 2},
+      {label: 'Expenditure (both accounts)', data: exp.map(r => (r.value + (fe[key(r)] || 0)) / 10), borderColor: red, tension: 0.25, pointRadius: 2},
+    ]},
+    options: {responsive: true, maintainAspectRatio: false, interaction: {mode: 'index', intersect: false},
+      plugins: {legend: {labels: {color: '#8a93a3', font: {size: 10}, boxWidth: 14}}},
+      scales: {x: {...FYP_AXIS, grid: {display: false}}, y: FYP_AXIS}},
+  }));
+
+  // issuance stack
+  const inew = fyfPivot(d.lgb, 'issue_new'), irefi = fyfPivot(d.lgb, 'issue_refi');
+  const ikeys = [...new Set(inew.concat(irefi).map(key))].sort((a, b) => {
+    const [ya, ma] = a.split('-').map(Number), [yb, mb] = b.split('-').map(Number);
+    return ya - yb || ma - mb;
+  });
+  const iN = Object.fromEntries(inew.map(r => [key(r), r.value])), iR = Object.fromEntries(irefi.map(r => [key(r), r.value]));
+  el = document.getElementById('fyf-issue');
+  if (el && ikeys.length) FYF_CHARTS.push(new Chart(el, {
+    type: 'bar',
+    data: {labels: ikeys.map(k => { const [y, m] = k.split('-'); return y + '-' + String(m).padStart(2, '0'); }), datasets: [
+      {label: 'New-money bonds', data: ikeys.map(k => (iN[k] || 0) / 10), backgroundColor: blue + 'bb', borderRadius: 3},
+      {label: 'Refinancing bonds', data: ikeys.map(k => (iR[k] || 0) / 10), backgroundColor: red + 'bb', borderRadius: 3},
+    ]},
+    options: {responsive: true, maintainAspectRatio: false, interaction: {mode: 'index', intersect: false},
+      plugins: {legend: {labels: {color: '#8a93a3', font: {size: 10}, boxWidth: 14}}},
+      scales: {x: {...FYP_AXIS, grid: {display: false}, stacked: true}, y: {...FYP_AXIS, stacked: true}}},
+  }));
+
+  // spreads
+  const cgb = Object.fromEntries((d.curves.cgb_10y || []).map(r => [r.date, r.yield_pct]));
+  const mkSpread = arr => (arr || []).filter(r => cgb[r.date] != null).map(r => ({x: r.date, y: +((r.yield_pct - cgb[r.date]) * 100).toFixed(1)}));
+  const sLgb = mkSpread(d.curves.lgb_aaa_10y), sAa = mkSpread(d.curves.cpmtn_aa_5y);
+  el = document.getElementById('fyf-spread');
+  if (el && (sLgb.length || sAa.length)) FYF_CHARTS.push(new Chart(el, {
+    type: 'line',
+    data: {datasets: [
+      {label: 'LGB AAA 10Y spread (bp)', data: sLgb, borderColor: blue, tension: 0.2, pointRadius: 0, borderWidth: 1.8},
+      {label: 'AA credit 5Y spread — chengtou proxy (bp)', data: sAa, borderColor: amber, tension: 0.2, pointRadius: 0, borderWidth: 1.8},
+    ]},
+    options: {responsive: true, maintainAspectRatio: false, parsing: true, interaction: {mode: 'index', intersect: false},
+      plugins: {legend: {labels: {color: '#8a93a3', font: {size: 10}, boxWidth: 14}}},
+      scales: {x: {...FYP_AXIS, type: 'category', ticks: {...FYP_AXIS.ticks, maxTicksLimit: 10}, grid: {display: false}}, y: FYP_AXIS}},
+  }));
+
+  // maturity wall
+  const wall = (d.maturity.national || []).filter(r => r.maturity_year >= new Date().getFullYear() && r.maturity_year <= new Date().getFullYear() + 14);
+  el = document.getElementById('fyf-wall');
+  if (el && wall.length) FYF_CHARTS.push(new Chart(el, {
+    type: 'bar',
+    data: {labels: wall.map(r => r.maturity_year), datasets: [{label: 'Principal due (RMB bn)', data: wall.map(r => r.principal_100m / 10), backgroundColor: purple + 'bb', borderRadius: 3}]},
+    options: {responsive: true, maintainAspectRatio: false,
+      plugins: {legend: {display: false}, tooltip: {mode: 'index', intersect: false}},
+      scales: {x: {...FYP_AXIS, grid: {display: false}}, y: FYP_AXIS}},
+  }));
+
+  // provincial scatter
+  const provs = (d.provinces.rows || []).filter(p => p.gdp_100m && p.pop_10k && p.debt_pct_gdp != null);
+  el = document.getElementById('fyf-scatter');
+  if (el && provs.length) {
+    const mk = list => list.map(p => ({x: +(p.gdp_100m / p.pop_10k).toFixed(2), y: p.debt_pct_gdp, r: 4 + (p.interest_pct_gdp || 0) * 3, prov: p.province}));
+    FYF_CHARTS.push(new Chart(el, {
+      type: 'bubble',
+      data: {datasets: [
+        {label: 'Borrowing-restricted (12)', data: mk(provs.filter(p => p.restricted)), backgroundColor: red + '99', borderColor: red},
+        {label: 'Other provinces', data: mk(provs.filter(p => !p.restricted)), backgroundColor: blue + '77', borderColor: blue},
+      ]},
+      options: {responsive: true, maintainAspectRatio: false,
+        plugins: {legend: {labels: {color: '#8a93a3', font: {size: 10}, boxWidth: 14}},
+          tooltip: {callbacks: {label: ctx => ctx.raw.prov + ': ' + ctx.raw.y + '% of GDP, ' + ctx.raw.x + ' 万元/cap'}}},
+        scales: {x: {...FYP_AXIS, title: {display: true, text: 'GDP per capita (10k yuan)', color: '#8a93a3', font: {size: 9}}},
+                 y: {...FYP_AXIS, title: {display: true, text: 'LGB debt, % of GDP', color: '#8a93a3', font: {size: 9}}}}},
+    }));
+  }
 }
 
 // ========== OVERVIEW — LEAFLET MAP ==========

@@ -119,10 +119,10 @@ backend/           All Python code
   cli.py           Unified fetch CLI (cmm-fetch <command>)
   storage.py       get_conn() + DATA_DIR/LOG_DIR/… → data/
   config.py        All API keys (loaded from .env)
-  schema.sql       16-table unified DDL
+  schema.sql       28-table unified DDL
   bootstrap_db.py  Build fresh cmm.db from scratch
   migrate_db.py    One-off migration tool (5 DBs → cmm.db)
-  fetchers/        29 source modules (bis, ecb, bruegel, …)
+  fetchers/        39 source modules (bis, ecb, bruegel, …)
   scrapers/        mofcom.py, npc_observer.py
   sources/         registry.yaml, loader.py, validate.py
   runners/         fetch_news, fetch_batch, fetch_macro, …
@@ -173,6 +173,7 @@ data/              Gitignored — databases, logs, raw files
 | Sine CPC Elite Database | ccp_cc/pb/psc_members | On-demand | None |
 | Yahoo Finance / AKShare (OHLCV) | financial_series | Daily | None |
 | Commodity Markets tab — 53 materials (base/precious/REE/battery/semiconductor/gases): USGS MCS data releases (mine/refinery/smelter production by country), UN Comtrade (annual trade per HS code, resumable backfill), Yahoo + IMF-via-FRED (prices) | data/commodities.json (no sqlite) | On-demand | None |
+| Fiscal Capacity (FYP subtab) — MOF 收支 monthly releases + LGB debt reports w/ by-province PDF annexes (gks/zwgls/yss.mof.gov.cn), MOF final accounts by region, ChinaMoney LGB registry (18k bonds → maturity wall) & close yield curves, EastMoney CGB curve, PBOC deposits/TSF via AKShare; GS-AFD + ADB-paper assessment computed at read time | fiscal_* (8 tables) | Daily (batch) | None |
 
 ---
 

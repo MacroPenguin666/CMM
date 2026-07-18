@@ -36,7 +36,7 @@ ALL_SOURCES = [
     "financial", "dissent", "bruegel", "macro", "academic", "customs", "regulations",
     "bis", "ecb", "destatis", "global_macro", "imf_fiscal",
     "eurostat", "ministries", "trade_stats", "yfinance", "comtrade",
-    "fyp_tech", "chartbook", "eurostat_trade", "ccp_elites",
+    "fyp_tech", "chartbook", "eurostat_trade", "ccp_elites", "fiscal",
 ]
 
 
@@ -233,6 +233,11 @@ def _fetch_ccp_elites():
     run_ccp_elites()
 
 
+def _fetch_fiscal():
+    from backend.runners.fetch_fiscal import run as run_fiscal
+    run_fiscal()
+
+
 FETCHERS = {
     "financial": _fetch_financial,
     "dissent": _fetch_dissent,
@@ -255,6 +260,7 @@ FETCHERS = {
     "chartbook": _fetch_chartbook,
     "eurostat_trade": _fetch_eurostat_trade,
     "ccp_elites": _fetch_ccp_elites,
+    "fiscal": _fetch_fiscal,
 }
 
 

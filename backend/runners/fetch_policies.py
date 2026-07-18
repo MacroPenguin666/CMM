@@ -48,15 +48,23 @@ FULL_THRESHOLD = 50   # fewer docs than this for a source → treat as first run
 
 def discover(conn, ministry: str | None = None, force_full: bool = False) -> int:
     """Stage 1: scrape list pages, insert new metadata rows. Returns new-row count."""
-    from backend.fetchers.ministry_scraper import TARGETS, scrape_all
+    from backend.fetchers.ministry_scraper import SEED_DOCS, TARGETS, scrape_all
     from backend.storage import (domain_slug, get_policy_doc_count,
                                  get_policy_known_links, insert_policy_metadata)
+
+    seeded = 0
+    for doc in SEED_DOCS:
+        if ministry and domain_slug(doc["feed_url"]) != ministry:
+            continue
+        seeded += insert_policy_metadata(conn, doc)
+    if seeded:
+        log.info(f"Seeded {seeded} landmark document(s) as pending")
 
     targets = [t for t in TARGETS
                if not ministry or domain_slug(t["url"]) == ministry]
     if not targets:
         log.error(f"No targets match ministry slug '{ministry}'")
-        return 0
+        return seeded
 
     known_links_by_source = {}
     max_pages_by_source = {}
@@ -85,7 +93,7 @@ def discover(conn, ministry: str | None = None, force_full: bool = False) -> int
         page_delay=1.0,
     )
 
-    total_new = 0
+    total_new = seeded
     for r in results:
         status = "OK" if r["ok"] else "FAIL"
         new_n = insert_policy_metadata(conn, r)
