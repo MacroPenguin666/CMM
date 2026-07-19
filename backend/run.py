@@ -35,7 +35,8 @@ def main():
     if not args.no_refresh:
         start_auto_refresh()
     print(f"Dashboard: http://localhost:{args.port}")
-    app.run(host="0.0.0.0", port=args.port, debug=False)
+    from waitress import serve
+    serve(app, host="0.0.0.0", port=args.port, threads=8)
 
 
 if __name__ == "__main__":

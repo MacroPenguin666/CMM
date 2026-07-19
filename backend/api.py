@@ -9,13 +9,18 @@ Usage:
 """
 
 import argparse
+import hmac
 import json
 import sqlite3
+import time
+from collections import defaultdict
 from datetime import datetime
+from functools import wraps
 from pathlib import Path
 
 from flask import Flask, jsonify, request
 
+from backend.config import ADMIN_TOKEN
 from backend.storage import DATA_DIR, DB_PATH, get_db, get_fetch_stats, get_item_count, get_recent_items
 from backend.fetchers.financial import get_financial_db, get_latest_snapshots, get_series
 from backend.fetchers.macro_dash import build_payload
@@ -43,13 +48,48 @@ from backend.sources.loader import (
 app = Flask(__name__)
 
 # ---------------------------------------------------------------------------
+# Guard for cost-bearing / write routes (advisor brief, academic vote).
+# Fails closed: with no CMM_ADMIN_TOKEN configured, these routes are disabled
+# rather than left open, since this dashboard is otherwise served publicly.
+# ---------------------------------------------------------------------------
+_rate_limit_hits: dict[str, list[float]] = defaultdict(list)
+
+
+def _rate_limited(key: str, max_calls: int, window_seconds: int) -> bool:
+    now = time.monotonic()
+    hits = _rate_limit_hits[key]
+    hits[:] = [t for t in hits if now - t < window_seconds]
+    if len(hits) >= max_calls:
+        return True
+    hits.append(now)
+    return False
+
+
+def require_admin(max_calls: int = 10, window_seconds: int = 3600):
+    def decorator(fn):
+        @wraps(fn)
+        def wrapped(*args, **kwargs):
+            if not ADMIN_TOKEN:
+                return jsonify({"error": "endpoint disabled: set CMM_ADMIN_TOKEN to enable"}), 403
+            supplied = request.headers.get("X-Admin-Token", "")
+            if not hmac.compare_digest(supplied, ADMIN_TOKEN):
+                return jsonify({"error": "unauthorized"}), 401
+            client_ip = request.headers.get("CF-Connecting-IP", request.remote_addr or "unknown")
+            if _rate_limited(f"{fn.__name__}:{client_ip}", max_calls, window_seconds):
+                return jsonify({"error": "rate limit exceeded"}), 429
+            return fn(*args, **kwargs)
+        return wrapped
+    return decorator
+
+
+# ---------------------------------------------------------------------------
 # API endpoints
 # ---------------------------------------------------------------------------
 
 @app.route("/api/news")
 def api_news():
     db = get_db()
-    limit = request.args.get("limit", 50, type=int)
+    limit = max(0, min(request.args.get("limit", 50, type=int), 1000))
     category = request.args.get("category", "")
     q = request.args.get("q", "")
     source = request.args.get("source", "")
@@ -119,7 +159,7 @@ def api_financial_snapshots():
 
 @app.route("/api/financial/series/<indicator>")
 def api_financial_series(indicator):
-    limit = request.args.get("limit", 90, type=int)
+    limit = max(0, min(request.args.get("limit", 90, type=int), 5000))
     conn = get_financial_db()
     data = get_series(conn, indicator, limit)
     conn.close()
@@ -158,7 +198,7 @@ def api_bruegel_snapshots():
 
 @app.route("/api/bruegel/series/<indicator>")
 def api_bruegel_series(indicator):
-    limit = request.args.get("limit", 180, type=int)
+    limit = max(0, min(request.args.get("limit", 180, type=int), 5000))
     conn = get_bruegel_db()
     data = get_bruegel_series(conn, indicator, limit)
     conn.close()
@@ -683,7 +723,7 @@ def api_dissent_events():
         from backend.fetchers.dissent import get_dissent_db, get_recent_events
         conn = get_dissent_db()
         province = request.args.get("province", "")
-        limit = request.args.get("limit", 50, type=int)
+        limit = max(0, min(request.args.get("limit", 50, type=int), 1000))
         events = get_recent_events(conn, limit=limit, province=province)
         conn.close()
         return jsonify(events)
@@ -1014,7 +1054,7 @@ def api_macro_compare():
 def api_academic_articles():
     """List recent academic articles. ?limit=50&journal=&q=&ranked=1"""
     try:
-        limit = request.args.get("limit", 50, type=int)
+        limit = max(0, min(request.args.get("limit", 50, type=int), 1000))
         journal = request.args.get("journal", "")
         q = request.args.get("q", "")
         ranked = request.args.get("ranked", "0") == "1"
@@ -1027,6 +1067,7 @@ def api_academic_articles():
 
 
 @app.route("/api/academic/vote", methods=["POST"])
+@require_admin(max_calls=60, window_seconds=3600)
 def api_academic_vote():
     """Cast a vote on an article. Body: {"article_id": N, "vote": 1|-1|0}"""
     try:
@@ -1124,6 +1165,7 @@ def api_regulations_stats():
 # ---------------------------------------------------------------------------
 
 @app.route("/api/advisor/brief", methods=["POST"])
+@require_admin(max_calls=10, window_seconds=3600)
 def api_advisor_brief():
     """Generate a structured policy brief. Body: {topic: str, days: int}"""
     try:
@@ -1169,6 +1211,15 @@ def api_polity_meeting_news():
         return jsonify({"items": items})
     except Exception as e:
         return jsonify({"error": str(e), "items": []})
+
+
+@app.route("/api/polity/calendar")
+def api_polity_calendar():
+    try:
+        from backend.fetchers.polity_calendar import get_calendar_data
+        return jsonify(get_calendar_data())
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 
 # ---------------------------------------------------------------------------
@@ -1962,9 +2013,9 @@ _CHARTBOOK = Path(__file__).parent.parent / "frontend" / "chartbook.html"
 
 @app.route("/")
 def index():
-    return _DASHBOARD.read_text()
+    return _DASHBOARD.read_text(encoding="utf-8")
 
 
 @app.route("/chartbook")
 def chartbook():
-    return _CHARTBOOK.read_text()
+    return _CHARTBOOK.read_text(encoding="utf-8")

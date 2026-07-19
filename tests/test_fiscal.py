@@ -14,7 +14,7 @@ FIXTURES = Path(__file__).parent / "fixtures" / "fiscal"
 
 
 def _read(name: str) -> str:
-    return (FIXTURES / name).read_text()
+    return (FIXTURES / name).read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------- 收支 monthly

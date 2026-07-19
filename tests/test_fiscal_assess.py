@@ -7,7 +7,7 @@ import pytest
 
 from backend.fetchers import fiscal_assess as fa
 
-SCHEMA = (Path(__file__).parent.parent / "backend" / "schema.sql").read_text()
+SCHEMA = (Path(__file__).parent.parent / "backend" / "schema.sql").read_text(encoding="utf-8")
 
 
 @pytest.fixture()

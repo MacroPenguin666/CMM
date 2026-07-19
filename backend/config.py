@@ -12,6 +12,14 @@ load_dotenv()
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
 # =========================
+# ADMIN TOKEN
+# Gates cost-bearing / write API routes (advisor brief, academic vote) once the
+# dashboard is exposed publicly. Unset => those routes are disabled (fail-closed),
+# not left open. Set to a random secret and send it as the X-Admin-Token header.
+# =========================
+ADMIN_TOKEN = os.getenv("CMM_ADMIN_TOKEN", "")
+
+# =========================
 # OPENSKY NETWORK (flights)
 # Used by: backend.fetchers/flights.py
 # Register at: https://opensky-network.org for higher rate limits (anonymous allowed)

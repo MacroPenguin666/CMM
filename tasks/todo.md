@@ -664,9 +664,34 @@ result dumps, duplicate xlsx of CSVs already ingested.
 ---
 
 ## Open items carried over from archived June tree (added 2026-07-13)
-- [ ] Policy Event Calendar
+- [x] Policy Event Calendar — ✅ DONE (2026-07-19)
 - [ ] Detailed 15-year tracker
 - [ ] Trade simulations using KITE (requires R + KITE package from Hinz, Mahlkow, Wanner — see backend/models/KITE/)
+
+### Review — Political Calendar (2026-07-19)
+Added a "Political Calendar" card to the Political Structure panel: next-event countdown +
+full Party/State historical timeline, with a filter toggle (All/Party/State). No live public
+feed exists for China's political calendar, so it's a curated registry (like PSC membership/
+fiscal_reference) rather than an auto-refreshed fetcher.
+- `backend/fetchers/polity_calendar.py` (new): `EVENTS` — 26 entries covering Party Congresses
+  (17th–21st), 20th CC Plenums 1–4 (+ unscheduled 5th), CCDI annual plenaries, Politburo
+  quarterly economic-review meetings, Two Sessions 2023–2027, CEWC 2023–2026. Every entry is
+  sourced (Xinhua/gov.cn/NPC Observer/etc.); unannounced future events carry `confirmed: False`
+  with either an estimated date (from the recurring cadence, e.g. CEWC ~Dec 10) or, where no
+  pattern gives a reasonable guess (5th Plenum, 21st Congress month/day), no date at all —
+  `get_calendar_data()` buckets into past/upcoming/unscheduled accordingly.
+- `backend/api.py`: `GET /api/polity/calendar`.
+- `frontend/index.html`: card between the PSC grid and State Organs — countdown to the next
+  event, "also upcoming/projected" list, then a full chronological history; each row
+  color-coded by event type with a category chip (Party/State) and a "projected" badge on
+  estimated dates.
+- Tests: `tests/test_polity_calendar.py` (7 tests — field/date sanity, past/upcoming split,
+  API shape) all pass; fixed 3 pre-existing Windows-only `cp1252` read_text() crashes in other
+  test files (test_fiscal.py, test_fiscal_assess.py, test_policy_pipeline.py) hit while running
+  the full suite — same root cause as the `/` and `/chartbook` route 500s fixed earlier this
+  session (`backend/api.py`'s `_DASHBOARD`/`_CHARTBOOK` reads).
+Verified live: `/api/polity/calendar` returns correct buckets, headless Chromium (light+dark)
+confirms the card renders, filter toggle works, no console errors; full suite 130/130 pass.
 
 ### Review — archive reconciliation (2026-07-13)
 Merged the stranded June 4–26 work from ~/Documents/pycharm_archive/PycharmProjects/CMM

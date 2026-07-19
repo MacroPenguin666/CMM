@@ -793,6 +793,23 @@
     <div id="polity-psc" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0;"></div>
   </div>
 
+  <!-- Political calendar: next events + historical timeline, party/state toggle -->
+  <div class="card" style="padding:0;overflow:hidden;margin-bottom:20px;">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;flex-wrap:wrap;gap:12px;">
+      <div>
+        <span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;">Political Calendar</span>
+        <span style="font-size:10px;color:var(--text3);margin-left:8px;">Party &amp; state fixtures · curated, sourced</span>
+      </div>
+      <div id="polity-cal-filters" style="display:flex;gap:6px;margin-left:auto;">
+        <span class="pill active" data-cal-filter="all" onclick="setCalFilter('all')">All</span>
+        <span class="pill" data-cal-filter="party" onclick="setCalFilter('party')">Party</span>
+        <span class="pill" data-cal-filter="state" onclick="setCalFilter('state')">State</span>
+      </div>
+    </div>
+    <div id="polity-cal-next" style="padding:14px 16px;border-bottom:1px solid var(--border);"></div>
+    <div id="polity-cal-timeline" style="padding:14px 16px;max-height:520px;overflow-y:auto;"></div>
+  </div>
+
   <!-- State organs -->
   <div class="card" style="padding:0;overflow:hidden;margin-bottom:20px;">
     <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
@@ -975,7 +992,9 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e =
 
 // ========== Helpers ==========
 const api = p => fetch(p).then(r => r.json());
-const esc = s => s ? s.replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
+const esc = s => s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') : '';
+// Only allow http(s) URLs into href/src — blocks javascript:/data: scheme XSS from scraped content.
+const safeUrl = u => { try { return /^https?:$/i.test(new URL(u, location.href).protocol) ? u : '#'; } catch { return '#'; } };
 const ago = iso => {
   if (!iso) return 'never';
   const d = new Date(iso + (iso.includes('Z')||iso.includes('+')?'':'Z'));
@@ -1335,7 +1354,7 @@ function fypTargetCard(t) {
     + '<div style="font-size:11px;color:var(--text2);">' + statusHtml + '</div>'
     + '<div style="font-size:10px;color:var(--text3);margin-top:auto;">'
     +   'baseline ' + t.baseline + ' (' + t.baseline_period + ') · latest: ' + esc(String(latestLabel))
-    +   ' · <a href="' + esc(src.source_url || '#') + '" target="_blank" rel="noopener" style="color:var(--text3);">' + esc(src.source || '') + '</a>'
+    +   ' · <a href="' + esc(safeUrl(src.source_url || '#')) + '" target="_blank" rel="noopener" style="color:var(--text3);">' + esc(src.source || '') + '</a>'
     + '</div>'
     + '</div>';
 }
@@ -1857,7 +1876,7 @@ async function fypLoadDemand() {
     + '</div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:16px;">Every point follows the stored plan text section by section (第五篇, chapters 15–17'
     + (d.doc_published ? ', published ' + esc(d.doc_published) : '') + '). '
-    + 'Sources: <a href="' + esc(d.doc_url) + '" target="_blank" rel="noopener" style="color:var(--text3);">15th FYP outline full text (gov.cn, stored in policy_docs)</a>'
+    + 'Sources: <a href="' + esc(safeUrl(d.doc_url)) + '" target="_blank" rel="noopener" style="color:var(--text3);">15th FYP outline full text (gov.cn, stored in policy_docs)</a>'
     + ' · related documents from the ministry policy pipeline (5,800+ full texts) · macro series from the Global Macro Database.</div>';
 
   FYPD_STAGE.bind(wrap);
@@ -1874,7 +1893,7 @@ function fypdDocList(docs) {
   if (!docs || !docs.length)
     return '<div style="font-size:11px;color:var(--text3);">No matching documents in policy_docs yet.</div>';
   return docs.map(dd =>
-    '<a href="' + esc(dd.url) + '" target="_blank" rel="noopener" style="display:block;padding:7px 10px;background:var(--surface2);border-radius:8px;margin-bottom:6px;text-decoration:none;">'
+    '<a href="' + esc(safeUrl(dd.url)) + '" target="_blank" rel="noopener" style="display:block;padding:7px 10px;background:var(--surface2);border-radius:8px;margin-bottom:6px;text-decoration:none;">'
     + '<div style="font-size:11px;color:var(--text);line-height:1.45;">' + esc(dd.title) + '</div>'
     + '<div style="font-size:9.5px;color:var(--text3);margin-top:2px;">' + esc((dd.ministry || '').toUpperCase())
     + (dd.instrument_type ? ' · ' + esc(dd.instrument_type) : '')
@@ -1915,7 +1934,7 @@ function fypdTargetCard(t) {
     + '<div style="font-size:10.5px;color:var(--text2);line-height:1.45;">' + esc(r.note) + '</div>'
     + '<div style="font-size:9.5px;color:var(--text3);">baseline ' + t.baseline + ' (' + esc(String(t.baseline_period)) + ')'
     + (latest ? ' · latest ' + (+latest.value.toFixed(2)) + ' (' + esc(String(latest.period)) + ')' : '')
-    + ' · <a href="' + esc(t.source_url) + '" target="_blank" rel="noopener" style="color:var(--text3);">' + esc(t.history_source || 'source') + '</a></div>'
+    + ' · <a href="' + esc(safeUrl(t.source_url)) + '" target="_blank" rel="noopener" style="color:var(--text3);">' + esc(t.history_source || 'source') + '</a></div>'
     + '</div>';
 }
 
@@ -1939,7 +1958,7 @@ function fypdMilestones(ms) {
     +   (m.date ? esc(m.date) : '<span style="color:var(--accent);">pending</span>') + '</div>'
     + '<div style="border-left:2px solid var(--border);padding-left:10px;">'
     +   '<div style="font-size:11.5px;font-weight:700;color:var(--text);line-height:1.35;">'
-    +     (m.url ? '<a href="' + esc(m.url) + '" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none;">' + esc(m.title_en) + ' ↗</a>' : esc(m.title_en))
+    +     (m.url ? '<a href="' + esc(safeUrl(m.url)) + '" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none;">' + esc(m.title_en) + ' ↗</a>' : esc(m.title_en))
     +   '</div>'
     +   '<div style="font-size:9.5px;color:var(--text3);margin:1px 0 2px;">' + esc(m.title_cn) + '</div>'
     +   '<div style="font-size:10.5px;color:var(--text2);line-height:1.5;">' + esc(m.note) + '</div>'
@@ -1966,7 +1985,7 @@ function fypdHubPanel() {
     + fypdPlanText(h.preamble)
     + fypSection('Key documents')
     + fypdDocList(h.docs)
-    + '<div style="font-size:10px;color:var(--text3);margin-top:10px;"><a href="' + esc(d.doc_url) + '" target="_blank" rel="noopener" style="color:var(--text3);">Full outline text (gov.cn) ↗</a></div>';
+    + '<div style="font-size:10px;color:var(--text3);margin-top:10px;"><a href="' + esc(safeUrl(d.doc_url)) + '" target="_blank" rel="noopener" style="color:var(--text3);">Full outline text (gov.cn) ↗</a></div>';
 }
 
 function fypdSectionPanel(id) {
@@ -2884,7 +2903,7 @@ async function loadOverview() {
     hl.innerHTML = ov.headlines.map(h => `
       <div class="headline-item">
         <span class="hl-source">${esc(h.source)}</span>
-        <div class="hl-title"><a href="${esc(h.link)}" target="_blank">${esc(h.title)}</a></div>
+        <div class="hl-title"><a href="${esc(safeUrl(h.link))}" target="_blank">${esc(h.title)}</a></div>
       </div>`).join('');
   } else { hl.innerHTML = '<div class="empty">No news yet</div>'; }
 
@@ -2925,7 +2944,7 @@ const loadNews = async () => {
   el.innerHTML = items.map(i=>`
     <div class="news-item">
       <div class="ni-top"><span class="source">${esc(i.source)}</span><span class="time">${ago(i.fetched_at)}</span></div>
-      <div class="title"><a href="${esc(i.link)}" target="_blank">${esc(i.title)}</a></div>
+      <div class="title"><a href="${esc(safeUrl(i.link))}" target="_blank">${esc(i.title)}</a></div>
       ${i.summary?'<div class="summary">'+esc(i.summary)+'</div>':''}
     </div>`).join('');
 };
@@ -3124,7 +3143,7 @@ function renderSources(filter) {
       <td>${ftBadge}</td>
       <td>${syncText}</td>
       <td style="font-variant-numeric:tabular-nums">${s.sync_items||'—'}</td>
-      <td><a href="${esc(url)}" target="_blank" style="font-size:11px">${esc(urlDisplay)}</a></td>
+      <td><a href="${esc(safeUrl(url))}" target="_blank" style="font-size:11px">${esc(urlDisplay)}</a></td>
     </tr>`;
   }).join('');
 }
@@ -3496,7 +3515,7 @@ function loadAcademic() {
               <span class="source">${esc(a.journal)}</span>
               <span class="time">${a.published ? esc(a.published) : ago(a.fetched_at)}</span>
             </div>
-            <div class="title"><a href="${esc(a.link)}" target="_blank">${esc(a.title)}</a></div>
+            <div class="title"><a href="${esc(safeUrl(a.link))}" target="_blank">${esc(a.title)}</a></div>
             ${a.authors ? '<div class="summary" style="font-style:italic;">' + esc(a.authors) + '</div>' : ''}
             ${a.abstract ? '<div class="summary">' + esc(a.abstract.length > 300 ? a.abstract.substring(0,297) + '...' : a.abstract) + '</div>' : ''}
             ${a.china_match && a.china_match !== 'all' ? '<div style="font-size:9px;color:var(--accent);margin-top:2px;">Match: ' + esc(a.china_match) + '</div>' : ''}
@@ -3611,7 +3630,7 @@ function renderMofcom(docs) {
             + '<th>Title</th><th>Type</th><th>Date</th>'
             + '</tr></thead><tbody>';
       rows.forEach(d => {
-        const link = d.url ? '<a href="' + esc(d.url) + '" target="_blank">' + esc(d.title) + '</a>' : esc(d.title);
+        const link = d.url ? '<a href="' + esc(safeUrl(d.url)) + '" target="_blank">' + esc(d.title) + '</a>' : esc(d.title);
         html += '<tr><td>' + link + '</td>'
               + '<td><span class="reg-type">' + esc(d.doc_type||'—') + '</span></td>'
               + '<td class="reg-date">' + esc(d.issue_date||'—') + '</td></tr>';
@@ -3657,7 +3676,7 @@ function renderNpc(bills) {
       const sc = STATUS_CLASS[b.status] || 'status-other';
       const sl = STATUS_LABEL[b.status] || b.status || '—';
       const titleLink = b.url
-        ? '<a href="' + esc(b.url) + '" target="_blank">' + esc(b.title) + '</a>'
+        ? '<a href="' + esc(safeUrl(b.url)) + '" target="_blank">' + esc(b.title) + '</a>'
         : esc(b.title);
       html += '<div class="bill-row">';
       html += '<div class="bill-header">';
@@ -4378,6 +4397,8 @@ document.getElementById('tariff-year').addEventListener('change', e => {
 let polityData = null;
 let polityCareerData = null;
 let polityFilter = null;
+let polityCalData = null;
+let polityCalFilter = 'all';
 
 const TRAJ_CONGRESSES = ['15th CC','16th CC','17th CC','18th CC','19th CC','20th CC'];
 const TRAJ_LEVEL_COLOR = { cc_alt:'#6b7280', cc:'#3b82f6', pb:'#f59e0b', psc:'#d4483b' };
@@ -4414,6 +4435,7 @@ async function loadPolity() {
 
   loadHistoricalPSC();
   loadPurgeHeatmap();
+  loadPolityCalendar();
 }
 
 function setPolityFilter(name) {
@@ -4446,7 +4468,10 @@ function renderPSC() {
       style="padding:12px 16px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);cursor:pointer;transition:background 0.12s;opacity:${dimmed?'0.35':'1'};background:${active?'var(--surface2)':''};"
       onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='${active?'var(--surface2)':''}'">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-        <div style="width:20px;height:20px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;flex-shrink:0;">${m.rank}</div>
+        <div style="position:relative;flex-shrink:0;">
+          ${m.photo_url ? `<img src="${esc(safeUrl(m.photo_url))}" alt="${esc(m.name)}" loading="lazy" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:var(--surface2);display:block;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">` : ''}
+          <div style="width:20px;height:20px;border-radius:50%;background:var(--accent);align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;${m.photo_url ? 'display:none;position:absolute;bottom:-2px;right:-2px;border:1.5px solid var(--surface);' : 'display:flex;'}">${m.rank}</div>
+        </div>
         <span style="font-weight:700;font-size:13px;">${esc(m.name)}</span>
         <span style="font-size:10px;color:var(--text3);">${esc(m.name_cn)}</span>
       </div>
@@ -4651,6 +4676,96 @@ async function loadPurgeHeatmap() {
     ${bodyRows}
     ${legendHtml}
   </div>`;
+}
+
+// --- Political calendar: next event + party/state historical timeline ---
+async function loadPolityCalendar() {
+  const nextEl = document.getElementById('polity-cal-next');
+  const tlEl = document.getElementById('polity-cal-timeline');
+  nextEl.innerHTML = '<div style="color:var(--text3);font-size:11px;">Loading…</div>';
+  tlEl.innerHTML = '';
+  try { polityCalData = await api('/api/polity/calendar'); }
+  catch (e) {
+    nextEl.innerHTML = `<div style="color:var(--text3);font-size:11px;">Unavailable: ${e}</div>`;
+    return;
+  }
+  renderPolityCalendar();
+}
+
+function setCalFilter(f) {
+  polityCalFilter = f;
+  document.querySelectorAll('#polity-cal-filters .pill').forEach(p =>
+    p.classList.toggle('active', p.dataset.calFilter === f));
+  renderPolityCalendar();
+}
+
+function calDaysUntil(dateStr) {
+  const ms = new Date(dateStr + 'T00:00:00Z') - new Date(polityCalData.today + 'T00:00:00Z');
+  return Math.round(ms / 86400000);
+}
+
+function calEventRow(ev, opts) {
+  opts = opts || {};
+  const dateLabel = ev.date_start
+    ? (ev.date_start === ev.date_end || !ev.date_end ? ev.date_start : `${ev.date_start} → ${ev.date_end}`)
+    : (ev.date_note || 'Unscheduled');
+  const catLabel = ev.category === 'party' ? 'Party' : 'State';
+  return `<div style="display:flex;gap:10px;padding:${opts.big ? '10px 0' : '7px 0'};${opts.border !== false ? 'border-bottom:1px solid var(--border);' : ''}">
+    <div style="width:9px;height:9px;border-radius:50%;background:${ev.type_color};margin-top:4px;flex-shrink:0;" title="${esc(ev.type_label)}"></div>
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+        <span style="font-weight:${opts.big ? 700 : 600};font-size:${opts.big ? 13 : 12}px;">${esc(ev.name)}</span>
+        ${ev.name_cn ? `<span style="font-size:10px;color:var(--text3);">${esc(ev.name_cn)}</span>` : ''}
+        <span style="font-size:9px;color:var(--text3);border:1px solid var(--border);border-radius:3px;padding:0 4px;">${catLabel}</span>
+        ${!ev.confirmed ? `<span style="font-size:9px;color:var(--accent2);border:1px solid rgba(232,168,56,0.35);border-radius:3px;padding:0 4px;">projected</span>` : ''}
+      </div>
+      <div style="font-size:10px;color:var(--text2);margin-top:2px;">${esc(dateLabel)}</div>
+      ${opts.big ? `<div style="font-size:11px;color:var(--text2);margin-top:4px;">${esc(ev.summary)}</div>` : ''}
+      ${opts.big && ev.source ? `<a href="${esc(safeUrl(ev.source))}" target="_blank" rel="noopener" style="font-size:10px;color:var(--blue);">source ↗</a>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderPolityCalendar() {
+  const d = polityCalData;
+  if (!d) return;
+  const nextEl = document.getElementById('polity-cal-next');
+  const tlEl = document.getElementById('polity-cal-timeline');
+  const passFilter = ev => polityCalFilter === 'all' || ev.category === polityCalFilter;
+
+  const upcoming = d.upcoming.filter(passFilter);
+  const unscheduled = d.unscheduled.filter(passFilter);
+  const past = d.past.filter(passFilter);
+
+  const next = upcoming[0];
+  if (next) {
+    const days = calDaysUntil(next.date_start);
+    nextEl.innerHTML = `<div style="display:flex;align-items:center;gap:14px;">
+      <div style="text-align:center;flex-shrink:0;min-width:56px;">
+        <div style="font-size:22px;font-weight:800;color:var(--accent);">${days}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;">days</div>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Next up</div>
+        ${calEventRow(next, {big: true, border: false})}
+      </div>
+    </div>`;
+  } else {
+    nextEl.innerHTML = `<div style="font-size:11px;color:var(--text3);">No confirmed upcoming events in this filter.</div>`;
+  }
+
+  const upcomingRest = upcoming.slice(1);
+  const sections = [];
+  if (upcomingRest.length || unscheduled.length) {
+    sections.push(`<div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin:4px 0 6px;">Also upcoming / projected</div>`);
+    sections.push(upcomingRest.concat(unscheduled).map(ev => calEventRow(ev)).join(''));
+  }
+  sections.push(`<div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 6px;">History</div>`);
+  sections.push(past.length
+    ? past.map(ev => calEventRow(ev)).join('')
+    : `<div style="font-size:11px;color:var(--text3);">No past events in this filter.</div>`);
+
+  tlEl.innerHTML = sections.join('');
 }
 
 document.querySelector('[data-panel="polity"]').addEventListener('click', () => { loadPolity(); }, {once: true});

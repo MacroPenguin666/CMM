@@ -16,7 +16,7 @@ from backend.fetchers.policy_content import (_find_doc_number, extract_article,
                                              fetch_one)
 
 FIXTURES = Path(__file__).parent / "fixtures"
-META = json.loads((FIXTURES / "meta.json").read_text())
+META = json.loads((FIXTURES / "meta.json").read_text(encoding="utf-8"))
 
 
 # ---------------------------------------------------------------------------

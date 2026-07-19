@@ -33,7 +33,7 @@ RUNNERS = [
 
 
 def apply_schema():
-    ddl = SCHEMA_PATH.read_text()
+    ddl = SCHEMA_PATH.read_text(encoding="utf-8")
     conn = sqlite3.connect(DB_PATH)
     conn.executescript(ddl)
     conn.close()

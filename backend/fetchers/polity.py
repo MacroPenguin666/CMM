@@ -17,6 +17,7 @@ PSC_MEMBERS = [
         "organs": ["cmc"],
         "leads": ["foreign_affairs", "taiwan", "internet", "national_security",
                   "deepening_reform", "defence_reform", "finance_economy", "military_civil"],
+        "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Xi_Jinping_meets_Putin_May_2026.jpg/330px-Xi_Jinping_meets_Putin_May_2026.jpg",
     },
     {
         "rank": 2,
@@ -25,6 +26,7 @@ PSC_MEMBERS = [
         "primary_role": "Premier, State Council",
         "organs": ["state_council"],
         "leads": [],
+        "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Li_Qiang_meets_Keir_Starmer_Jan_2026.jpg/330px-Li_Qiang_meets_Keir_Starmer_Jan_2026.jpg",
     },
     {
         "rank": 3,
@@ -33,6 +35,7 @@ PSC_MEMBERS = [
         "primary_role": "Chairman, NPC Standing Committee",
         "organs": ["npc"],
         "leads": [],
+        "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Zhao_Leji_meets_Keir_Starmer_Jan_2026.jpg/330px-Zhao_Leji_meets_Keir_Starmer_Jan_2026.jpg",
     },
     {
         "rank": 4,
@@ -41,6 +44,7 @@ PSC_MEMBERS = [
         "primary_role": "Chairman, CPPCC",
         "organs": ["cppcc"],
         "leads": [],
+        "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Wang_Huning_2025_National_People%27s_Congress.jpg/330px-Wang_Huning_2025_National_People%27s_Congress.jpg",
     },
     {
         "rank": 5,
@@ -49,6 +53,7 @@ PSC_MEMBERS = [
         "primary_role": "Director, CCP Central Secretariat",
         "organs": [],
         "leads": [],
+        "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/2025%E5%B9%B4%E8%94%A1%E5%A5%87%E4%B9%A6%E8%AE%B0.jpg/330px-2025%E5%B9%B4%E8%94%A1%E5%A5%87%E4%B9%A6%E8%AE%B0.jpg",
     },
     {
         "rank": 6,
@@ -57,6 +62,7 @@ PSC_MEMBERS = [
         "primary_role": "Executive Vice Premier",
         "organs": ["state_council"],
         "leads": ["finance_economy"],
+        "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Ding_Xuexiang_%2820230313%29.jpg/330px-Ding_Xuexiang_%2820230313%29.jpg",
     },
     {
         "rank": 7,
@@ -65,6 +71,7 @@ PSC_MEMBERS = [
         "primary_role": "Secretary, CCDI",
         "organs": ["supervision"],
         "leads": [],
+        "photo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Li_Xi_%28cropped%29_%282025%29_01.jpg/330px-Li_Xi_%28cropped%29_%282025%29_01.jpg",
     },
 ]
 
